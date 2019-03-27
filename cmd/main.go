@@ -7,14 +7,14 @@
 package main
 
 import (
-	"github.com/edgexfoundry/device-mqtt-go"
-	"github.com/edgexfoundry/device-mqtt-go/internal/driver"
 	"github.com/edgexfoundry/device-sdk-go/pkg/startup"
+	"github.impcloud.net/Responsive-Retail-Inventory/gateway-device-service"
+	"github.impcloud.net/Responsive-Retail-Inventory/gateway-device-service/internal/driver"
 )
 
 const (
 	version     string = device_mqtt.Version
-	serviceName string = "edgex-device-mqtt"
+	serviceName string = "gateway-device-service"
 )
 
 func main() {

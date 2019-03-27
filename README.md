@@ -63,5 +63,5 @@ make run
 
 ## build image
 ```bash
-docker build -t edgexfoundry/docker-device-mqtt-go:0.1.0 .
+docker build -t edgexfoundry/docker-gateway-device-service:0.1.0 .
 ```
