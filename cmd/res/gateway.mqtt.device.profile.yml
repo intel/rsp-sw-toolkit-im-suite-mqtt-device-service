@@ -1,10 +1,20 @@
-name: "Test.Device.MQTT.Profile"
-manufacturer: "Dell"
-model: "MQTT-2"
+name: "Gateway.Device.MQTT.Profile"
+manufacturer: "Intel"
+model: "MQTT-Gateway"
 labels:
-- "test"
-description: "Test device profile"
+- "RFID"
+description: "RFID Gateway MQTT Device Service"
 deviceResources:
+-
+  name: gwevent
+  description: "Gateway Event"
+  attributes:
+    { name: "gwevent" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
 -
   name: randnum
   description: "device random number"
@@ -51,6 +61,10 @@ resources:
   - { index: "1", operation: "get", object: "message", parameter: "message", property: "value" }
   set:
   - { index: "1", operation: "set", object: "message", parameter: "message", property: "value" }
+-
+  name: gwevent
+  get:
+  - { index: "1", operation: "get", object: "gwevent", parameter: "gwevent", property: "value" }
 
 commands:
 -

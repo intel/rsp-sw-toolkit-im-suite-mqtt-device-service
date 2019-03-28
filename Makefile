@@ -37,7 +37,9 @@ run: gateway-device-service.docker
 
 EDGEX_NETWORK:=$(shell docker network ls -qf name=edgex-network)
 override docker_args += --name gateway-device-service \
-	-d -p "49982:49982" --net $(EDGEX_NETWORK)
+	-d -p "49982:49982" --net $(EDGEX_NETWORK) -v $(GOPATH)/src/$(SRC_PATH)/cmd/res:/res \
+	-e no_proxy="*" -e NO_PROXY="*" \
+	--add-host "mosquitto-server:192.168.99.100"
 override cmd_args += --profile=dev --confdir=/res
 dev: gateway-device-service.docker
 	docker rm gateway-device-service || true

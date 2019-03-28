@@ -46,14 +46,16 @@ func startCommandResponseListening() error {
 
 	driver.Logger.Info("[Response listener] Start command response listening. ")
 	select {}
-
-	return nil
 }
 
 func onCommandResponseReceived(client mqtt.Client, message mqtt.Message) {
 	var response map[string]interface{}
 
-	json.Unmarshal(message.Payload(), &response)
+	if err := json.Unmarshal(message.Payload(), &response); err != nil {
+		driver.Logger.Error(fmt.Sprintf("[Response listener] Unmarshal failed: %+v", err))
+		return
+	}
+
 	uuid, ok := response["uuid"].(string)
 	if ok {
 		driver.CommandResponses[uuid] = string(message.Payload())

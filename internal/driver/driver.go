@@ -7,6 +7,7 @@
 package driver
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -69,14 +70,14 @@ func (d *Driver) Initialize(lc logger.LoggingClient, asyncCh chan<- *sdkModel.As
 	go func() {
 		err := startCommandResponseListening()
 		if err != nil {
-			panic(fmt.Errorf("start command response Listener failed: %v", err))
+			panic(fmt.Errorf("start command response Listener failed: %+v", err))
 		}
 	}()
 
 	go func() {
 		err := startIncomingListening()
 		if err != nil {
-			panic(fmt.Errorf("start incoming data Listener failed: %v", err))
+			panic(fmt.Errorf("start incoming data Listener failed: %+v", err))
 		}
 	}()
 
@@ -157,7 +158,9 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 	driver.Logger.Info(fmt.Sprintf("Parse command response: %v", cmdResponse))
 
 	var response map[string]interface{}
-	json.Unmarshal([]byte(cmdResponse), &response)
+	if err := json.Unmarshal([]byte(cmdResponse), &response); err != nil {
+		return nil, err
+	}
 	reading, ok := response[req.DeviceObject.Name]
 	if !ok {
 		err = fmt.Errorf("can not fetch command reading: method=%v cmd=%v", method, cmd)
@@ -167,10 +170,9 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 	result, err = newResult(req.DeviceObject, req.RO, reading)
 	if err != nil {
 		return result, err
-	} else {
-		driver.Logger.Info(fmt.Sprintf("Get command finished: %v", result))
 	}
 
+	driver.Logger.Info(fmt.Sprintf("Get command finished: %v", result))
 	return result, err
 }
 
@@ -224,9 +226,8 @@ func (d *Driver) handleWriteCommandRequest(deviceClient MQTT.Client, req sdkMode
 	commandValue, err := newCommandValue(req.DeviceObject, param)
 	if err != nil {
 		return err
-	} else {
-		data[cmd] = commandValue
 	}
+	data[cmd] = commandValue
 
 	jsonData, err := json.Marshal(data)
 	if err != nil {
@@ -237,7 +238,7 @@ func (d *Driver) handleWriteCommandRequest(deviceClient MQTT.Client, req sdkMode
 
 	driver.Logger.Info(fmt.Sprintf("Publish command: %v", string(jsonData)))
 
-	//wait and fetch response from CommandResponses map
+	// wait and fetch response from CommandResponses map
 	var cmdResponse string
 	var ok bool
 	for i := 0; i < 5; i++ {
@@ -282,6 +283,7 @@ func createClient(clientID string, uri *url.URL, keepAlive int) (MQTT.Client, er
 			driver.Logger.Warn(fmt.Sprintf("Reconnection sucessful"))
 		}
 	})
+	opts.SetTLSConfig(&tls.Config{InsecureSkipVerify: true})
 
 	client := MQTT.NewClient(opts)
 	token := client.Connect()

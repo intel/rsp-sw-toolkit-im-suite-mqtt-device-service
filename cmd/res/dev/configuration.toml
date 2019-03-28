@@ -1,81 +1,74 @@
+# used to configured the Service & Addressable in the MetaData service
+
 [Service]
-Host = "localhost"
+Host = "ajsaites-desk.amr.corp.intel.com"
 Port = 49982
 ConnectRetries = 3
 Labels = []
-OpenMsg = "device mqtt started"
+OpenMsg = "gateway device service started"
 ReadMaxLimit = 256
 Timeout = 5000
 EnableAsyncReadings = true
 AsyncBufferSize = 16
 
 [Registry]
-Host = "localhost"
+Host = "192.168.99.101"
 Port = 8500
 CheckInterval = "10s"
 FailLimit = 3
 FailWaitTime = 10
+Type = "consul"
 
 [Clients]
   [Clients.Data]
   Name = "edgex-core-data"
   Protocol = "http"
-  Host = "localhost"
+  Host = "192.168.99.101"
   Port = 48080
   Timeout = 50000
 
   [Clients.Metadata]
   Name = "edgex-core-metadata"
   Protocol = "http"
-  Host = "localhost"
+  Host = "192.168.99.101"
   Port = 48081
   Timeout = 50000
 
   [Clients.Logging]
   Name = "edgex-support-logging"
   Protocol = "http"
-  Host = "localhost"
+  Host = "192.168.99.101"
   Port = 48061
 
 [Device]
   DataTransform = true
+  ProfilesDir = "./res"
   InitCmd = ""
   InitCmdArgs = ""
+  # probably will need to increase these significantly
   MaxCmdOps = 128
   MaxCmdValueLen = 256
   RemoveCmd = ""
   RemoveCmdArgs = ""
-  ProfilesDir = "./res/example"
 
 [Logging]
-EnableRemote = false
-File = "./device-mqtt.log"
+EnableRemote = true
+File = "./device-gateway-mqtt.log"
 Level = "DEBUG"
 
 # Pre-define Devices
 [[DeviceList]]
-  Name = "MQTT test device"
-  Profile = "Test.Device.MQTT.Profile"
-  Description = "MQTT device is created for test purpose"
-  Labels = [ "MQTT", "test"]
+  Name = "rrs-gateway"
+  Profile = "Gateway.Device.MQTT.Profile"
+  Description = "Gateway Device MQTT Broker Connection"
+  Labels = [ "MQTT", "Gateway", "RFID"]
   [DeviceList.Addressable]
-    name = "Gateway address"
+    Name = "Gateway address"
     Protocol = "TCP"
-    Address = "0.0.0.0"
-    Port = 1883
+    Address = "192.168.99.100"
+    Port = 9883
     Publisher = "CommandPublisher"
-    user = "admin"
-    password = "public"
-    topic = "CommandTopic"
+    User = "saf"
+    Password = "xA18HiKy218Lm28YklwIBHaALFgYrbnNa1XIHb3ntyTib9Stm4PyC74nh7Ic1vz"
+    Topic = "rfid/edgex/command"
 
-# Pre-define Schedule Configuration
-[[Schedules]]
-Name = "mqtt-30sec-schedule"
-Frequency = "PT30S"
-
-[[ScheduleEvents]]
-Name = "readRandnum"
-Schedule = "mqtt-30sec-schedule"
-  [ScheduleEvents.Addressable]
-  HTTPMethod = "GET"
-  Path = "/api/v1/device/name/MQTT test device/testrandnum"

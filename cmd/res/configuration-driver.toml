@@ -1,21 +1,23 @@
+# TODO: read these passwords from a file? probably the whole config...
+# configures settings for this service (probably could be derived from the service config)
 [Incoming]
-Protocol = "tcp"
-Host = "0.0.0.0"
-Port = 1883
-Username = "admin"
-Password = "public"
-Qos = 0
+Protocol = "tls"
+Host = "mosquitto-server"
+Port = 9883
+Username = "saf"
+Password = "xA18HiKy218Lm28YklwIBHaALFgYrbnNa1XIHb3ntyTib9Stm4PyC74nh7Ic1vz"
+Qos = 1
 KeepAlive = 3600
 MqttClientId = "IncomingDataSubscriber"
-Topic = "DataTopic"
+Topic = "rfid/gw/events"
 
 [Response]
-Protocol = "tcp"
-Host = "0.0.0.0"
-Port = 1883
-Username = "admin"
-Password = "public"
-Qos = 0
+Protocol = "tls"
+Host = "mosquitto-server"
+Port = 9883
+Username = "saf"
+Password = "xA18HiKy218Lm28YklwIBHaALFgYrbnNa1XIHb3ntyTib9Stm4PyC74nh7Ic1vz"
+Qos = 1
 KeepAlive = 3600
 MqttClientId = "CommandResponseSubscriber"
 Topic = "ResponseTopic"

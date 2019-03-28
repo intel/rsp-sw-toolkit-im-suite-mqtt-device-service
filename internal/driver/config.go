@@ -35,11 +35,11 @@ func LoadConfigFromFile() (*configuration, error) {
 	config := new(configuration)
 
 	confDir := flag.Lookup("confdir").Value.(flag.Getter).Get().(string)
-	if len(confDir) == 0 {
+	if confDir == "" {
 		confDir = flag.Lookup("c").Value.(flag.Getter).Get().(string)
 	}
 
-	if len(confDir) == 0 {
+	if confDir == "" {
 		confDir = "./res"
 	}
 

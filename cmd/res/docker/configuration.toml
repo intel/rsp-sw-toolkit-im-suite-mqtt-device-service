@@ -1,9 +1,11 @@
+# used to configured the Service & Addressable in the MetaData service
+
 [Service]
-Host = "edgex-device-mqtt"
+Host = "gateway-device-service"
 Port = 49982
 ConnectRetries = 3
 Labels = []
-OpenMsg = "device simple started"
+OpenMsg = "gateway device service started"
 ReadMaxLimit = 256
 Timeout = 5000
 EnableAsyncReadings = true
@@ -15,6 +17,7 @@ Port = 8500
 CheckInterval = "10s"
 FailLimit = 3
 FailWaitTime = 10
+Type = "consul"
 
 [Clients]
   [Clients.Data]
@@ -39,15 +42,32 @@ FailWaitTime = 10
 
 [Device]
   DataTransform = true
+  ProfilesDir = "./res"
   InitCmd = ""
   InitCmdArgs = ""
   MaxCmdOps = 128
   MaxCmdValueLen = 256
   RemoveCmd = ""
   RemoveCmdArgs = ""
-  ProfilesDir = ""
 
 [Logging]
-EnableRemote = false
+EnableRemote = true
 File = "./device-mqtt.log"
-Level = "INFO"
+
+[Writable]
+LogLevel = "DEBUG"
+
+[[DeviceList]]
+  Name = "Gateway"
+  Profile = "Gateway.Device.MQTT.Profile"
+  Description = "Gateway Device MQTT Broker Connection"
+  Labels = [ "MQTT", "Gateway", "RFID"]
+  [DeviceList.Protocols]
+    [DeviceList.Protocols.mqtt]
+       Schema = "tls"
+       Host = "192.168.99.100"
+       Port = "9883"
+       ClientId = "CommandPublisher"
+       User = "docker"
+       Password = "docker-password"
+       Topic = "CommandTopic"
