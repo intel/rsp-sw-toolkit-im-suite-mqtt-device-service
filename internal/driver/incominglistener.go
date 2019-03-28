@@ -9,7 +9,6 @@ package driver
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
 	"net/url"
 	"strings"
 
@@ -27,7 +26,7 @@ func startIncomingListening() error {
 	var mqttClientId = driver.Config.Incoming.MqttClientId
 	var qos = byte(driver.Config.Incoming.Qos)
 	var keepAlive = driver.Config.Incoming.KeepAlive
-	var topic = driver.Config.Incoming.Topic
+	var topics = driver.Config.Incoming.Topics
 
 	uri := &url.URL{
 		Scheme: strings.ToLower(scheme),
@@ -41,73 +40,68 @@ func startIncomingListening() error {
 		return err
 	}
 
-	token := client.Subscribe(topic, qos, onIncomingDataReceived)
-	if token.Wait() && token.Error() != nil {
-		driver.Logger.Info(
-			fmt.Sprintf("[Incoming listener] Stop incoming data listening. Cause:%v",
-				token.Error(),
-			),
-		)
-		return token.Error()
+	for _, topic := range topics {
+		token := client.Subscribe(topic, qos, onIncomingDataReceived)
+		if token.Wait() && token.Error() != nil {
+			driver.Logger.Info(
+				fmt.Sprintf("[Incoming listener] Stop incoming data listening. Cause:%v",
+					token.Error(),
+				),
+			)
+			return token.Error()
+		}
 	}
 
 	driver.Logger.Info("[Incoming listener] Start incoming data listening.")
 	select {}
 }
 
-type TagEvent struct {
-	EpcCode         string `json:"epc_code"`
-	Tid             string `json:"tid"`
-	EpcEncodeFormat string `json:"epc_encode_format"`
-	FacilityID      string `json:"facility_id"`
-	Location        string `json:"location"`
-	EventType       string `json:"event_type,omitempty"`
-	Timestamp       int64  `json:"timestamp"`
-}
-
-type JSONRPC struct {
+type JSONNotification struct {
 	Version string `json:"jsonrpc"`
 	Method  string
-	Params  json.RawMessage
+	Params  EitherID
 }
 
-type GatewayEventIn struct {
-	GatewayID     string `json:"gateway_id"`
-	SentOn        int64  `json:"sent_on"`
-	TotalSegments int    `json:"total_event_segments"`
-	SegmentNumber int    `json:"event_segment_number"`
-	// Data          []TagEvent
-	Data json.RawMessage
+type eitherID string
+type EitherID struct {
+	GatewayID *eitherID `json:"gateway_id"`
+	DeviceID  *eitherID `json:"device_id"`
 }
 
-func (jrpc *JSONRPC) process() (gwEvent GatewayEventIn, err error) {
-	if jrpc.Version != "2.0" {
-		err = errors.Errorf("invalid version: %s", jrpc.Version)
-		return
+func (id *eitherID) isNilOrEmpty() bool {
+	return id == nil || *id == ""
+}
+
+func (jn *JSONNotification) getID() string {
+	if jn == nil {
+		return ""
 	}
-	switch jrpc.Method {
-	case "inventory_event":
-		err = json.Unmarshal(jrpc.Params, &gwEvent)
-	default:
-		err = errors.Errorf("unknown method: %s", jrpc.Method)
+	if !jn.Params.GatewayID.isNilOrEmpty() {
+		return string(*(jn.Params.GatewayID))
 	}
-	return
+	if !jn.Params.DeviceID.isNilOrEmpty() {
+		return string(*(jn.Params.DeviceID))
+	}
+	return ""
 }
 
 func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
-	var jrpc JSONRPC
-	if err := json.Unmarshal(message.Payload(), &jrpc); err != nil {
+	var jn JSONNotification
+	if err := json.Unmarshal(message.Payload(), &jn); err != nil {
 		driver.Logger.Error(fmt.Sprintf("Unmarshal failed: %+v", err))
 		return
 	}
 
-	gwEvent, err := jrpc.process()
-	if err != nil {
-		driver.Logger.Error(fmt.Sprintf("Processing failed: %+v", err))
+	if jn.Version != "2.0" {
+		driver.Logger.Error(fmt.Sprintf("Invalid version: %s", jn.Version))
 		return
 	}
 
-	deviceName := gwEvent.GatewayID
+	deviceName := jn.getID()
+	if deviceName == "" {
+		driver.Logger.Error("Message is missing a device/gateway ID")
+		return
+	}
 	cmd := "gwevent"
 	reading := string(message.Payload())
 

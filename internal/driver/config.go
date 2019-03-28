@@ -18,6 +18,7 @@ type configuration struct {
 	Incoming SubscribeInfo
 	Response SubscribeInfo
 }
+
 type SubscribeInfo struct {
 	Protocol     string
 	Host         string
@@ -27,7 +28,7 @@ type SubscribeInfo struct {
 	Qos          int
 	KeepAlive    int
 	MqttClientId string
-	Topic        string
+	Topics       []string
 }
 
 // LoadConfigFromFile use to load toml configuration

@@ -1,10 +1,6 @@
-# Device MQTT Go
-MQTT device service go version. The design is base on [ document](https://github.com/edgexfoundry/edgex-go/blob/master/docs/examples/Ch-ExamplesMQTTDeviceService.rst) .
-
-## Requisite
-* core-data
-* core-metadata
-* core-command
+# Gateway Device Service
+Based on the Edgex Go MQTT Device Service service, modified to support multiple
+topics and extract device IDs from Gateway messages.
 
 ## Predefined configuration
 

@@ -45,7 +45,6 @@ Type = "consul"
   ProfilesDir = "./res"
   InitCmd = ""
   InitCmdArgs = ""
-  # probably will need to increase these significantly
   MaxCmdOps = 128
   MaxCmdValueLen = 256
   RemoveCmd = ""
@@ -56,7 +55,7 @@ EnableRemote = true
 File = "./device-gateway-mqtt.log"
 Level = "DEBUG"
 
-# Pre-define Devices
+# Defines how EdgeX communicates with an individual device
 [[DeviceList]]
   Name = "rrs-gateway"
   Profile = "Gateway.Device.MQTT.Profile"
@@ -66,9 +65,4 @@ Level = "DEBUG"
     Name = "Gateway address"
     Protocol = "TCP"
     Address = "192.168.99.100"
-    Port = 9883
-    Publisher = "CommandPublisher"
-    User = "saf"
-    Password = "xA18HiKy218Lm28YklwIBHaALFgYrbnNa1XIHb3ntyTib9Stm4PyC74nh7Ic1vz"
-    Topic = "rfid/edgex/command"
 

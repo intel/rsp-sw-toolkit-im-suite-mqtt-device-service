@@ -24,7 +24,7 @@ func startCommandResponseListening() error {
 	var mqttClientId = driver.Config.Response.MqttClientId
 	var qos = byte(driver.Config.Response.Qos)
 	var keepAlive = driver.Config.Response.KeepAlive
-	var topic = driver.Config.Response.Topic
+	var topics = driver.Config.Response.Topics
 
 	uri := &url.URL{
 		Scheme: strings.ToLower(scheme),
@@ -38,10 +38,12 @@ func startCommandResponseListening() error {
 		return err
 	}
 
-	token := client.Subscribe(topic, qos, onCommandResponseReceived)
-	if token.Wait() && token.Error() != nil {
-		driver.Logger.Info(fmt.Sprintf("[Response listener] Stop command response listening. Cause:%v", token.Error()))
-		return token.Error()
+	for _, topic := range topics {
+		token := client.Subscribe(topic, qos, onCommandResponseReceived)
+		if token.Wait() && token.Error() != nil {
+			driver.Logger.Info(fmt.Sprintf("[Response listener] Stop command response listening. Cause:%v", token.Error()))
+			return token.Error()
+		}
 	}
 
 	driver.Logger.Info("[Response listener] Start command response listening. ")
@@ -63,5 +65,4 @@ func onCommandResponseReceived(client mqtt.Client, message mqtt.Message) {
 	} else {
 		driver.Logger.Warn(fmt.Sprintf("[Response listener] Command response ignored. No UUID found in the message: topic=%v msg=%v", message.Topic(), string(message.Payload())))
 	}
-
 }

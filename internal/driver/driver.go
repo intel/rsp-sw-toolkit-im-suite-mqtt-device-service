@@ -25,23 +25,6 @@ import (
 var once sync.Once
 var driver *Driver
 
-type Config struct {
-	Incoming connectionInfo
-	Response connectionInfo
-}
-
-type connectionInfo struct {
-	MqttProtocol   string
-	MqttBroker     string
-	MqttBrokerPort int
-	MqttClientID   string
-	MqttTopic      string
-	MqttQos        int
-	MqttUser       string
-	MqttPassword   string
-	MqttKeepAlive  int
-}
-
 type Driver struct {
 	Logger           logger.LoggingClient
 	AsyncCh          chan<- *sdkModel.AsyncValues
