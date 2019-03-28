@@ -54,23 +54,3 @@ clean-image:
 clean: clean-image
 	rm -rf gateway-device-service
 
-
-DOCKER_IP:=$(shell docker-machine ip $${DOCKER_MACHINE_NAME})
-DATA_SERVICE_URL:=http://$(DOCKER_IP):48080/api/v1
-METADATA_SERVICE_URL:=http://$(DOCKER_IP):48081/api/v1
-CMD_SERVICE_URL:=http://$(DOCKER_IP):48082/api/v1
-CONSUL_URL:=http://$(DOCKER_IP):8500/v1
-
-show-cmds-%:
-	for cmd in $$(curl -sS $(CMD_SERVICE_URL)/device/name/$* | jq '.commands | .[].id'); do \
-		echo $$cmd \
-	done
-
-remove-gateway-service:
-	@curl -s $(METADATA_SERVICE_URL)/command/name/gateway-device-service
-	@curl -s $(METADATA_SERVICE_URL)/deviceprofile/name/Gateway.Device.MQTT.Profile | jq
-	@curl -s -X DELETE $(METADATA_SERVICE_URL)/device/name/gateway-device-service
-	@curl -s -X DELETE $(METADATA_SERVICE_URL)/addressable/name/gateway-device-service
-	@curl -s -X DELETE $(METADATA_SERVICE_URL)/deviceprofile/name/Gateway.Device.MQTT.Profile
-	@curl -s -X DELETE $(METADATA_SERVICE_URL)/deviceservice/name/gateway-device-service
-
