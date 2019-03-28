@@ -5,6 +5,10 @@
 *.so
 *.dylib
 
+# service/control
+gateway-device-service
+gateway-device-service.docker
+
 # Test binary, build with `go test -c`
 *.test
 
