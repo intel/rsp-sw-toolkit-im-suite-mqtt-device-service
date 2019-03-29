@@ -9,6 +9,7 @@ package driver
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/pkg/errors"
 	"net/url"
 	"strings"
 
@@ -58,31 +59,42 @@ func startIncomingListening() error {
 
 type JSONNotification struct {
 	Version string `json:"jsonrpc"`
-	Method  string
-	Params  EitherID
+	// Topic will be set by us and sent upstream, indicating the topic on which
+	// the original JSON message came.
+	Topic   string `json:"topic"`
+	// Params is rest of the message from which we'll extract the Gateway's ID.
+	Params json.RawMessage
 }
 
-type eitherID string
+// EitherID is used to unmarshal the Gateway's ID, regardless of how it came
 type EitherID struct {
-	GatewayID *eitherID `json:"gateway_id"`
-	DeviceID  *eitherID `json:"device_id"`
+	GatewayID *optString `json:"gateway_id"`
+	DeviceID  *optString `json:"device_id"`
 }
 
-func (id *eitherID) isNilOrEmpty() bool {
+// optString is used for optional strings (and should be used as a pointer)
+type optString string
+func (id *optString) isNilOrEmpty() bool {
 	return id == nil || *id == ""
 }
 
-func (jn *JSONNotification) getID() string {
-	if jn == nil {
-		return ""
+func (jn *JSONNotification) getID() (string, error) {
+	if jn == nil || len(jn.Params) == 0 {
+		return "", errors.New("JSON notification is nil or is missing parameters")
 	}
-	if !jn.Params.GatewayID.isNilOrEmpty() {
-		return string(*(jn.Params.GatewayID))
+
+	var ids EitherID
+	if err := json.Unmarshal(jn.Params, &ids); err != nil {
+		return "", errors.Wrap(err, "unable to unmarshal the gateway ID")
 	}
-	if !jn.Params.DeviceID.isNilOrEmpty() {
-		return string(*(jn.Params.DeviceID))
+
+	if !ids.GatewayID.isNilOrEmpty() {
+		return string(*(ids.GatewayID)), nil
 	}
-	return ""
+	if !ids.DeviceID.isNilOrEmpty() {
+		return string(*(ids.DeviceID)), nil
+	}
+	return "", errors.New("neither gateway_id nor device_id found in message")
 }
 
 func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
@@ -97,17 +109,24 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 		return
 	}
 
-	deviceName := jn.getID()
-	if deviceName == "" {
-		driver.Logger.Error("Message is missing a device/gateway ID")
+	deviceName, err := jn.getID()
+	if err != nil {
+		driver.Logger.Error(fmt.Sprintf("Failed to get device ID: %+v", err))
 		return
 	}
-	cmd := "gwevent"
-	reading := string(message.Payload())
 
+	jn.Topic = message.Topic()
+	remarshaled, err := json.Marshal(jn)
+	if err != nil {
+		driver.Logger.Error(fmt.Sprintf("Failed to remashal message: %+v", err))
+		return
+	}
+
+	event := "gwevent"
+	reading := string(remarshaled)
 	service := sdk.RunningService()
 
-	deviceObject, ok := service.DeviceObject(deviceName, cmd, "get")
+	deviceObject, ok := service.DeviceObject(deviceName, event, "get")
 	if !ok {
 		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] "+
 			"Incoming reading ignored. "+
@@ -116,7 +135,7 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 		return
 	}
 
-	ro, ok := service.ResourceOperation(deviceName, cmd, "get")
+	ro, ok := service.ResourceOperation(deviceName, event, "get")
 	if !ok {
 		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] "+
 			"Incoming reading ignored. "+
