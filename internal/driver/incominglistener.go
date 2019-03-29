@@ -59,9 +59,10 @@ func startIncomingListening() error {
 
 type JSONNotification struct {
 	Version string `json:"jsonrpc"`
+	Method  string `json:"method"`
 	// Topic will be set by us and sent upstream, indicating the topic on which
 	// the original JSON message came.
-	Topic   string `json:"topic"`
+	Topic string `json:"topic"`
 	// Params is rest of the message from which we'll extract the Gateway's ID.
 	Params json.RawMessage `json:"params"`
 }
@@ -74,6 +75,7 @@ type EitherID struct {
 
 // optString is used for optional strings (and should be used as a pointer)
 type optString string
+
 func (id *optString) isNilOrEmpty() bool {
 	return id == nil || *id == ""
 }
