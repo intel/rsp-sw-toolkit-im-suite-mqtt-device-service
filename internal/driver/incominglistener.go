@@ -63,7 +63,7 @@ type JSONNotification struct {
 	// the original JSON message came.
 	Topic   string `json:"topic"`
 	// Params is rest of the message from which we'll extract the Gateway's ID.
-	Params json.RawMessage
+	Params json.RawMessage `json:"params"`
 }
 
 // EitherID is used to unmarshal the Gateway's ID, regardless of how it came
