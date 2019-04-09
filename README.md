@@ -10,7 +10,7 @@ Modify [`configuration-driver.toml`](cmd/res/configuration-driver.toml) file to
 set your broker's Username & Password (the `saf-gateway-credentials` from the
 IMA's `secrets` directory -- later, we can read these from a file). Also set the
 address of your `mosquitto-server` if it's not in the same Docker network 
-(alternatively, you can start the container with an `extra-hosts` directive).
+(alternatively, you can start the container with an `add-host` directive).
 
 ```toml
 [Incoming]
@@ -30,6 +30,7 @@ Topics = ["rfid/gw/events", "rfid/gw/alerts", "rfid/gw/heartbeat"]
 
 [Response]
 Protocol = "tls"
+# same here -- needs to be set so it can connect
 Host = "mosquitto-server"
 Port = 9883 
 Username = "saf"
@@ -53,6 +54,7 @@ is needed, but as it stands, it didn't seem necessary.
 
 ```toml
 [[DeviceList]]
+  # Name needs to match the gateway's device ID
   Name = "rrs-gateway"
   Profile = "Gateway.Device.MQTT.Profile"
   Description = "Gateway Device MQTT Broker Connection"
@@ -60,6 +62,7 @@ is needed, but as it stands, it didn't seem necessary.
   [DeviceList.Addressable]
     Name = "Gateway address"
     Protocol = "TCP"
+    # this address probably doesn't matter
     Address = "192.168.99.100"
 ```
 
@@ -72,7 +75,7 @@ To run, update the `SRC_PATH` in the Makefile, if needed, then:
 make image # build the image
 make run   # run the docker-compose.yml
 make down  # stop the compose
-make dev   # run a container using the dev configuration
+make dev   # run a container using the dev configuration; may require some changes
 make clean # remove control files
 ```
 
