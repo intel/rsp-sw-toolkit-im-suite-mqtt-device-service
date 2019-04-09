@@ -8,7 +8,9 @@ then proper product.
 ### Incoming data listener and command response listener
 Modify [`configuration-driver.toml`](cmd/res/configuration-driver.toml) file to
 set your broker's Username & Password (the `saf-gateway-credentials` from the
-IMA's `secrets` directory -- later, we can read these from a file).
+IMA's `secrets` directory -- later, we can read these from a file). Also set the
+address of your `mosquitto-server` if it's not in the same Docker network 
+(alternatively, you can start the container with an `extra-hosts` directive).
 
 ```toml
 [Incoming]
