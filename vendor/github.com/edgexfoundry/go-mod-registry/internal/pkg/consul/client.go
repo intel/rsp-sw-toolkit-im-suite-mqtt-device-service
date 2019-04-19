@@ -32,13 +32,12 @@ import (
 const consulStatusPath = "/v1/agent/self"
 const serviceStatusPass = "passing"
 
-
 type consulClient struct {
 	consulUrl           string
 	consulClient        *consulapi.Client
 	consulConfig        *consulapi.Config
 	configBasePath      string
-	serviceKey           string
+	serviceKey          string
 	serviceAddress      string
 	servicePort         int
 	healthCheckUrl      string
@@ -46,10 +45,10 @@ type consulClient struct {
 }
 
 // Create new Consul Client. Service details are optional, not needed just for configuration, but required if registering
-func NewConsulClient(registryConfig registry.Config,) (*consulClient, error) {
+func NewConsulClient(registryConfig registry.Config) (*consulClient, error) {
 
 	client := consulClient{
-		serviceKey:      registryConfig.ServiceKey,
+		serviceKey:     registryConfig.ServiceKey,
 		consulUrl:      registryConfig.GetRegistryUrl(),
 		configBasePath: registryConfig.Stem + registryConfig.ServiceKey,
 	}

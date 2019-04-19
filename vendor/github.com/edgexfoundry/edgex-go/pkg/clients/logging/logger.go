@@ -85,7 +85,6 @@ func NewClient(owningServiceName string, isRemote bool, logTarget string, logLev
 	lc.fileLogger = &log.Logger{}
 	lc.fileLogger.SetFlags(log.Ldate | log.Ltime)
 
-
 	return lc
 }
 
