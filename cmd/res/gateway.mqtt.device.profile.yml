@@ -6,33 +6,32 @@ labels:
 description: "RFID Gateway MQTT Device Service"
 deviceResources:
 -
-  name: gwevent
-  description: "Gateway Event"
+  name: ping
+  description: "device awake"
   attributes:
-    { name: "gwevent" }
+    { name: "ping" }
   properties:
     value:
-      { type: "String", readWrite: "R", defaultValue: "" }
+      { type: "String", size: "0", readWrite: "R", defaultValue: "oops" }
     units:
       { type: "String", readWrite: "R", defaultValue: "" }
 
 resources:
 -
-  name: gwevent
+  name: testping
   get:
-  - { index: "1", operation: "get", object: "gwevent", parameter: "gwevent", property: "value" }
+  - { index: "1", operation: "get", object: "ping", parameter: "ping", property: "value" }
 
 commands:
 -
-  name: gwcommand
-  put:
-    path: "/api/v1/device/{deviceId}/gwcommand"
-    parameterNames: ["gwevent"]
+  name: testping
+  get:
+    path: "/api/v1/device/{deviceId}/testping"
     responses:
     -
-      code: "204"
-      description: "command sent"
-      expectedValues: []
+      code: "200"
+      description: "ping the device"
+      expectedValues: ["ping"]
     -
       code: "503"
       description: "service unavailable"

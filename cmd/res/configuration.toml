@@ -64,5 +64,10 @@ Level = "DEBUG"
   [DeviceList.Addressable]
     Name = "Gateway address"
     Protocol = "TCP"
-    Address = "rrs-gateway"
+    Address = ""
+    Port = 1883
+    Publisher = "CommandPublisher"
+    user = "admin"
+    password = "public"
+    topic = "CommandTopic"
 

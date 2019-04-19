@@ -1,7 +1,7 @@
 GOOS:=linux
 GOARCH:=amd64
 GOPATH:=$$HOME/go
-SRC_PATH=github.impcloud.net/Responsive-Retail-Inventory/gateway-device-service
+SRC_PATH=github.impcloud.net/alexander-j-saites/gateway-device-service
 
 REPO:=saites/gateway-device-service
 GIT_SHA:=$(shell git rev-parse HEAD)
