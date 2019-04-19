@@ -9,7 +9,7 @@ rrpBuildGoCode {
         stackName: 'RSP-Codepipeline-GatewayDeviceService'
     ]
 
-    staticCodeScanBranch = 'dehli'
+    staticCodeScanBranch = 'delhi'
 
     notify = [
         slack: [ success: '#ima-build-success', failure: '#ima-build-failed' ]
