@@ -1,0 +1,39 @@
+name: "Gateway.Device.MQTT.Profile"
+manufacturer: "Intel"
+model: "MQTT-Gateway"
+labels:
+- "RFID"
+description: "RFID Gateway MQTT Device Service"
+deviceResources:
+-
+  name: gwevent
+  description: "Gateway Event"
+  attributes:
+    { name: "gwevent" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+
+resources:
+-
+  name: gwevent
+  get:
+  - { index: "1", operation: "get", object: "gwevent", parameter: "gwevent", property: "value" }
+
+commands:
+-
+  name: gwcommand
+  put:
+    path: "/api/v1/device/{deviceId}/gwcommand"
+    parameterNames: ["gwevent"]
+    responses:
+    -
+      code: "204"
+      description: "command sent"
+      expectedValues: []
+    -
+      code: "503"
+      description: "service unavailable"
+      expectedValues: []

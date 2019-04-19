@@ -1,0 +1,312 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "JbL7kHtjbkL3ZdtONZBu1hCh8EQ=",
+			"origin": "github.com/edgexfoundry/device-sdk-go/vendor/github.com/cenkalti/backoff",
+			"path": "github.com/cenkalti/backoff",
+			"revision": "34b1114d7f5eeceeaebcebbbe5d5f3d03758857c",
+			"revisionTime": "2019-03-25T16:31:03Z"
+		},
+		{
+			"path": "github.com/eclipse/paho.mqtt.golang",
+			"revision": "1.1.1",
+			"version": "1.1.1",
+			"versionExact": "1.1.1"
+		},
+		{
+			"checksumSHA1": "1KxhONtvenst6Acr8Ig3I9oNF2E=",
+			"path": "github.com/eclipse/paho.mqtt.golang/packets",
+			"revision": "20337d8c394721c308cc6ec096990ee451a7cd7f",
+			"revisionTime": "2019-03-22T15:20:51Z"
+		},
+		{
+			"checksumSHA1": "WiV4tJuL5sH5/88mMqpOvxocp9o=",
+			"path": "github.com/edgexfoundry/device-sdk-go",
+			"revision": "58ceab4ca78d83c4ad32384cd9246de601e88c4e",
+			"revisionTime": "2019-01-11T00:12:41Z",
+			"version": "delhi",
+			"versionExact": "delhi"
+		},
+		{
+			"checksumSHA1": "xUmvEqvyGHehGAhxJsgYDWZr/ng=",
+			"path": "github.com/edgexfoundry/device-sdk-go/internal/cache",
+			"revision": "58ceab4ca78d83c4ad32384cd9246de601e88c4e",
+			"revisionTime": "2019-01-11T00:12:41Z",
+			"version": "delhi",
+			"versionExact": "delhi"
+		},
+		{
+			"checksumSHA1": "3MGAs5R9L7IL/TEjg01TQ4gqDZI=",
+			"path": "github.com/edgexfoundry/device-sdk-go/internal/clients",
+			"revision": "58ceab4ca78d83c4ad32384cd9246de601e88c4e",
+			"revisionTime": "2019-01-11T00:12:41Z",
+			"version": "delhi",
+			"versionExact": "delhi"
+		},
+		{
+			"checksumSHA1": "jP+FB7lM8Rvdr1yTM4ksIh5E23g=",
+			"path": "github.com/edgexfoundry/device-sdk-go/internal/common",
+			"revision": "58ceab4ca78d83c4ad32384cd9246de601e88c4e",
+			"revisionTime": "2019-01-11T00:12:41Z",
+			"version": "delhi",
+			"versionExact": "delhi"
+		},
+		{
+			"checksumSHA1": "3i5D//kEhQW/s5+lGkJKWGOCXnI=",
+			"path": "github.com/edgexfoundry/device-sdk-go/internal/config",
+			"revision": "58ceab4ca78d83c4ad32384cd9246de601e88c4e",
+			"revisionTime": "2019-01-11T00:12:41Z",
+			"version": "delhi",
+			"versionExact": "delhi"
+		},
+		{
+			"checksumSHA1": "hLM98su8JKzI6UOJafMJeEcYRs8=",
+			"path": "github.com/edgexfoundry/device-sdk-go/internal/controller",
+			"revision": "58ceab4ca78d83c4ad32384cd9246de601e88c4e",
+			"revisionTime": "2019-01-11T00:12:41Z",
+			"version": "delhi",
+			"versionExact": "delhi"
+		},
+		{
+			"checksumSHA1": "Ev/y708WQmZ2dRwGlCToq6r1zEg=",
+			"path": "github.com/edgexfoundry/device-sdk-go/internal/endpoint",
+			"revision": "34b1114d7f5eeceeaebcebbbe5d5f3d03758857c",
+			"revisionTime": "2019-03-25T16:31:03Z",
+			"version": "delhi",
+			"versionExact": "delhi"
+		},
+		{
+			"checksumSHA1": "jaVHUcY15tpVxRBQJ/n5HTF4/WQ=",
+			"path": "github.com/edgexfoundry/device-sdk-go/internal/handler",
+			"revision": "58ceab4ca78d83c4ad32384cd9246de601e88c4e",
+			"revisionTime": "2019-01-11T00:12:41Z",
+			"version": "delhi",
+			"versionExact": "delhi"
+		},
+		{
+			"checksumSHA1": "NokIOAH3bgY77hKLHYFMr/5C9Rc=",
+			"path": "github.com/edgexfoundry/device-sdk-go/internal/provision",
+			"revision": "58ceab4ca78d83c4ad32384cd9246de601e88c4e",
+			"revisionTime": "2019-01-11T00:12:41Z",
+			"version": "delhi",
+			"versionExact": "delhi"
+		},
+		{
+			"checksumSHA1": "nHZtacVkbku1BvGaCTIxhI3hKZQ=",
+			"path": "github.com/edgexfoundry/device-sdk-go/internal/registry",
+			"revision": "58ceab4ca78d83c4ad32384cd9246de601e88c4e",
+			"revisionTime": "2019-01-11T00:12:41Z",
+			"version": "delhi",
+			"versionExact": "delhi"
+		},
+		{
+			"checksumSHA1": "a8HuVZzKXgHapXsBh8J1tYONQas=",
+			"path": "github.com/edgexfoundry/device-sdk-go/internal/scheduler",
+			"revision": "58ceab4ca78d83c4ad32384cd9246de601e88c4e",
+			"revisionTime": "2019-01-11T00:12:41Z",
+			"version": "delhi",
+			"versionExact": "delhi"
+		},
+		{
+			"checksumSHA1": "ZncZFoVLFRoqgCXA9VjYcuk9t70=",
+			"path": "github.com/edgexfoundry/device-sdk-go/internal/transformer",
+			"revision": "58ceab4ca78d83c4ad32384cd9246de601e88c4e",
+			"revisionTime": "2019-01-11T00:12:41Z",
+			"version": "delhi",
+			"versionExact": "delhi"
+		},
+		{
+			"checksumSHA1": "pgbeoBO0RZLfTYDv9LHDUt0J6DA=",
+			"path": "github.com/edgexfoundry/device-sdk-go/pkg/models",
+			"revision": "58ceab4ca78d83c4ad32384cd9246de601e88c4e",
+			"revisionTime": "2019-01-11T00:12:41Z",
+			"version": "delhi",
+			"versionExact": "delhi"
+		},
+		{
+			"checksumSHA1": "8r/PbDuQfWk22n1uSdOtFN/NOiU=",
+			"path": "github.com/edgexfoundry/device-sdk-go/pkg/startup",
+			"revision": "58ceab4ca78d83c4ad32384cd9246de601e88c4e",
+			"revisionTime": "2019-01-11T00:12:41Z",
+			"version": "delhi",
+			"versionExact": "delhi"
+		},
+		{
+			"checksumSHA1": "EqkzzcbWARnvWKN8fHvoZv2A2wM=",
+			"path": "github.com/edgexfoundry/edgex-go",
+			"revision": "996c06895153f62347005a0c8a04887357af9b80",
+			"revisionTime": "2019-03-18T14:11:58Z",
+			"version": "delhi",
+			"versionExact": "delhi"
+		},
+		{
+			"checksumSHA1": "vQxR28u6Y7uf8TezajmABo+5n/g=",
+			"path": "github.com/edgexfoundry/edgex-go/pkg/clients",
+			"revision": "996c06895153f62347005a0c8a04887357af9b80",
+			"revisionTime": "2019-03-18T14:11:58Z",
+			"version": "delhi",
+			"versionExact": "delhi"
+		},
+		{
+			"checksumSHA1": "ZnrXmidkqh+v+InTA2kXru2EVH8=",
+			"path": "github.com/edgexfoundry/edgex-go/pkg/clients/coredata",
+			"revision": "996c06895153f62347005a0c8a04887357af9b80",
+			"revisionTime": "2019-03-18T14:11:58Z",
+			"version": "delhi",
+			"versionExact": "delhi"
+		},
+		{
+			"checksumSHA1": "SPNad9Xi2izE0fMeRgDlctQ7xXk=",
+			"path": "github.com/edgexfoundry/edgex-go/pkg/clients/logging",
+			"revision": "996c06895153f62347005a0c8a04887357af9b80",
+			"revisionTime": "2019-03-18T14:11:58Z",
+			"version": "delhi",
+			"versionExact": "delhi"
+		},
+		{
+			"checksumSHA1": "MJ/Rdgtw7l2KGJ1E83kLIant9Bc=",
+			"path": "github.com/edgexfoundry/edgex-go/pkg/clients/metadata",
+			"revision": "996c06895153f62347005a0c8a04887357af9b80",
+			"revisionTime": "2019-03-18T14:11:58Z",
+			"version": "delhi",
+			"versionExact": "delhi"
+		},
+		{
+			"checksumSHA1": "g2GRMZsyUvWmrlfejlU2/DyatLc=",
+			"path": "github.com/edgexfoundry/edgex-go/pkg/clients/types",
+			"revision": "996c06895153f62347005a0c8a04887357af9b80",
+			"revisionTime": "2019-03-18T14:11:58Z",
+			"version": "delhi",
+			"versionExact": "delhi"
+		},
+		{
+			"checksumSHA1": "Gdxxnv0aVH57exHtJa+J9gd4nZQ=",
+			"path": "github.com/edgexfoundry/edgex-go/pkg/models",
+			"revision": "996c06895153f62347005a0c8a04887357af9b80",
+			"revisionTime": "2019-03-18T14:11:58Z",
+			"version": "delhi",
+			"versionExact": "delhi"
+		},
+		{
+			"checksumSHA1": "+dS9IBEHuL1u5fDunDA9wRjt14U=",
+			"path": "github.com/edgexfoundry/go-mod-core-contracts/clients",
+			"revision": "139ef88c4b36a33a0550200c699c7a05e89cee55",
+			"revisionTime": "2019-03-25T16:05:33Z"
+		},
+		{
+			"checksumSHA1": "3hBmdz1QPTKOXTCZmGQKp6QSaGw=",
+			"origin": "github.com/edgexfoundry/device-sdk-go/vendor/github.com/edgexfoundry/go-mod-core-contracts/clients/coredata",
+			"path": "github.com/edgexfoundry/go-mod-core-contracts/clients/coredata",
+			"revision": "34b1114d7f5eeceeaebcebbbe5d5f3d03758857c",
+			"revisionTime": "2019-03-25T16:31:03Z"
+		},
+		{
+			"checksumSHA1": "tJUZj8bnMKNmhqqCltm0O6NbXIg=",
+			"path": "github.com/edgexfoundry/go-mod-core-contracts/clients/logging",
+			"revision": "139ef88c4b36a33a0550200c699c7a05e89cee55",
+			"revisionTime": "2019-03-25T16:05:33Z"
+		},
+		{
+			"checksumSHA1": "LNdPGCvLn9Kkg6NZHv4/lAXlmjA=",
+			"origin": "github.com/edgexfoundry/device-sdk-go/vendor/github.com/edgexfoundry/go-mod-core-contracts/clients/metadata",
+			"path": "github.com/edgexfoundry/go-mod-core-contracts/clients/metadata",
+			"revision": "34b1114d7f5eeceeaebcebbbe5d5f3d03758857c",
+			"revisionTime": "2019-03-25T16:31:03Z"
+		},
+		{
+			"checksumSHA1": "LUXKfkTsHL2KVJfFJK5PF5ugwSw=",
+			"path": "github.com/edgexfoundry/go-mod-core-contracts/clients/types",
+			"revision": "139ef88c4b36a33a0550200c699c7a05e89cee55",
+			"revisionTime": "2019-03-25T16:05:33Z"
+		},
+		{
+			"checksumSHA1": "+g0hb2mjwQypqhVT82mZnH9vbUw=",
+			"path": "github.com/edgexfoundry/go-mod-core-contracts/models",
+			"revision": "139ef88c4b36a33a0550200c699c7a05e89cee55",
+			"revisionTime": "2019-03-25T16:05:33Z"
+		},
+		{
+			"checksumSHA1": "AfWtffSMuPJZFwPFHYI1sPkOzP0=",
+			"origin": "github.com/edgexfoundry/device-sdk-go/vendor/github.com/edgexfoundry/go-mod-registry",
+			"path": "github.com/edgexfoundry/go-mod-registry",
+			"revision": "34b1114d7f5eeceeaebcebbbe5d5f3d03758857c",
+			"revisionTime": "2019-03-25T16:31:03Z"
+		},
+		{
+			"checksumSHA1": "JQ3808UfQdRSyrqwMuOWZ+JKgik=",
+			"origin": "github.com/edgexfoundry/device-sdk-go/vendor/github.com/edgexfoundry/go-mod-registry/internal/pkg/consul",
+			"path": "github.com/edgexfoundry/go-mod-registry/internal/pkg/consul",
+			"revision": "34b1114d7f5eeceeaebcebbbe5d5f3d03758857c",
+			"revisionTime": "2019-03-25T16:31:03Z"
+		},
+		{
+			"checksumSHA1": "mV1p5VCVLYdH4Su7d/V3etQgcBM=",
+			"origin": "github.com/edgexfoundry/device-sdk-go/vendor/github.com/edgexfoundry/go-mod-registry/pkg/factory",
+			"path": "github.com/edgexfoundry/go-mod-registry/pkg/factory",
+			"revision": "34b1114d7f5eeceeaebcebbbe5d5f3d03758857c",
+			"revisionTime": "2019-03-25T16:31:03Z"
+		},
+		{
+			"checksumSHA1": "/ST7mrZcRff2pW8NU5SD/mEobFs=",
+			"origin": "github.com/edgexfoundry/device-sdk-go/vendor/github.com/mitchellh/consulstructure",
+			"path": "github.com/mitchellh/consulstructure",
+			"revision": "34b1114d7f5eeceeaebcebbbe5d5f3d03758857c",
+			"revisionTime": "2019-03-25T16:31:03Z"
+		},
+		{
+			"checksumSHA1": "EacyCQdr7enzuuCD9ooauN2f0jE=",
+			"origin": "github.com/edgexfoundry/device-sdk-go/vendor/github.com/mitchellh/copystructure",
+			"path": "github.com/mitchellh/copystructure",
+			"revision": "34b1114d7f5eeceeaebcebbbe5d5f3d03758857c",
+			"revisionTime": "2019-03-25T16:31:03Z"
+		},
+		{
+			"checksumSHA1": "HoRl5+okfmVfhxTL3s7LXXxQs8w=",
+			"origin": "github.com/edgexfoundry/device-sdk-go/vendor/github.com/mitchellh/reflectwalk",
+			"path": "github.com/mitchellh/reflectwalk",
+			"revision": "34b1114d7f5eeceeaebcebbbe5d5f3d03758857c",
+			"revisionTime": "2019-03-25T16:31:03Z"
+		},
+		{
+			"checksumSHA1": "xhGwTd/EwUBy2M6Aw0vpBOv3IlA=",
+			"origin": "github.com/edgexfoundry/device-sdk-go/vendor/github.com/pelletier/go-toml",
+			"path": "github.com/pelletier/go-toml",
+			"revision": "34b1114d7f5eeceeaebcebbbe5d5f3d03758857c",
+			"revisionTime": "2019-03-25T16:31:03Z"
+		},
+		{
+			"checksumSHA1": "1L3a3LDS2Wq4lTZg12cvhBrYUcg=",
+			"origin": "github.com/edgexfoundry/device-sdk-go/vendor/github.com/pkg/errors",
+			"path": "github.com/pkg/errors",
+			"revision": "34b1114d7f5eeceeaebcebbbe5d5f3d03758857c",
+			"revisionTime": "2019-03-25T16:31:03Z"
+		},
+		{
+			"checksumSHA1": "f3Y7JIZH61oMmp8nphqe8Mg+XoU=",
+			"path": "golang.org/x/net/internal/socks",
+			"revision": "e3b2ff56ed879efa686c9d09ed74f9bfe42f1a1d",
+			"revisionTime": "2019-03-24T08:55:13Z"
+		},
+		{
+			"checksumSHA1": "mCMW3hvbWFW1k5il9yyO7ELOdws=",
+			"path": "golang.org/x/net/proxy",
+			"revision": "e3b2ff56ed879efa686c9d09ed74f9bfe42f1a1d",
+			"revisionTime": "2019-03-24T08:55:13Z"
+		},
+		{
+			"checksumSHA1": "F+tqxPGFt5x7DKZakbbMmENX1oQ=",
+			"path": "golang.org/x/net/websocket",
+			"revision": "e3b2ff56ed879efa686c9d09ed74f9bfe42f1a1d",
+			"revisionTime": "2019-03-24T08:55:13Z"
+		},
+		{
+			"checksumSHA1": "QqDq2x8XOU7IoOR98Cx1eiV5QY8=",
+			"path": "gopkg.in/yaml.v2",
+			"revision": "51d6538a90f86fe93ac480b35f37b2be17fef232",
+			"revisionTime": "2018-11-15T11:05:04Z"
+		}
+	],
+	"rootPath": "github.impcloud.net/Responsive-Retail-Inventory/gateway-device-service"
+}

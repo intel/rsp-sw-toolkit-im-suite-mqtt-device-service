@@ -1,0 +1,6 @@
+.idea/
+
+# service/control
+gateway-device-service
+gateway-device-service.docker
+
