@@ -9,6 +9,7 @@ rrpBuildGoCode {
         stackName: 'RSP-Codepipeline-GatewayDeviceService'
     ]
 
+    customBuildScript = "./build.sh"
 
     notify = [
         slack: [ success: '#ima-build-success', failure: '#ima-build-failed' ]
