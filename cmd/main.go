@@ -8,8 +8,8 @@ package main
 
 import (
 	"github.com/edgexfoundry/device-sdk-go/pkg/startup"
-	"github.impcloud.net/alexander-j-saites/gateway-device-service"
-	"github.impcloud.net/alexander-j-saites/gateway-device-service/internal/driver"
+	"github.impcloud.net/RSP-Inventory-Suite/gateway-device-service"
+	"github.impcloud.net/RSP-Inventory-Suite/gateway-device-service/internal/driver"
 )
 
 const (

@@ -1,21 +1,20 @@
 [Incoming]
-Protocol = "tcp"
-Host = ""
-Port = 1883
-Username = "admin"
-Password = "public"
-Qos = 0
+Protocol = "tls"
+Host = "mosquitto-server"
+Port = 9883
+Qos = 1
 KeepAlive = 3600
 MqttClientId = "IncomingDataSubscriber"
-Topics = ["DataTopic"]
+Topics = [ "rfid/gw/events",
+           "rfid/gw/alerts",
+           "rfid/gw/heartbeat"
+]
 
 [Response]
-Protocol = "tcp"
-Host = ""
-Port = 1883
-Username = "admin"
-Password = "public"
-Qos = 0
+Protocol = "tls"
+Host = "mosquitto-server"
+Port = 9883
+Qos = 1
 KeepAlive = 3600
 MqttClientId = "CommandResponseSubscriber"
 Topics = ["ResponseTopic"]
