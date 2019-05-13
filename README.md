@@ -80,7 +80,7 @@ make clean # remove control files
 ```
 
 `make build` creates a `golang:1.12` container named `gobuilder`, mounts the
-`$(GOPATH)/src/$(SRC_PATH)`, and then builds the `gateway-device-service`. It
+`$(GOPATH)/src/$(SRC_PATH)`, and then builds the `mqtt-device-service`. It
 also creates a named volume for Go's build cache in order to speed up later builds.
 
 > Note the `SRC_PATH` variable, which is assuming the file structure! Update it

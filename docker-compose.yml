@@ -231,7 +231,7 @@ services:
 # Device Services
 #################################################################
 
-  gateway-device-service:
+  mqtt-device-service:
     image: ${IMAGE}
     ports:
       - "49982:49982"

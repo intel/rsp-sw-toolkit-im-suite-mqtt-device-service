@@ -1,7 +1,7 @@
 # used to configured the Service & Addressable in the MetaData service
 
 [Service]
-Host = "gateway-device-service"
+Host = "mqtt-device-service"
 Port = 49982
 ConnectRetries = 3
 Labels = []

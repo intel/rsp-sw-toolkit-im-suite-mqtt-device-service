@@ -1,10 +1,10 @@
 FROM scratch
 
 COPY /cmd /
-COPY gateway-device-service /
+COPY mqtt-device-service /
 
 ENV APP_PORT=49982
 EXPOSE $APP_PORT
 
-ENTRYPOINT ["/gateway-device-service"]
+ENTRYPOINT ["/mqtt-device-service"]
 CMD ["--registry","--profile=docker","--confdir=/res"]
