@@ -1,13 +1,13 @@
 rrpBuildGoCode {
-    projectKey = 'gateway-device-service'
+    projectKey = 'mqtt-device-service'
     testDependencies = ['mongo']
     dockerBuildOptions = ['--squash', '--build-arg GIT_COMMIT=$GIT_COMMIT']
     ecrRegistry = "280211473891.dkr.ecr.us-west-2.amazonaws.com"
     dockerImageName = "rsp/${projectKey}"
-    protexProjectName = 'bb-gateway-device-service'
+    protexProjectName = 'bb-mqtt-device-service'
 
     infra = [
-        stackName: 'RSP-Codepipeline-GatewayDeviceService'
+        stackName: 'RSP-Codepipeline-MqttDeviceService'
     ]
 
     customBuildScript = "./build.sh"
