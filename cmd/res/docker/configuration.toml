@@ -67,5 +67,5 @@ Level = "DEBUG"
     Address = "mosquitto-server"
     Port = 9883
     Publisher = "CommandPublisher"
-    Topic = "CommandTopic"
+    Topic = "rfid/gw/command"
 

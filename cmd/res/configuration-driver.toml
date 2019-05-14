@@ -17,4 +17,4 @@ Port = 9883
 Qos = 1
 KeepAlive = 3600
 MqttClientId = "CommandResponseSubscriber"
-Topics = ["ResponseTopic"]
+Topics = ["rfid/gw/response"]

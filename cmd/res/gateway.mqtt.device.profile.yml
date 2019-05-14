@@ -6,32 +6,32 @@ labels:
 description: "RFID Gateway MQTT Device Service"
 deviceResources:
 -
-  name: ping
-  description: "device awake"
+  name: get_sw_version
+  description: "software version of the gateway"
   attributes:
-    { name: "ping" }
+    { name: "get_sw_version" }
   properties:
     value:
-      { type: "String", size: "0", readWrite: "R", defaultValue: "oops" }
+      { type: "String", readWrite: "R", defaultValue: "" }
     units:
       { type: "String", readWrite: "R", defaultValue: "" }
 
 resources:
 -
-  name: testping
+  name: get_sw_version
   get:
-  - { index: "1", operation: "get", object: "ping", parameter: "ping", property: "value" }
+  - { index: "1", operation: "get", object: "get_sw_version", parameter: "get_sw_version", property: "value" }
 
 commands:
 -
-  name: testping
+  name: get_sw_version
   get:
-    path: "/api/v1/device/{deviceId}/testping"
+    path: "/api/v1/device/{deviceId}/get_sw_version"
     responses:
     -
       code: "200"
-      description: "ping the device"
-      expectedValues: ["ping"]
+      description: "software version of the gateway"
+      expectedValues: ["get_sw_version"]
     -
       code: "503"
       description: "service unavailable"

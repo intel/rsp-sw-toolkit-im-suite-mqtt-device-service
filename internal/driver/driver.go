@@ -32,6 +32,19 @@ type Driver struct {
 	Config           *configuration
 }
 
+// Json response from rfid gateway
+type JSONResponse struct {
+	Jsonrpc string `json:"jsonrpc"`
+	Method  string `json:"method"`
+	GatewayResult Result `json:"result"`
+}
+
+type Result struct {
+	Status string `json:"status"`
+	Messages []string `json:"messages"`
+}
+
+
 func NewProtocolDriver() sdkModel.ProtocolDriver {
 	once.Do(func() {
 		driver = new(Driver)
@@ -104,6 +117,7 @@ func (d *Driver) HandleReadCommands(addr *models.Addressable, reqs []sdkModel.Co
 		responses[i] = res
 	}
 
+	driver.Logger.Info(fmt.Sprintf("Handle read commands: %v", responses))
 	return responses, err
 }
 
@@ -113,14 +127,24 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 	var qos = byte(0)
 	var retained = false
 
-	var method = "get"
+	/*var method = "get"
 	var cmdUuid = bson.NewObjectId().Hex()
 	var cmd = req.DeviceObject.Name
+*/
+	var jsonrpc = "2.0"
+	var id = "310"
+	var method = req.DeviceObject.Name
+
+
 
 	data := make(map[string]interface{})
-	data["uuid"] = cmdUuid
+	/*data["uuid"] = cmdUuid
 	data["method"] = method
-	data["cmd"] = cmd
+	data["cmd"] = cmd*/
+
+	data["jsonrpc"] = jsonrpc
+	data["id"] = id
+	data["method"] = method
 
 	jsonData, err := json.Marshal(data)
 	if err != nil {
@@ -132,28 +156,47 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 	driver.Logger.Info(fmt.Sprintf("Publish command: %v", string(jsonData)))
 
 	// fetch response from MQTT broker after publish command successful
-	cmdResponse, ok := fetchCommandResponse(d.CommandResponses, cmdUuid)
+	//cmdResponse, ok := fetchCommandResponse(d.CommandResponses, cmdUuid)
+	cmdResponse, ok := fetchCommandResponse(d.CommandResponses, id)
 	if !ok {
-		err = fmt.Errorf("can not fetch command response: method=%v cmd=%v", method, cmd)
+		//err = fmt.Errorf("can not fetch command response: method=%v cmd=%v", method, cmd)
+		err = fmt.Errorf("can not fetch command response: method=%v", method)
 		return result, err
 	}
 
 	driver.Logger.Info(fmt.Sprintf("Parse command response: %v", cmdResponse))
 
-	var response map[string]interface{}
+	var response JSONResponse
 	if err := json.Unmarshal([]byte(cmdResponse), &response); err != nil {
 		return nil, err
 	}
-	reading, ok := response[req.DeviceObject.Name]
+
+	reading := response.GatewayResult.Messages[0]
+	result, err = newResult(req.DeviceObject, req.RO, reading)
+	if err != nil {
+		return result, err
+	}
+
+
+
+	/*var response map[string]interface{}
+	if err := json.Unmarshal([]byte(cmdResponse), &response); err != nil {
+		return nil, err
+	}
+
+	//reading, ok := response[req.DeviceObject.Name]
+
+	reading, ok := response["result"]
 	if !ok {
-		err = fmt.Errorf("can not fetch command reading: method=%v cmd=%v", method, cmd)
+		//err = fmt.Errorf("can not fetch command reading: method=%v cmd=%v", method, cmd)
+		err = fmt.Errorf("can not fetch command reading: response=%v", response)
 		return result, err
 	}
 
 	result, err = newResult(req.DeviceObject, req.RO, reading)
 	if err != nil {
 		return result, err
-	}
+	}*/
 
 	driver.Logger.Info(fmt.Sprintf("Get command finished: %v", result))
 	return result, err
