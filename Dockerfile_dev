@@ -1,0 +1,30 @@
+FROM golang:1.12-alpine as gobuilder
+
+ENV GO111MODULE=off
+
+RUN echo http://nl.alpinelinux.org/alpine/v3.6/main > /etc/apk/repositories; \
+    echo http://nl.alpinelinux.org/alpine/v3.6/community >> /etc/apk/repositories
+
+RUN apk update && apk add bash git
+
+# Authentication needed to pull git modules from github.impcloud.net
+RUN git config --global credential.helper store
+ARG GIT_TOKEN
+RUN set +x && echo "https://$GIT_TOKEN:x-oauth-basic@github.impcloud.net" > ~/.git-credentials
+
+WORKDIR $GOPATH/src/github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service
+
+COPY . .
+
+RUN ./build.sh
+
+FROM scratch
+
+COPY /cmd /
+COPY --from=gobuilder /go/src/github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/mqtt-device-service /
+
+ENV APP_PORT=49982
+EXPOSE $APP_PORT
+
+ENTRYPOINT ["/mqtt-device-service"]
+CMD ["--registry","--profile=docker","--confdir=/res"]
