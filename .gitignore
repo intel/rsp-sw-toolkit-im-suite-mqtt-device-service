@@ -1,6 +1,6 @@
 .idea/
 
 # service/control
-gateway-device-service
-gateway-device-service.docker
+mqtt-device-service
+mqtt-device-service.docker
 

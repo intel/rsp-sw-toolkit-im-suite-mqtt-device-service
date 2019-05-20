@@ -8,13 +8,13 @@ package main
 
 import (
 	"github.com/edgexfoundry/device-sdk-go/pkg/startup"
-	"github.impcloud.net/RSP-Inventory-Suite/gateway-device-service"
-	"github.impcloud.net/RSP-Inventory-Suite/gateway-device-service/internal/driver"
+	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service"
+	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/driver"
 )
 
 const (
 	version     string = device_mqtt.Version
-	serviceName string = "gateway-device-service"
+	serviceName string = "mqtt-device-service"
 )
 
 func main() {

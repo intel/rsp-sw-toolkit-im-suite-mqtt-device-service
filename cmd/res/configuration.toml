@@ -1,11 +1,11 @@
 # used to configured the Service & Addressable in the MetaData service
 
 [Service]
-Host = "gateway-device-service"
+Host = "mqtt-device-service"
 Port = 49982
 ConnectRetries = 3
 Labels = []
-OpenMsg = "gateway device service started"
+OpenMsg = "mqtt device service started"
 ReadMaxLimit = 256
 Timeout = 5000
 EnableAsyncReadings = true

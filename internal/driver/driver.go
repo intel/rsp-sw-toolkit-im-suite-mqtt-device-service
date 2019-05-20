@@ -19,11 +19,22 @@ import (
 	sdkModel "github.com/edgexfoundry/device-sdk-go/pkg/models"
 	"github.com/edgexfoundry/edgex-go/pkg/clients/logging"
 	"github.com/edgexfoundry/edgex-go/pkg/models"
-	"gopkg.in/mgo.v2/bson"
+	commandModel "github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/models"
 )
 
 var once sync.Once
 var driver *Driver
+
+const (
+	jsonRpc  = "2.0"
+	qos      = byte(0)
+	retained = false
+)
+
+const (
+	getSwVersionMethod = "get_sw_version"
+	getSwVersionId     = "310"
+)
 
 type Driver struct {
 	Logger           logger.LoggingClient
@@ -31,19 +42,6 @@ type Driver struct {
 	CommandResponses map[string]string
 	Config           *configuration
 }
-
-// Json response from rfid gateway
-type JSONResponse struct {
-	Jsonrpc string `json:"jsonrpc"`
-	Method  string `json:"method"`
-	GatewayResult Result `json:"result"`
-}
-
-type Result struct {
-	Status string `json:"status"`
-	Messages []string `json:"messages"`
-}
-
 
 func NewProtocolDriver() sdkModel.ProtocolDriver {
 	once.Do(func() {
@@ -124,29 +122,16 @@ func (d *Driver) HandleReadCommands(addr *models.Addressable, reqs []sdkModel.Co
 func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel.CommandRequest, topic string) (*sdkModel.CommandValue, error) {
 	var result = &sdkModel.CommandValue{}
 	var err error
-	var qos = byte(0)
-	var retained = false
 
-	/*var method = "get"
-	var cmdUuid = bson.NewObjectId().Hex()
-	var cmd = req.DeviceObject.Name
-*/
-	var jsonrpc = "2.0"
-	var id = "310"
-	var method = req.DeviceObject.Name
+	var request commandModel.JsonRequest
+	request.JsonRpc = jsonRpc
 
+	if req.DeviceObject.Name == getSwVersionMethod {
+		request.Method = getSwVersionMethod
+		request.Id = getSwVersionId
+	}
 
-
-	data := make(map[string]interface{})
-	/*data["uuid"] = cmdUuid
-	data["method"] = method
-	data["cmd"] = cmd*/
-
-	data["jsonrpc"] = jsonrpc
-	data["id"] = id
-	data["method"] = method
-
-	jsonData, err := json.Marshal(data)
+	jsonData, err := json.Marshal(request)
 	if err != nil {
 		return result, err
 	}
@@ -156,56 +141,49 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 	driver.Logger.Info(fmt.Sprintf("Publish command: %v", string(jsonData)))
 
 	// fetch response from MQTT broker after publish command successful
-	//cmdResponse, ok := fetchCommandResponse(d.CommandResponses, cmdUuid)
-	cmdResponse, ok := fetchCommandResponse(d.CommandResponses, id)
+	cmdResponse, ok := fetchCommandResponse(d.CommandResponses, request.Id)
 	if !ok {
-		//err = fmt.Errorf("can not fetch command response: method=%v cmd=%v", method, cmd)
-		err = fmt.Errorf("can not fetch command response: method=%v", method)
+		err = fmt.Errorf("can not fetch command response: method=%v", request.Method)
 		return result, err
 	}
 
-	driver.Logger.Info(fmt.Sprintf("Parse command response: %v", cmdResponse))
-
-	var response JSONResponse
-	if err := json.Unmarshal([]byte(cmdResponse), &response); err != nil {
+	var responseMap map[string]json.RawMessage
+	if err := json.Unmarshal([]byte(cmdResponse), &responseMap); err != nil {
 		return nil, err
 	}
 
-	reading := response.GatewayResult.Messages[0]
-	result, err = newResult(req.DeviceObject, req.RO, reading)
-	if err != nil {
-		return result, err
+	// extract specific values from the response
+	var reading string
+	_, ok = responseMap["result"]
+	if ok {
+		reading = string(responseMap["result"])
+		driver.Logger.Info(fmt.Sprintf("Successfull command response from rsp-gateway: %v", reading))
+	} else {
+		_, ok = responseMap["error"]
+		if ok {
+			reading = string(responseMap["error"])
+			driver.Logger.Info(fmt.Sprintf("Error command response from rsp-gateway: %v", reading))
+		} else {
+			driver.Logger.Info(fmt.Sprintf("Incorrect command response from rsp-gateway: %v", cmdResponse))
+		}
+
 	}
-
-
-
-	/*var response map[string]interface{}
-	if err := json.Unmarshal([]byte(cmdResponse), &response); err != nil {
-		return nil, err
+	if reading != "" {
+		result, err = newResult(req.DeviceObject, req.RO, reading)
+		if err != nil {
+			return result, err
+		}
 	}
-
-	//reading, ok := response[req.DeviceObject.Name]
-
-	reading, ok := response["result"]
-	if !ok {
-		//err = fmt.Errorf("can not fetch command reading: method=%v cmd=%v", method, cmd)
-		err = fmt.Errorf("can not fetch command reading: response=%v", response)
-		return result, err
-	}
-
-	result, err = newResult(req.DeviceObject, req.RO, reading)
-	if err != nil {
-		return result, err
-	}*/
 
 	driver.Logger.Info(fmt.Sprintf("Get command finished: %v", result))
 	return result, err
 }
 
+// not handling command put requests so this method is just used for implementing ProtocolDriver Interface
 func (d *Driver) HandleWriteCommands(addr *models.Addressable, reqs []sdkModel.CommandRequest, params []*sdkModel.CommandValue) error {
 	var err error
 
-	// create device client and open connection
+	/*// create device client and open connection
 	var brokerUrl = addr.Address
 	var brokerPort = addr.Port
 	var username = addr.User
@@ -230,13 +208,14 @@ func (d *Driver) HandleWriteCommands(addr *models.Addressable, reqs []sdkModel.C
 			driver.Logger.Info(fmt.Sprintf("Handle write commands failed: %v", err))
 			return err
 		}
-	}
+	}*/
 
 	return err
 }
 
+// not handling command put requests so this method is just used for implementing ProtocolDriver Interface
 func (d *Driver) handleWriteCommandRequest(deviceClient MQTT.Client, req sdkModel.CommandRequest, topic string, param *sdkModel.CommandValue) error {
-	var err error
+	/*var err error
 	var qos = byte(0)
 	var retained = false
 
@@ -281,7 +260,7 @@ func (d *Driver) handleWriteCommandRequest(deviceClient MQTT.Client, req sdkMode
 		return err
 	}
 
-	driver.Logger.Info(fmt.Sprintf("Put command finished: %v", cmdResponse))
+	driver.Logger.Info(fmt.Sprintf("Put command finished: %v", cmdResponse))*/
 
 	return nil
 }
@@ -357,7 +336,8 @@ func newResult(deviceObject models.DeviceObject, ro models.ResourceOperation, re
 	return result, err
 }
 
-func newCommandValue(deviceObject models.DeviceObject, param *sdkModel.CommandValue) (interface{}, error) {
+// used for put requests which are not handled
+/*func newCommandValue(deviceObject models.DeviceObject, param *sdkModel.CommandValue) (interface{}, error) {
 	var commandValue interface{}
 	var err error
 	switch deviceObject.Properties.Value.Type {
@@ -390,14 +370,14 @@ func newCommandValue(deviceObject models.DeviceObject, param *sdkModel.CommandVa
 	}
 
 	return commandValue, err
-}
+}*/
 
 // fetchCommandResponse use to wait and fetch response from CommandResponses map
-func fetchCommandResponse(commandResponses map[string]string, cmdUuid string) (string, bool) {
+func fetchCommandResponse(commandResponses map[string]string, id string) (string, bool) {
 	var cmdResponse string
 	var ok bool
 	for i := 0; i < 5; i++ {
-		cmdResponse, ok = commandResponses[cmdUuid]
+		cmdResponse, ok = commandResponses[id]
 		if ok {
 			break
 		} else {

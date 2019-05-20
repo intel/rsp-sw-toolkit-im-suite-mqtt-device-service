@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/eclipse/paho.mqtt.golang"
+	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/models"
 )
 
 func startCommandResponseListening() error {
@@ -51,25 +52,16 @@ func startCommandResponseListening() error {
 }
 
 func onCommandResponseReceived(client mqtt.Client, message mqtt.Message) {
-	var response map[string]interface{}
+	var response models.JsonResponse
 
 	if err := json.Unmarshal(message.Payload(), &response); err != nil {
 		driver.Logger.Error(fmt.Sprintf("[Response listener] Unmarshal failed: %+v", err))
 		return
 	}
 
-	/*uuid, ok := response["uuid"].(string)
-	if ok {
-		driver.CommandResponses[uuid] = string(message.Payload())
-		driver.Logger.Info(fmt.Sprintf("[Response listener] Command response received: topic=%v uuid=%v msg=%v", message.Topic(), uuid, string(message.Payload())))
-	} else {
-		driver.Logger.Warn(fmt.Sprintf("[Response listener] Command response ignored. No UUID found in the message: topic=%v msg=%v", message.Topic(), string(message.Payload())))
-	}*/
-
-	id, ok := response["id"].(string)
-	if ok {
-		driver.CommandResponses[id] = string(message.Payload())
-		driver.Logger.Info(fmt.Sprintf("[Response listener] Command response received: topic=%v id=%v msg=%v", message.Topic(), id, string(message.Payload())))
+	if response.Id != "" {
+		driver.CommandResponses[response.Id] = string(message.Payload())
+		driver.Logger.Info(fmt.Sprintf("[Response listener] Command response received: topic=%v msg=%v", message.Topic(), string(message.Payload())))
 	} else {
 		driver.Logger.Warn(fmt.Sprintf("[Response listener] Command response ignored. No ID found in the message: topic=%v msg=%v", message.Topic(), string(message.Payload())))
 	}
