@@ -7,7 +7,7 @@ description: "RFID Gateway MQTT Device Service"
 deviceResources:
 -
   name: get_sw_version
-  description: "software version of the gateway"
+  description: "software version of the rsp-gateway"
   attributes:
     { name: "get_sw_version" }
   properties:
@@ -15,12 +15,26 @@ deviceResources:
       { type: "String", readWrite: "R", defaultValue: "" }
     units:
       { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: get_sensor_info
+    description: "info of sensors connected to the rsp-gateway"
+    attributes:
+      { name: "get_sensor_info" }
+    properties:
+      value:
+        { type: "String", readWrite: "R", defaultValue: "" }
+      units:
+        { type: "String", readWrite: "R", defaultValue: "" }
 
 resources:
 -
   name: get_sw_version
   get:
   - { index: "1", operation: "get", object: "get_sw_version", parameter: "get_sw_version", property: "value" }
+-
+  name: get_sensor_info
+  get:
+    - { index: "1", operation: "get", object: "get_sensor_info", parameter: "get_sensor_info", property: "value" }
 
 commands:
 -
@@ -36,3 +50,16 @@ commands:
       code: "503"
       description: "service unavailable"
       expectedValues: []
+-
+  name: get_sensor_info
+  get:
+    path: "/api/v1/device/{deviceId}/get_sensor_info"
+    responses:
+      -
+        code: "200"
+        description: "info of sensors connected to the rsp-gateway"
+        expectedValues: ["get_sensor_info"]
+      -
+        code: "503"
+        description: "service unavailable"
+        expectedValues: []
