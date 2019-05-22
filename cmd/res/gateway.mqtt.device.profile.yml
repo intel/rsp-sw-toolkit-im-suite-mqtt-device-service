@@ -17,14 +17,14 @@ deviceResources:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
   name: get_sensor_info
-    description: "info of sensors connected to the rsp-gateway"
-    attributes:
-      { name: "get_sensor_info" }
-    properties:
-      value:
-        { type: "String", readWrite: "R", defaultValue: "" }
-      units:
-        { type: "String", readWrite: "R", defaultValue: "" }
+  description: "info of sensors connected to the rsp-gateway"
+  attributes:
+    { name: "get_sensor_info" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
 
 resources:
 -
@@ -34,7 +34,7 @@ resources:
 -
   name: get_sensor_info
   get:
-    - { index: "1", operation: "get", object: "get_sensor_info", parameter: "get_sensor_info", property: "value" }
+  - { index: "1", operation: "get", object: "get_sensor_info", parameter: "get_sensor_info", property: "value" }
 
 commands:
 -

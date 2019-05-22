@@ -10,6 +10,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"gopkg.in/mgo.v2/bson"
 	"net/url"
 	"strings"
 	"sync"
@@ -29,11 +30,6 @@ const (
 	jsonRpc  = "2.0"
 	qos      = byte(0)
 	retained = false
-)
-
-const (
-	getSwVersionMethod = "get_sw_version"
-	getSwVersionId     = "310"
 )
 
 type Driver struct {
@@ -125,11 +121,8 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 
 	var request commandModel.JsonRequest
 	request.JsonRpc = jsonRpc
-
-	if req.DeviceObject.Name == getSwVersionMethod {
-		request.Method = getSwVersionMethod
-		request.Id = getSwVersionId
-	}
+	request.Method = req.DeviceObject.Name
+	request.Id = bson.NewObjectId().Hex()
 
 	jsonData, err := json.Marshal(request)
 	if err != nil {
