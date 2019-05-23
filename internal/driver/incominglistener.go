@@ -7,11 +7,11 @@
 package driver
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
-	"net/url"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -142,12 +142,12 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 		return
 	} else {
 		// Register new Addressable
-		if err:= postAddressable(deviceName); err != nil{
-			driver.Logger.Warn(fmt.Sprintf("Unable to register new addressable %s", deviceName)
+		if err := postAddressable(deviceName); err != nil {
+			driver.Logger.Warn(fmt.Sprintf("Unable to register new addressable %s", deviceName))
 		}
 		// Register new Device
-		if err:= postDevice(deviceName); err != nil {
-			driver.Logger.Warn(fmt.Sprintf("Unable to register new device %s", deviceName)
+		if err := postDevice(deviceName); err != nil {
+			driver.Logger.Warn(fmt.Sprintf("Unable to register new device %s", deviceName))
 		}
 
 	}
@@ -184,13 +184,13 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 	driver.AsyncCh <- asyncValues
 }
 
-func postAddressable(string deviceName) error {
+func postAddressable(deviceName string) error {
 
 	endPointUrl := fmt.Sprintf("http://%s:$d/%s", clients.CoreMetaDataServiceKey, 48081, clients.ApiAddressableRoute)
 
 	payLoad := models.Addressable{Name: deviceName,
 		Protocol: "TCP",
-		Address:  deviceName
+		Address:  deviceName,
 	}
 
 	payLoadBytes, err := json.Marshal(payLoad)
@@ -203,24 +203,34 @@ func postAddressable(string deviceName) error {
 		return err
 	}
 
-	if response.StatusCode != http.StatusOK {		
-		return errors.New(mt.Sprintf("Response error %d", response.StatusCode))
+	if response.StatusCode != http.StatusOK {
+		return errors.New(fmt.Sprintf("Response error %d", response.StatusCode))
 	}
 
 	return nil
 
 }
 
-func postDevice(string deviceName) error {
+func postDevice(deviceName string) error {
 
 	endPointUrl := fmt.Sprintf("http://%s:$d/%s", clients.CoreMetaDataServiceKey, 48081, clients.ApiDeviceRoute)
 
-	payLoad := models.Device{Name: deviceName,
-		AdminState: "UNLOCKED",
-		OperatingState: "ENABLED",
-		Service: models.DeviceService{Name: driver.Config.Incoming.Host},
-		Profile: models.DeviceProfile{Name: driver.Config.Incoming.Host},
-		Addressable: models.Addressable{Name: deviceName}		
+	// EdgeX Device model doesn't match with current Delhi release
+
+	payLoad := map[string]interface{}{
+		"name":           deviceName,
+		"description":    "Gateway Device MQTT Broker Connection",
+		"adminState":     "UNLOCKED",
+		"operatingState": "enabled",
+		"service": map[string]string{
+			"name": driver.Config.Incoming.Host,
+		},
+		"profile": map[string]string{
+			"name": driver.Config.Incoming.Host,
+		},
+		"addressable": map[string]string{
+			"name": deviceName,
+		},
 	}
 
 	payLoadBytes, err := json.Marshal(payLoad)
@@ -233,8 +243,8 @@ func postDevice(string deviceName) error {
 		return err
 	}
 
-	if response.StatusCode != http.StatusOK {		
-		return errors.New(mt.Sprintf("Response error %d", response.StatusCode))
+	if response.StatusCode != http.StatusOK {
+		return errors.New(fmt.Sprintf("Response error %d", response.StatusCode))
 	}
 
 	return nil
