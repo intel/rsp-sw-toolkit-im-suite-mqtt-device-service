@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -139,7 +140,6 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 			"Incoming reading ignored. "+
 			"No DeviceObject found: topic=%v msg=%v",
 			message.Topic(), string(message.Payload())))
-		return
 	} else {
 		// Register new Addressable
 		if err := postAddressable(deviceName); err != nil {
@@ -188,6 +188,8 @@ func postAddressable(deviceName string) error {
 
 	endPointUrl := fmt.Sprintf("http://%s:$d/%s", clients.CoreMetaDataServiceKey, 48081, clients.ApiAddressableRoute)
 
+	log.Printf("Adding new addressable to %s", endPointUrl)
+
 	payLoad := models.Addressable{Name: deviceName,
 		Protocol: "TCP",
 		Address:  deviceName,
@@ -214,6 +216,8 @@ func postAddressable(deviceName string) error {
 func postDevice(deviceName string) error {
 
 	endPointUrl := fmt.Sprintf("http://%s:$d/%s", clients.CoreMetaDataServiceKey, 48081, clients.ApiDeviceRoute)
+
+	log.Printf("Adding new device to %s", endPointUrl)
 
 	// EdgeX Device model doesn't match with current Delhi release
 
