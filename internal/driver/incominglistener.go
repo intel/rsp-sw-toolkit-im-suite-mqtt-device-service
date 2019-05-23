@@ -9,13 +9,18 @@ package driver
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
+	"log"
 	"net/url"
+	"net/http"
 	"strings"
 
-	"github.com/eclipse/paho.mqtt.golang"
+	"github.com/pkg/errors"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	sdk "github.com/edgexfoundry/device-sdk-go"
 	sdkModel "github.com/edgexfoundry/device-sdk-go/pkg/models"
+	"github.com/edgexfoundry/go-mod-core-contracts/clients"
+	"github.com/edgexfoundry/go-mod-core-contracts/models"
 )
 
 func startIncomingListening() error {
@@ -135,6 +140,16 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 			"No DeviceObject found: topic=%v msg=%v",
 			message.Topic(), string(message.Payload())))
 		return
+	} else {
+		// Register new Addressable
+		if err:= postAddressable(deviceName); err != nil{
+			driver.Logger.Warn(fmt.Sprintf("Unable to register new addressable %s", deviceName)
+		}
+		// Register new Device
+		if err:= postDevice(deviceName); err != nil {
+			driver.Logger.Warn(fmt.Sprintf("Unable to register new device %s", deviceName)
+		}
+
 	}
 
 	ro, ok := service.ResourceOperation(deviceName, event, "get")
@@ -167,4 +182,61 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 		message.Topic(), string(message.Payload())))
 
 	driver.AsyncCh <- asyncValues
+}
+
+func postAddressable(string deviceName) error {
+
+	endPointUrl := fmt.Sprintf("http://%s:$d/%s", clients.CoreMetaDataServiceKey, 48081, clients.ApiAddressableRoute)
+
+	payLoad := models.Addressable{Name: deviceName,
+		Protocol: "TCP",
+		Address:  deviceName
+	}
+
+	payLoadBytes, err := json.Marshal(payLoad)
+	if err != nil {
+		return err
+	}
+
+	response, err := http.Post(endPointUrl, "application/json", bytes.NewBuffer(payLoadBytes))
+	if err != nil {
+		return err
+	}
+
+	if response.StatusCode != http.StatusOK {		
+		return errors.New(mt.Sprintf("Response error %d", response.StatusCode))
+	}
+
+	return nil
+
+}
+
+func postDevice(string deviceName) error {
+
+	endPointUrl := fmt.Sprintf("http://%s:$d/%s", clients.CoreMetaDataServiceKey, 48081, clients.ApiDeviceRoute)
+
+	payLoad := models.Device{Name: deviceName,
+		AdminState: "UNLOCKED",
+		OperatingState: "ENABLED",
+		Service: models.DeviceService{Name: driver.Config.Incoming.Host},
+		Profile: models.DeviceProfile{Name: driver.Config.Incoming.Host},
+		Addressable: models.Addressable{Name: deviceName}		
+	}
+
+	payLoadBytes, err := json.Marshal(payLoad)
+	if err != nil {
+		return err
+	}
+
+	response, err := http.Post(endPointUrl, "application/json", bytes.NewBuffer(payLoadBytes))
+	if err != nil {
+		return err
+	}
+
+	if response.StatusCode != http.StatusOK {		
+		return errors.New(mt.Sprintf("Response error %d", response.StatusCode))
+	}
+
+	return nil
+
 }
