@@ -140,7 +140,8 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 			"Incoming reading ignored. "+
 			"No DeviceObject found: topic=%v msg=%v",
 			message.Topic(), string(message.Payload())))
-	} else {
+
+		log.Print("Registering a new device...")
 		// Register new Addressable
 		if err := postAddressable(deviceName); err != nil {
 			driver.Logger.Warn(fmt.Sprintf("Unable to register new addressable %s", deviceName))
@@ -150,6 +151,7 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 			driver.Logger.Warn(fmt.Sprintf("Unable to register new device %s", deviceName))
 		}
 
+		return
 	}
 
 	ro, ok := service.ResourceOperation(deviceName, event, "get")
@@ -186,9 +188,9 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 
 func postAddressable(deviceName string) error {
 
-	endPointUrl := fmt.Sprintf("http://%s:$d/%s", clients.CoreMetaDataServiceKey, 48081, clients.ApiAddressableRoute)
+	endPointURL := fmt.Sprintf("http://%s:$d/%s", clients.CoreMetaDataServiceKey, 48081, clients.ApiAddressableRoute)
 
-	log.Printf("Adding new addressable to %s", endPointUrl)
+	log.Printf("Adding new addressable to %s", endPointURL)
 
 	payLoad := models.Addressable{Name: deviceName,
 		Protocol: "TCP",
@@ -200,7 +202,7 @@ func postAddressable(deviceName string) error {
 		return err
 	}
 
-	response, err := http.Post(endPointUrl, "application/json", bytes.NewBuffer(payLoadBytes))
+	response, err := http.Post(endPointURL, "application/json", bytes.NewBuffer(payLoadBytes))
 	if err != nil {
 		return err
 	}
@@ -215,9 +217,9 @@ func postAddressable(deviceName string) error {
 
 func postDevice(deviceName string) error {
 
-	endPointUrl := fmt.Sprintf("http://%s:$d/%s", clients.CoreMetaDataServiceKey, 48081, clients.ApiDeviceRoute)
+	endPointURL := fmt.Sprintf("http://%s:$d/%s", clients.CoreMetaDataServiceKey, 48081, clients.ApiDeviceRoute)
 
-	log.Printf("Adding new device to %s", endPointUrl)
+	log.Printf("Adding new device to %s", endPointURL)
 
 	// EdgeX Device model doesn't match with current Delhi release
 
@@ -242,7 +244,7 @@ func postDevice(deviceName string) error {
 		return err
 	}
 
-	response, err := http.Post(endPointUrl, "application/json", bytes.NewBuffer(payLoadBytes))
+	response, err := http.Post(endPointURL, "application/json", bytes.NewBuffer(payLoadBytes))
 	if err != nil {
 		return err
 	}
