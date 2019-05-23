@@ -144,13 +144,12 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 		log.Print("Registering a new device...")
 		// Register new Addressable
 		if err := postAddressable(deviceName); err != nil {
-			driver.Logger.Warn(fmt.Sprintf("Unable to register new addressable %s", deviceName))
+			driver.Logger.Warn(fmt.Sprintf("Unable to register new addressable %s, error %s", deviceName, err.Error()))
 		}
 		// Register new Device
 		if err := postDevice(deviceName); err != nil {
-			driver.Logger.Warn(fmt.Sprintf("Unable to register new device %s", deviceName))
+			driver.Logger.Warn(fmt.Sprintf("Unable to register new device %s, error %s", deviceName, err.Error()))
 		}
-
 		return
 	}
 
