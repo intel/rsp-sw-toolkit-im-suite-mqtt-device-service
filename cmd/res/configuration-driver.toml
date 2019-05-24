@@ -13,6 +13,7 @@ Topics = [
     "rfid/gw/alerts",
     "rfid/gw/heartbeat"
 ]
+MetaDataPort = 48081
 
 
 # For EdgeX to receive messages from the DeviceService

@@ -29,6 +29,7 @@ type SubscribeInfo struct {
 	KeepAlive    int
 	MqttClientId string
 	Topics       []string
+	MetaDataPort int
 }
 
 // LoadConfigFromFile use to load toml configuration

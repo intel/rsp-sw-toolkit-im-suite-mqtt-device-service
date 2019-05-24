@@ -204,7 +204,7 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 
 func postAddressable(deviceName string) error {
 
-	endPointURL := fmt.Sprintf("http://%s:%d%s", clients.CoreMetaDataServiceKey, 48081, clients.ApiAddressableRoute)
+	endPointURL := fmt.Sprintf("http://%s:%d%s", clients.CoreMetaDataServiceKey, driver.Config.Incoming.MetaDataPort, clients.ApiAddressableRoute)
 
 	driver.Logger.Debug(fmt.Sprintf("Adding new device to %s", endPointURL))
 
@@ -241,7 +241,7 @@ func postAddressable(deviceName string) error {
 
 func postDevice(deviceName string) error {
 
-	endPointURL := fmt.Sprintf("http://%s:%d%s", clients.CoreMetaDataServiceKey, 48081, clients.ApiDeviceRoute)
+	endPointURL := fmt.Sprintf("http://%s:%d%s", clients.CoreMetaDataServiceKey, driver.Config.Incoming.MetaDataPort, clients.ApiDeviceRoute)
 
 	driver.Logger.Debug(fmt.Sprintf("Adding new device to %s", endPointURL))
 
