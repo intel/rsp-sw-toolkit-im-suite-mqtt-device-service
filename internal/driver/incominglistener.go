@@ -11,7 +11,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -157,7 +156,7 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 			"No DeviceObject found: topic=%v msg=%v",
 			message.Topic(), string(message.Payload())))
 
-		log.Print("Registering a new device...")
+		driver.Logger.Info("Registering a new device...")
 
 		// Register new Addressable
 		if err := postAddressable(deviceName); err != nil {
@@ -206,14 +205,12 @@ func postAddressable(deviceName string) error {
 
 	endPointURL := fmt.Sprintf("http://%s:%d%s", clients.CoreMetaDataServiceKey, 48081, clients.ApiAddressableRoute)
 
-	log.Printf("Adding new addressable to %s", endPointURL)
+	driver.Logger.Debug(fmt.Sprintf("Adding new device to %s", endPointURL))
 
 	payLoad := Addressable{Name: deviceName,
 		Protocol: "TCP",
 		Address:  deviceName,
 	}
-
-	log.Print(payLoad)
 
 	payLoadBytes, err := json.Marshal(payLoad)
 	if err != nil {
@@ -231,9 +228,9 @@ func postAddressable(deviceName string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("Response Code error %s", resp.StatusCode)
+		driver.Logger.Debug(fmt.Sprintf("Response Code error %s", resp.StatusCode))
 		body, _ := ioutil.ReadAll(resp.Body)
-		fmt.Println("response Body:", string(body))
+		driver.Logger.Debug(fmt.Sprintf("response Body:", string(body)))
 		return errors.New("Unable to register addressable")
 	}
 
@@ -245,7 +242,7 @@ func postDevice(deviceName string) error {
 
 	endPointURL := fmt.Sprintf("http://%s:%d%s", clients.CoreMetaDataServiceKey, 48081, clients.ApiDeviceRoute)
 
-	log.Printf("Adding new device to %s", endPointURL)
+	driver.Logger.Debug(fmt.Sprintf("Adding new device to %s", endPointURL))
 
 	payLoad := Device{
 		Name:           deviceName,
@@ -279,9 +276,9 @@ func postDevice(deviceName string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("Response Code error %s", resp.StatusCode)
+		driver.Logger.Debug(fmt.Sprintf("Response Code error %s", resp.StatusCode))
 		body, _ := ioutil.ReadAll(resp.Body)
-		fmt.Println("response Body:", string(body))
+		driver.Logger.Debug(fmt.Sprintf("response Body:", string(body)))
 		return errors.New("Unable to register device")
 	}
 
