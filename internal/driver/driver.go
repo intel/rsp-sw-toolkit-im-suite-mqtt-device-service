@@ -111,7 +111,6 @@ func (d *Driver) HandleReadCommands(addr *models.Addressable, reqs []sdkModel.Co
 		responses[i] = res
 	}
 
-	driver.Logger.Info(fmt.Sprintf("Handle read commands: %v", responses))
 	return responses, err
 }
 
@@ -122,6 +121,7 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 	var request commandModel.JsonRequest
 	request.JsonRpc = jsonRpc
 	request.Method = req.DeviceObject.Name
+	// create a unique id to track every response
 	request.Id = bson.NewObjectId().Hex()
 
 	jsonData, err := json.Marshal(request)
@@ -150,22 +150,21 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 	_, ok = responseMap["result"]
 	if ok {
 		reading = string(responseMap["result"])
-		driver.Logger.Info(fmt.Sprintf("Successfull command response from rsp-gateway: %v", reading))
 	} else {
 		_, ok = responseMap["error"]
 		// error response is handled as ok (200 http code) as EdgeX command service returns only 500 error code with no message
 		if ok {
 			reading = string(responseMap["error"])
-			driver.Logger.Info(fmt.Sprintf("Error command response from rsp-gateway: %v", reading))
 		} else {
-			driver.Logger.Info(fmt.Sprintf("Incorrect command response from rsp-gateway: %v", cmdResponse))
+			err = fmt.Errorf("incorrect command response from rsp-gateway: %v", cmdResponse)
+			return nil, err
 		}
 
 	}
 	if reading != "" {
 		result, err = newResult(req.DeviceObject, req.RO, reading)
 		if err != nil {
-			return result, err
+			return nil, err
 		}
 	}
 
@@ -173,7 +172,7 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 	return result, err
 }
 
-// not handling command put requests so this method is just used for implementing ProtocolDriver Interface
+// not handling command put requests in Badger Bay so this method is just used for implementing ProtocolDriver Interface
 func (d *Driver) HandleWriteCommands(addr *models.Addressable, reqs []sdkModel.CommandRequest, params []*sdkModel.CommandValue) error {
 	var err error
 
@@ -207,7 +206,7 @@ func (d *Driver) HandleWriteCommands(addr *models.Addressable, reqs []sdkModel.C
 	return err
 }
 
-// not handling command put requests so this method is just used for implementing ProtocolDriver Interface
+// not handling command put requests in Badger Bay so this method is just used for implementing ProtocolDriver Interface
 func (d *Driver) handleWriteCommandRequest(deviceClient MQTT.Client, req sdkModel.CommandRequest, topic string, param *sdkModel.CommandValue) error {
 	/*var err error
 	var qos = byte(0)

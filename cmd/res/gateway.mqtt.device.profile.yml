@@ -47,8 +47,8 @@ commands:
       description: "software version of the gateway"
       expectedValues: ["get_sw_version"]
     -
-      code: "503"
-      description: "service unavailable"
+      code: "500"
+      description: "internal server error"
       expectedValues: []
 -
   name: get_sensor_info
@@ -60,6 +60,6 @@ commands:
         description: "info of sensors connected to the rsp-gateway"
         expectedValues: ["get_sensor_info"]
       -
-        code: "503"
-        description: "service unavailable"
+        code: "500"
+        description: "internal server error"
         expectedValues: []
