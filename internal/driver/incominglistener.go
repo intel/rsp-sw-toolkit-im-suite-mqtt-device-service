@@ -7,16 +7,37 @@
 package driver
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
+	"io/ioutil"
+	"net/http"
 	"net/url"
 	"strings"
 
-	"github.com/eclipse/paho.mqtt.golang"
+	"github.com/pkg/errors"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	sdk "github.com/edgexfoundry/device-sdk-go"
 	sdkModel "github.com/edgexfoundry/device-sdk-go/pkg/models"
+	"github.com/edgexfoundry/go-mod-core-contracts/clients"
 )
+
+type Addressable struct {
+	Name     string `json:"name"`
+	Protocol string `json:"protocol"`
+	Address  string `json:"address"`
+}
+
+type Device struct {
+	Name           string            `json:"name"`
+	Description    string            `json:"description"`
+	AdminState     string            `json:"adminState"`
+	OperatingState string            `json:"operatingState"`
+	Service        map[string]string `json:"service"`
+	Profile        map[string]string `json:"profile"`
+	Addressable    map[string]string `json:"addressable"`
+}
 
 func startIncomingListening() error {
 	var scheme = driver.Config.Incoming.Protocol
@@ -134,6 +155,18 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 			"Incoming reading ignored. "+
 			"No DeviceObject found: topic=%v msg=%v",
 			message.Topic(), string(message.Payload())))
+
+		driver.Logger.Info("Registering a new device...")
+
+		// Register new Addressable
+		if err := postAddressable(deviceName); err != nil {
+			driver.Logger.Warn(fmt.Sprintf("Unable to register new addressable %s, error %s", deviceName, err.Error()))
+			return
+		}
+		// Register new Device
+		if err := postDevice(deviceName); err != nil {
+			driver.Logger.Warn(fmt.Sprintf("Unable to register new device %s, error %s", deviceName, err.Error()))
+		}
 		return
 	}
 
@@ -167,4 +200,89 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 		message.Topic(), string(message.Payload())))
 
 	driver.AsyncCh <- asyncValues
+}
+
+func postAddressable(deviceName string) error {
+
+	endPointURL := fmt.Sprintf("http://%s:%d%s", clients.CoreMetaDataServiceKey, 48081, clients.ApiAddressableRoute)
+
+	driver.Logger.Debug(fmt.Sprintf("Adding new device to %s", endPointURL))
+
+	payload := Addressable{Name: deviceName,
+		Protocol: "TCP",
+		Address:  deviceName,
+	}
+
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("POST", endPointURL, bytes.NewBuffer(payloadBytes))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		driver.Logger.Debug(fmt.Sprintf("Response Code error %s", resp.StatusCode))
+		body, _ := ioutil.ReadAll(resp.Body)
+		driver.Logger.Debug(fmt.Sprintf("response Body:", string(body)))
+		return errors.New("Unable to register addressable")
+	}
+
+	return nil
+
+}
+
+func postDevice(deviceName string) error {
+
+	endPointURL := fmt.Sprintf("http://%s:%d%s", clients.CoreMetaDataServiceKey, 48081, clients.ApiDeviceRoute)
+
+	driver.Logger.Debug(fmt.Sprintf("Adding new device to %s", endPointURL))
+
+	payload := Device{
+		Name:           deviceName,
+		Description:    "Gateway Device MQTT Broker Connection",
+		AdminState:     "unlocked",
+		OperatingState: "enabled",
+		Service: map[string]string{
+			"name": "mqtt-device-service",
+		},
+		Profile: map[string]string{
+			"name": "Gateway.Device.MQTT.Profile",
+		},
+		Addressable: map[string]string{
+			"name": deviceName,
+		},
+	}
+
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("POST", endPointURL, bytes.NewBuffer(payloadBytes))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		driver.Logger.Debug(fmt.Sprintf("Response Code error %s", resp.StatusCode))
+		body, _ := ioutil.ReadAll(resp.Body)
+		driver.Logger.Debug(fmt.Sprintf("response Body:", string(body)))
+		return errors.New("Unable to register device")
+	}
+
+	return nil
+
 }
