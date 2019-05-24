@@ -153,6 +153,7 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 		driver.Logger.Info(fmt.Sprintf("Successfull command response from rsp-gateway: %v", reading))
 	} else {
 		_, ok = responseMap["error"]
+		// error response is handled as ok (200 http code) as EdgeX command service returns only 500 error code with no message
 		if ok {
 			reading = string(responseMap["error"])
 			driver.Logger.Info(fmt.Sprintf("Error command response from rsp-gateway: %v", reading))
