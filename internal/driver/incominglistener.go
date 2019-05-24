@@ -161,6 +161,7 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 		// Register new Addressable
 		if err := postAddressable(deviceName); err != nil {
 			driver.Logger.Warn(fmt.Sprintf("Unable to register new addressable %s, error %s", deviceName, err.Error()))
+			return
 		}
 		// Register new Device
 		if err := postDevice(deviceName); err != nil {
@@ -207,17 +208,17 @@ func postAddressable(deviceName string) error {
 
 	driver.Logger.Debug(fmt.Sprintf("Adding new device to %s", endPointURL))
 
-	payLoad := Addressable{Name: deviceName,
+	payload := Addressable{Name: deviceName,
 		Protocol: "TCP",
 		Address:  deviceName,
 	}
 
-	payLoadBytes, err := json.Marshal(payLoad)
+	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		return err
 	}
 
-	req, err := http.NewRequest("POST", endPointURL, bytes.NewBuffer(payLoadBytes))
+	req, err := http.NewRequest("POST", endPointURL, bytes.NewBuffer(payloadBytes))
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
@@ -244,7 +245,7 @@ func postDevice(deviceName string) error {
 
 	driver.Logger.Debug(fmt.Sprintf("Adding new device to %s", endPointURL))
 
-	payLoad := Device{
+	payload := Device{
 		Name:           deviceName,
 		Description:    "Gateway Device MQTT Broker Connection",
 		AdminState:     "unlocked",
@@ -260,12 +261,12 @@ func postDevice(deviceName string) error {
 		},
 	}
 
-	payLoadBytes, err := json.Marshal(payLoad)
+	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		return err
 	}
 
-	req, err := http.NewRequest("POST", endPointURL, bytes.NewBuffer(payLoadBytes))
+	req, err := http.NewRequest("POST", endPointURL, bytes.NewBuffer(payloadBytes))
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
