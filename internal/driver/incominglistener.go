@@ -230,10 +230,12 @@ func postAddressable(deviceName string) error {
 	}
 	defer resp.Body.Close()
 
-	log.Printf("status code %d", resp.StatusCode)
-
-	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println("response Body:", string(body))
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("Response Code error %s", resp.StatusCode)
+		body, _ := ioutil.ReadAll(resp.Body)
+		fmt.Println("response Body:", string(body))
+		return errors.New("Unable to register addressable")
+	}
 
 	return nil
 
@@ -276,10 +278,12 @@ func postDevice(deviceName string) error {
 	}
 	defer resp.Body.Close()
 
-	log.Printf("status code %d", resp.StatusCode)
-
-	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println("response Body:", string(body))
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("Response Code error %s", resp.StatusCode)
+		body, _ := ioutil.ReadAll(resp.Body)
+		fmt.Println("response Body:", string(body))
+		return errors.New("Unable to register device")
+	}
 
 	return nil
 
