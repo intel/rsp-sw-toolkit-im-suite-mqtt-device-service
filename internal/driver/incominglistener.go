@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -21,8 +22,23 @@ import (
 	sdk "github.com/edgexfoundry/device-sdk-go"
 	sdkModel "github.com/edgexfoundry/device-sdk-go/pkg/models"
 	"github.com/edgexfoundry/go-mod-core-contracts/clients"
-	"github.com/edgexfoundry/go-mod-core-contracts/models"
 )
+
+type Addressable struct {
+	Name     string `json:"name"`
+	Protocol string `json:"protocol"`
+	Address  string `json:"address"`
+}
+
+type Device struct {
+	Name           string            `json:"name"`
+	Description    string            `json:"description"`
+	AdminState     string            `json:"adminState"`
+	OperatingState string            `json:"operatingState"`
+	Service        map[string]string `json:"service"`
+	Profile        map[string]string `json:"profile"`
+	Addressable    map[string]string `json:"addressable"`
+}
 
 func startIncomingListening() error {
 	var scheme = driver.Config.Incoming.Protocol
@@ -142,6 +158,7 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 			message.Topic(), string(message.Payload())))
 
 		log.Print("Registering a new device...")
+
 		// Register new Addressable
 		if err := postAddressable(deviceName); err != nil {
 			driver.Logger.Warn(fmt.Sprintf("Unable to register new addressable %s, error %s", deviceName, err.Error()))
@@ -191,24 +208,32 @@ func postAddressable(deviceName string) error {
 
 	log.Printf("Adding new addressable to %s", endPointURL)
 
-	payLoad := models.Addressable{Name: deviceName,
+	payLoad := Addressable{Name: deviceName,
 		Protocol: "TCP",
 		Address:  deviceName,
 	}
+
+	log.Print(payLoad)
 
 	payLoadBytes, err := json.Marshal(payLoad)
 	if err != nil {
 		return err
 	}
 
-	response, err := http.Post(endPointURL, "application/json", bytes.NewBuffer(payLoadBytes))
+	req, err := http.NewRequest("POST", endPointURL, bytes.NewBuffer(payLoadBytes))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
-	if response.StatusCode != http.StatusOK {
-		return errors.New(fmt.Sprintf("Response error %d", response.StatusCode))
-	}
+	log.Printf("status code %d", resp.StatusCode)
+
+	body, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println("response Body:", string(body))
 
 	return nil
 
@@ -220,20 +245,18 @@ func postDevice(deviceName string) error {
 
 	log.Printf("Adding new device to %s", endPointURL)
 
-	// EdgeX Device model doesn't match with current Delhi release
-
-	payLoad := map[string]interface{}{
-		"name":           deviceName,
-		"description":    "Gateway Device MQTT Broker Connection",
-		"adminState":     "UNLOCKED",
-		"operatingState": "enabled",
-		"service": map[string]string{
-			"name": driver.Config.Incoming.Host,
+	payLoad := Device{
+		Name:           deviceName,
+		Description:    "Gateway Device MQTT Broker Connection",
+		AdminState:     "unlocked",
+		OperatingState: "enabled",
+		Service: map[string]string{
+			"name": "mqtt-device-service",
 		},
-		"profile": map[string]string{
-			"name": driver.Config.Incoming.Host,
+		Profile: map[string]string{
+			"name": "Gateway.Device.MQTT.Profile",
 		},
-		"addressable": map[string]string{
+		Addressable: map[string]string{
 			"name": deviceName,
 		},
 	}
@@ -243,14 +266,20 @@ func postDevice(deviceName string) error {
 		return err
 	}
 
-	response, err := http.Post(endPointURL, "application/json", bytes.NewBuffer(payLoadBytes))
+	req, err := http.NewRequest("POST", endPointURL, bytes.NewBuffer(payLoadBytes))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
-	if response.StatusCode != http.StatusOK {
-		return errors.New(fmt.Sprintf("Response error %d", response.StatusCode))
-	}
+	log.Printf("status code %d", resp.StatusCode)
+
+	body, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println("response Body:", string(body))
 
 	return nil
 
