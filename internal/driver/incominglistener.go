@@ -229,9 +229,9 @@ func postAddressable(deviceName string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		driver.Logger.Debug(fmt.Sprintf("Response Code error %s", resp.StatusCode))
+		driver.Logger.Debug(fmt.Sprintf("Response Code error %d", resp.StatusCode))
 		body, _ := ioutil.ReadAll(resp.Body)
-		driver.Logger.Debug(fmt.Sprintf("response Body:", string(body)))
+		driver.Logger.Debug(fmt.Sprintf("response Body: %s", string(body)))
 		return errors.New("Unable to register addressable")
 	}
 
@@ -277,9 +277,9 @@ func postDevice(deviceName string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		driver.Logger.Debug(fmt.Sprintf("Response Code error %s", resp.StatusCode))
+		driver.Logger.Debug(fmt.Sprintf("Response Code error %d", resp.StatusCode))
 		body, _ := ioutil.ReadAll(resp.Body)
-		driver.Logger.Debug(fmt.Sprintf("response Body:", string(body)))
+		driver.Logger.Debug(fmt.Sprintf("response Body: %s", string(body)))
 		return errors.New("Unable to register device")
 	}
 
