@@ -3,7 +3,7 @@ GOARCH:=amd64
 GOPATH:=$$HOME/go
 SRC_PATH=github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service
 
-REPO:=saites/gateway-device-service
+REPO:=saites/mqtt-device-service
 GIT_SHA:=$(shell git rev-parse HEAD)
 VERSION=$(shell cat ./VERSION)
 

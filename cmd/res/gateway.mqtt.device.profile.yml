@@ -6,10 +6,20 @@ labels:
 description: "RFID Gateway MQTT Device Service"
 deviceResources:
 -
-  name: gwevent
-  description: "Gateway Event"
+  name: get_sw_version
+  description: "software version of the rsp-gateway"
   attributes:
-    { name: "gwevent" }
+    { name: "get_sw_version" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: get_sensor_info
+  description: "info of sensors connected to the rsp-gateway"
+  attributes:
+    { name: "get_sensor_info" }
   properties:
     value:
       { type: "String", readWrite: "R", defaultValue: "" }
@@ -18,22 +28,38 @@ deviceResources:
 
 resources:
 -
-  name: gwevent
+  name: get_sw_version
   get:
-  - { index: "1", operation: "get", object: "gwevent", parameter: "gwevent", property: "value" }
+  - { index: "1", operation: "get", object: "get_sw_version", parameter: "get_sw_version", property: "value" }
+-
+  name: get_sensor_info
+  get:
+  - { index: "1", operation: "get", object: "get_sensor_info", parameter: "get_sensor_info", property: "value" }
 
 commands:
 -
-  name: gwcommand
-  put:
-    path: "/api/v1/device/{deviceId}/gwcommand"
-    parameterNames: ["gwevent"]
+  name: get_sw_version
+  get:
+    path: "/api/v1/device/{deviceId}/get_sw_version"
     responses:
     -
-      code: "204"
-      description: "command sent"
-      expectedValues: []
+      code: "200"
+      description: "software version of the gateway"
+      expectedValues: ["get_sw_version"]
     -
-      code: "503"
-      description: "service unavailable"
+      code: "500"
+      description: "internal server error"
       expectedValues: []
+-
+  name: get_sensor_info
+  get:
+    path: "/api/v1/device/{deviceId}/get_sensor_info"
+    responses:
+      -
+        code: "200"
+        description: "info of sensors connected to the rsp-gateway"
+        expectedValues: ["get_sensor_info"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []

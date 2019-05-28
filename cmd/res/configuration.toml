@@ -5,7 +5,7 @@ Host = "mqtt-device-service"
 Port = 49982
 ConnectRetries = 3
 Labels = []
-OpenMsg = "gateway device service started"
+OpenMsg = "mqtt device service started"
 ReadMaxLimit = 256
 Timeout = 5000
 EnableAsyncReadings = true
@@ -63,6 +63,9 @@ Level = "DEBUG"
   Labels = [ "MQTT", "Gateway", "RFID"]
   [DeviceList.Addressable]
     Name = "Gateway address"
-    Protocol = "TCP"
-    Address = "rrs-gateway"
+    Protocol = "tls"
+    Address = "mosquitto-server"
+    Port = 9883
+    Publisher = "CommandPublisher"
+    Topic = "rfid/gw/command"
 

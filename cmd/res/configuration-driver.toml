@@ -1,6 +1,3 @@
-# Defines how EdgeX communicates with the DeviceService
-
-# For EdgeX to send messages to the DeviceService
 [Incoming]
 Protocol = "tls"
 Host = "mosquitto-server"
@@ -15,8 +12,6 @@ Topics = [
 ]
 MetaDataPort = 48081
 
-
-# For EdgeX to receive messages from the DeviceService
 [Response]
 Protocol = "tls"
 Host = "mosquitto-server"
@@ -24,4 +19,4 @@ Port = 9883
 Qos = 1
 KeepAlive = 3600
 MqttClientId = "CommandResponseSubscriber"
-Topics = ["ResponseTopic"]
+Topics = ["rfid/gw/response"]
