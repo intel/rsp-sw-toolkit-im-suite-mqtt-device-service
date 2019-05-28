@@ -28,7 +28,7 @@ var driver *Driver
 
 const (
 	jsonRpc  = "2.0"
-	qos      = byte(0)
+	qos      = byte(1)
 	retained = false
 )
 
