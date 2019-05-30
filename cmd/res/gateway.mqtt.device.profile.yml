@@ -37,9 +37,6 @@ deviceResources:
       { type: "String", readWrite: "R", defaultValue: "" }
 
 resources:
-- name: gwevent
-  get:
-  - { index: "1", operation: "get", object: "gwevent", parameter: "gwevent", property: "value" }
 -
   name: get_sw_version
   get:
@@ -50,20 +47,6 @@ resources:
   - { index: "1", operation: "get", object: "get_sensor_info", parameter: "get_sensor_info", property: "value" }
 
 commands:
--
-  name: gwcommand
-  put:
-    path: "/api/v1/device/{deviceId}/gwcommand"
-    parameterNames: ["gwevent"]
-    responses:
-    -
-      code: "204"
-      description: "command sent"
-      expectedValues: []
-    -
-      code: "503"
-      description: "service unavailable"
-      expectedValues: []
 -
   name: get_sw_version
   get:
