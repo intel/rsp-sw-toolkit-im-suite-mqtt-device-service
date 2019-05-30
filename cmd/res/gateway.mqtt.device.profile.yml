@@ -38,6 +38,10 @@ deviceResources:
 
 resources:
 -
+  name: gwevent
+  get:
+  - { index: "1", operation: "get", object: "gwevent", parameter: "gwevent", property: "value" }
+-
   name: get_sw_version
   get:
   - { index: "1", operation: "get", object: "get_sw_version", parameter: "get_sw_version", property: "value" }
