@@ -116,13 +116,14 @@ localhost
 GET to http://127.0.0.1:48082/api/v1/device/name/rrs-gateway
 ```
 - A json response is received if the GET request is successful. Response consists information of the 
-device (rrs-gateway) from which url to send commands needs to be copied (highlighted below)
+device (rrs-gateway) from which url to send commands needs to be copied - url highlighted in red below is used to send
+command to get software version of the gateway (get_sw_version)
 
 ![GET device](docs/device_response.png)
 
-- The command copied should be modified to match the server ip address or localhost. If the GET call is
+- The command copied should be modified to match the server ip address or localhost (127.0.0.1). If the GET call is
 successful a json response can be seen from which the desired value can be extracted. The response can
-be a success or an error sent by the gateway both of which can be found in the "value" field (highlighted below)
+be a success or an error sent by the gateway both of which can be found in the "value" field (highlighted in red below)
 
 ![GET command](docs/command_response.png)
 
