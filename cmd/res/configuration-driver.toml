@@ -1,7 +1,7 @@
 [Incoming]
-Protocol = "tls"
+Protocol = "tcp"
 Host = "mosquitto-server"
-Port = 9883
+Port = 1883
 Qos = 1
 KeepAlive = 3600
 MqttClientId = "IncomingDataSubscriber"
@@ -13,9 +13,9 @@ Topics = [
 MetaDataPort = 48081
 
 [Response]
-Protocol = "tls"
+Protocol = "tcp"
 Host = "mosquitto-server"
-Port = 9883
+Port = 1883
 Qos = 1
 KeepAlive = 3600
 MqttClientId = "CommandResponseSubscriber"

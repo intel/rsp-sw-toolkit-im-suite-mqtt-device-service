@@ -63,9 +63,9 @@ Level = "DEBUG"
   Labels = [ "MQTT", "Gateway", "RFID"]
   [DeviceList.Addressable]
     Name = "Gateway address"
-    Protocol = "tls"
+    Protocol = "tcp"
     Address = "mosquitto-server"
-    Port = 9883
+    Port = 1883
     Publisher = "CommandPublisher"
     Topic = "rfid/gw/command"
 
