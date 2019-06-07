@@ -62,10 +62,4 @@ Level = "DEBUG"
   Description = "Gateway Device MQTT Broker Connection"
   Labels = [ "MQTT", "Gateway", "RFID"]
   [DeviceList.Addressable]
-    Name = "Gateway address"
-    Protocol = "tcp"
-    Address = "mosquitto-server"
-    Port = 1883
-    Publisher = "CommandPublisher"
-    Topic = "rfid/gw/command"
-
+    Name = "RSP Gateway Addressable"
