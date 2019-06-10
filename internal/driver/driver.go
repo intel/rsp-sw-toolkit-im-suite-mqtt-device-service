@@ -83,14 +83,15 @@ func (d *Driver) HandleReadCommands(addr *models.Addressable, reqs []sdkModel.Co
 	var err error
 
 	// create device client and open connection
-	var brokerUrl = addr.Address
-	var brokerPort = addr.Port
-	var username = addr.User
-	var password = addr.Password
-	var mqttClientId = addr.Publisher
+	var brokerUrl = d.Config.Command.Host
+	var brokerPort = d.Config.Command.Port
+	var username = d.Config.Command.Username
+	var password = d.Config.Command.Password
+	var mqttClientId = d.Config.Command.MqttClientId
+	var topics = d.Config.Command.Topics
 
 	uri := &url.URL{
-		Scheme: strings.ToLower(addr.Protocol),
+		Scheme: strings.ToLower(d.Config.Command.Protocol),
 		Host:   fmt.Sprintf("%s:%d", brokerUrl, brokerPort),
 		User:   url.UserPassword(username, password),
 	}
@@ -102,7 +103,7 @@ func (d *Driver) HandleReadCommands(addr *models.Addressable, reqs []sdkModel.Co
 	defer client.Disconnect(5000)
 
 	for i, req := range reqs {
-		res, err := d.handleReadCommandRequest(client, req, addr.Topic)
+		res, err := d.handleReadCommandRequest(client, req, topics)
 		if err != nil {
 			driver.Logger.Info(fmt.Sprintf("Handle read commands failed: %v", err))
 			return responses, err
@@ -114,7 +115,7 @@ func (d *Driver) HandleReadCommands(addr *models.Addressable, reqs []sdkModel.Co
 	return responses, err
 }
 
-func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel.CommandRequest, topic string) (*sdkModel.CommandValue, error) {
+func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel.CommandRequest, topics []string) (*sdkModel.CommandValue, error) {
 	var result = &sdkModel.CommandValue{}
 	var err error
 
@@ -129,7 +130,9 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 		return result, err
 	}
 
-	deviceClient.Publish(topic, qos, retained, jsonData)
+	for _, topic := range topics {
+		deviceClient.Publish(topic, qos, retained, jsonData)
+	}
 
 	driver.Logger.Info(fmt.Sprintf("Publish command: %v", string(jsonData)))
 

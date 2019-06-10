@@ -16,6 +16,7 @@ import (
 
 type configuration struct {
 	Incoming SubscribeInfo
+	Command  SubscribeInfo
 	Response SubscribeInfo
 }
 
