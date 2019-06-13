@@ -4,3 +4,4 @@
 mqtt-device-service
 mqtt-device-service.docker
 
+go.sum
