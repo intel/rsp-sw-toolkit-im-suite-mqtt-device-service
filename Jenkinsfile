@@ -5,6 +5,7 @@ rrpBuildGoCode {
     ecrRegistry = "280211473891.dkr.ecr.us-west-2.amazonaws.com"
     dockerImageName = "rsp/${projectKey}"
     protexProjectName = 'bb-mqtt-device-service'
+    buildImage = 'amr-registry.caas.intel.com/rrp/ci-go-build-image:1.12.0-alpine'
 
     infra = [
         stackName: 'RSP-Codepipeline-MqttDeviceService'
