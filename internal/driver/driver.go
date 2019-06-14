@@ -4,6 +4,25 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+/*
+ * INTEL CONFIDENTIAL
+ * Copyright (2017) Intel Corporation.
+ *
+ * The source code contained or described herein and all documents related to the source code ("Material")
+ * are owned by Intel Corporation or its suppliers or licensors. Title to the Material remains with
+ * Intel Corporation or its suppliers and licensors. The Material may contain trade secrets and proprietary
+ * and confidential information of Intel Corporation and its suppliers and licensors, and is protected by
+ * worldwide copyright and trade secret laws and treaty provisions. No part of the Material may be used,
+ * copied, reproduced, modified, published, uploaded, posted, transmitted, distributed, or disclosed in
+ * any way without Intel/'s prior express written permission.
+ * No license under any patent, copyright, trade secret or other intellectual property right is granted
+ * to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication,
+ * inducement, estoppel or otherwise. Any license under such intellectual property rights must be express
+ * and approved by Intel in writing.
+ * Unless otherwise agreed by Intel in writing, you may not remove or alter this notice or any other
+ * notice embedded in Materials by Intel or Intel's suppliers or licensors in any way.
+ */
+
 package driver
 
 import (
@@ -78,6 +97,7 @@ func (d *Driver) DisconnectDevice(address *models.Addressable) error {
 	panic("implement me")
 }
 
+// Modified by Intel to add better error handling
 func (d *Driver) HandleReadCommands(addr *models.Addressable, reqs []sdkModel.CommandRequest) ([]*sdkModel.CommandValue, error) {
 	var responses = make([]*sdkModel.CommandValue, len(reqs))
 	var err error
@@ -115,6 +135,7 @@ func (d *Driver) HandleReadCommands(addr *models.Addressable, reqs []sdkModel.Co
 	return responses, err
 }
 
+// Modified by Intel to handle command requests and responses related to Intel open source gateway
 func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel.CommandRequest, topics []string) (*sdkModel.CommandValue, error) {
 	var result = &sdkModel.CommandValue{}
 	var err error
@@ -175,7 +196,7 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 	return result, err
 }
 
-// not handling command put requests in Badger Bay so this method is just used for implementing ProtocolDriver Interface
+// Modified by Intel as Intel is not handling command put requests, so this function is just used for implementing ProtocolDriver Interface
 func (d *Driver) HandleWriteCommands(addr *models.Addressable, reqs []sdkModel.CommandRequest, params []*sdkModel.CommandValue) error {
 	var err error
 
@@ -209,7 +230,7 @@ func (d *Driver) HandleWriteCommands(addr *models.Addressable, reqs []sdkModel.C
 	return err
 }
 
-// not handling command put requests in Badger Bay so this method is just used for implementing ProtocolDriver Interface
+// Modified by Intel as Intel is not handling command put requests, so this function is just used for implementing ProtocolDriver Interface
 func (d *Driver) handleWriteCommandRequest(deviceClient MQTT.Client, req sdkModel.CommandRequest, topic string, param *sdkModel.CommandValue) error {
 	/*var err error
 	var qos = byte(0)
@@ -332,7 +353,7 @@ func newResult(deviceObject models.DeviceObject, ro models.ResourceOperation, re
 	return result, err
 }
 
-// used for put requests which are not handled
+// Commented out as Intel is not handling command put requests
 /*func newCommandValue(deviceObject models.DeviceObject, param *sdkModel.CommandValue) (interface{}, error) {
 	var commandValue interface{}
 	var err error
