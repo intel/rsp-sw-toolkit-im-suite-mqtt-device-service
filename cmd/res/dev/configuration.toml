@@ -1,4 +1,4 @@
-# used to configured the Service & Addressable in the MetaData service
+# used to configure the Service & Addressable in the MetaData service
 
 [Service]
 Host = "ajsaites-desk.amr.corp.intel.com"
