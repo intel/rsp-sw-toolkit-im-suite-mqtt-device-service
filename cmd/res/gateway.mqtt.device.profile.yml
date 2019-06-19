@@ -16,30 +16,50 @@ deviceResources:
     units:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
-  name: get_sw_version
-  description: "software version of the rsp-gateway"
-  attributes:
-    { name: "get_sw_version" }
-  properties:
-    value:
-      { type: "String", readWrite: "R", defaultValue: "" }
-    units:
-      { type: "String", readWrite: "R", defaultValue: "" }
--
-  name: get_sensor_info
-  description: "info of sensors connected to the rsp-gateway"
-  attributes:
-    { name: "get_sensor_info" }
-  properties:
-    value:
-      { type: "String", readWrite: "R", defaultValue: "" }
-    units:
-      { type: "String", readWrite: "R", defaultValue: "" }
--
   name: sensor_get_device_ids
-  description: "list of sensors known to the rsp-gateway"
+  description: "list of sensors known to the gateway"
   attributes:
     { name: "sensor_get_device_ids" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: behavior_get_all
+  description: "all the behaviors of the gateway"
+  attributes:
+    { name: "behavior_get_all" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: cluster_get_config
+  description: "cluster configuration of the gateway"
+  attributes:
+    { name: "cluster_get_config" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: inventory_unload
+  description: "unload inventory in the gateway"
+  attributes:
+    { name: "inventory_unload" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: uptream_get_mqtt_status
+  description: "info of MQTT broker connected to gateway and EdgeX"
+  attributes:
+    { name: "uptream_get_mqtt_status" }
   properties:
     value:
       { type: "String", readWrite: "R", defaultValue: "" }
@@ -52,45 +72,27 @@ resources:
   get:
   - { index: "1", operation: "get", object: "gwevent", parameter: "gwevent", property: "value" }
 -
-  name: get_sw_version
-  get:
-  - { index: "1", operation: "get", object: "get_sw_version", parameter: "get_sw_version", property: "value" }
--
-  name: get_sensor_info
-  get:
-  - { index: "1", operation: "get", object: "get_sensor_info", parameter: "get_sensor_info", property: "value" }
--
   name: sensor_get_device_ids
   get:
-    - { index: "1", operation: "get", object: "sensor_get_device_ids", parameter: "sensor_get_device_ids", property: "value" }
+  - { index: "1", operation: "get", object: "sensor_get_device_ids", parameter: "sensor_get_device_ids", property: "value" }
+-
+  name: behavior_get_all
+  get:
+    - { index: "1", operation: "get", object: "behavior_get_all", parameter: "behavior_get_all", property: "value" }
+-
+  name: cluster_get_config
+  get:
+    - { index: "1", operation: "get", object: "cluster_get_config", parameter: "cluster_get_config", property: "value" }
+-
+  name: inventory_unload
+  get:
+    - { index: "1", operation: "get", object: "inventory_unload", parameter: "inventory_unload", property: "value" }
+-
+  name: uptream_get_mqtt_status
+  get:
+    - { index: "1", operation: "get", object: "uptream_get_mqtt_status", parameter: "uptream_get_mqtt_status", property: "value" }
 
 commands:
--
-  name: get_sw_version
-  get:
-    path: "/api/v1/device/{deviceId}/get_sw_version"
-    responses:
-    -
-      code: "200"
-      description: "software version of the gateway"
-      expectedValues: ["get_sw_version"]
-    -
-      code: "500"
-      description: "internal server error"
-      expectedValues: []
--
-  name: get_sensor_info
-  get:
-    path: "/api/v1/device/{deviceId}/get_sensor_info"
-    responses:
-      -
-        code: "200"
-        description: "info of sensors connected to the rsp-gateway"
-        expectedValues: ["get_sensor_info"]
-      -
-        code: "500"
-        description: "internal server error"
-        expectedValues: []
 -
   name: sensor_get_device_ids
   get:
@@ -98,9 +100,62 @@ commands:
     responses:
       -
         code: "200"
-        description: "list of sensors known to the rsp-gateway"
+        description: "list of sensors known to the gateway"
         expectedValues: ["sensor_get_device_ids"]
       -
         code: "500"
         description: "internal server error"
         expectedValues: []
+-
+  name: behavior_get_all
+  get:
+    path: "/api/v1/device/{deviceId}/behavior_get_all"
+    responses:
+      -
+        code: "200"
+        description: "all the behaviors of the gateway"
+        expectedValues: ["behavior_get_all"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
+-
+  name: cluster_get_config
+  get:
+    path: "/api/v1/device/{deviceId}/cluster_get_config"
+    responses:
+      -
+        code: "200"
+        description: "cluster configuration of the gateway"
+        expectedValues: ["cluster_get_config"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
+-
+  name: inventory_unload
+  get:
+    path: "/api/v1/device/{deviceId}/inventory_unload"
+    responses:
+      -
+        code: "200"
+        description: "unload inventory in the gateway"
+        expectedValues: ["inventory_unload"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
+-
+  name: uptream_get_mqtt_status
+  get:
+    path: "/api/v1/device/{deviceId}/uptream_get_mqtt_status"
+    responses:
+      -
+        code: "200"
+        description: "info of MQTT broker connected to gateway and EdgeX"
+        expectedValues: ["uptream_get_mqtt_status"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
+
