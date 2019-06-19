@@ -35,6 +35,16 @@ deviceResources:
       { type: "String", readWrite: "R", defaultValue: "" }
     units:
       { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: sensor_get_device_ids
+  description: "list of sensors known to the rsp-gateway"
+  attributes:
+    { name: "sensor_get_device_ids" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
 
 resources:
 -
@@ -49,6 +59,10 @@ resources:
   name: get_sensor_info
   get:
   - { index: "1", operation: "get", object: "get_sensor_info", parameter: "get_sensor_info", property: "value" }
+-
+  name: sensor_get_device_ids
+  get:
+    - { index: "1", operation: "get", object: "sensor_get_device_ids", parameter: "sensor_get_device_ids", property: "value" }
 
 commands:
 -
@@ -73,6 +87,19 @@ commands:
         code: "200"
         description: "info of sensors connected to the rsp-gateway"
         expectedValues: ["get_sensor_info"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
+-
+  name: sensor_get_device_ids
+  get:
+    path: "/api/v1/device/{deviceId}/sensor_get_device_ids"
+    responses:
+      -
+        code: "200"
+        description: "list of sensors known to the rsp-gateway"
+        expectedValues: ["sensor_get_device_ids"]
       -
         code: "500"
         description: "internal server error"
