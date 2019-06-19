@@ -14,6 +14,10 @@ RUN set +x && echo "https://$GIT_TOKEN:x-oauth-basic@github.impcloud.net" > ~/.g
 
 WORKDIR $GOPATH/src/github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service
 
+# Download go modules first so they can be cached for faster subsequent builds
+COPY go.mod go.mod
+RUN go mod download
+
 COPY . .
 
 RUN ./build.sh
