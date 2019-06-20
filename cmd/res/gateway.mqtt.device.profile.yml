@@ -56,10 +56,10 @@ deviceResources:
     units:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
-  name: uptream_get_mqtt_status
+  name: upstream_get_mqtt_status
   description: "info of MQTT broker connected to gateway and EdgeX"
   attributes:
-    { name: "uptream_get_mqtt_status" }
+    { name: "upstream_get_mqtt_status" }
   properties:
     value:
       { type: "String", readWrite: "R", defaultValue: "" }
@@ -88,9 +88,9 @@ resources:
   get:
     - { index: "1", operation: "get", object: "inventory_unload", parameter: "inventory_unload", property: "value" }
 -
-  name: uptream_get_mqtt_status
+  name: upstream_get_mqtt_status
   get:
-    - { index: "1", operation: "get", object: "uptream_get_mqtt_status", parameter: "uptream_get_mqtt_status", property: "value" }
+    - { index: "1", operation: "get", object: "upstream_get_mqtt_status", parameter: "upstream_get_mqtt_status", property: "value" }
 
 commands:
 -
@@ -146,14 +146,14 @@ commands:
         description: "internal server error"
         expectedValues: []
 -
-  name: uptream_get_mqtt_status
+  name: upstream_get_mqtt_status
   get:
-    path: "/api/v1/device/{deviceId}/uptream_get_mqtt_status"
+    path: "/api/v1/device/{deviceId}/upstream_get_mqtt_status"
     responses:
       -
         code: "200"
         description: "info of MQTT broker connected to gateway and EdgeX"
-        expectedValues: ["uptream_get_mqtt_status"]
+        expectedValues: ["upstream_get_mqtt_status"]
       -
         code: "500"
         description: "internal server error"
