@@ -1,65 +1,90 @@
-# used to configured the Service & Addressable in the MetaData service
-
 [Service]
-Host = "mqtt-device-service"
+Host = "localhost"
 Port = 49982
 ConnectRetries = 3
 Labels = []
 OpenMsg = "mqtt device service started"
-ReadMaxLimit = 256
 Timeout = 5000
 EnableAsyncReadings = true
 AsyncBufferSize = 16
 
 [Registry]
-Host = "edgex-core-consul"
+Host = "localhost"
 Port = 8500
 CheckInterval = "10s"
 FailLimit = 3
 FailWaitTime = 10
 Type = "consul"
 
+[Logging]
+EnableRemote = false
+File = "./device-mqtt.log"
+
+[Writable]
+LogLevel = "DEBUG"
+
 [Clients]
   [Clients.Data]
   Name = "edgex-core-data"
   Protocol = "http"
-  Host = "edgex-core-data"
+  Host = "localhost"
   Port = 48080
   Timeout = 50000
 
   [Clients.Metadata]
   Name = "edgex-core-metadata"
   Protocol = "http"
-  Host = "edgex-core-metadata"
+  Host = "localhost"
   Port = 48081
   Timeout = 50000
 
   [Clients.Logging]
   Name = "edgex-support-logging"
   Protocol = "http"
-  Host = "edgex-support-logging"
+  Host = "localhost"
   Port = 48061
 
 [Device]
   DataTransform = true
-  ProfilesDir = "./res"
   InitCmd = ""
   InitCmdArgs = ""
   MaxCmdOps = 128
   MaxCmdValueLen = 256
   RemoveCmd = ""
   RemoveCmdArgs = ""
+  ProfilesDir = "./res"
 
-[Logging]
-EnableRemote = true
-File = "./device-gateway-mqtt.log"
-Level = "DEBUG"
-
-# Defines how EdgeX communicates with an individual device
+# Pre-define Devices
 [[DeviceList]]
   Name = "rrs-gateway"
   Profile = "Gateway.Device.MQTT.Profile"
   Description = "Gateway Device MQTT Broker Connection"
   Labels = [ "MQTT", "Gateway", "RFID"]
-  [DeviceList.Addressable]
-    Name = "RSP Gateway Addressable"
+  [DeviceList.Protocols]
+    [DeviceList.Protocols.mqtt]
+       Schema = "tcp"
+       Host = "mosquitto-server"
+       Port = "1883"
+       ClientId = "CommandPublisher"
+       Topic = "rfid/gw/command"
+  [[DeviceList.AutoEvents]]
+    Frequency = "20s"
+    OnChange = false
+    Resource = "testrandfloat32"
+
+# Driver configs
+[Driver]
+IncomingSchema = "tcp"
+IncomingHost = "mosquitto-server"
+IncomingPort = "1883"
+IncomingQos = "1"
+IncomingKeepAlive = "3600"
+IncomingClientId = "IncomingDataSubscriber"
+IncomingTopic = "rfid/gw/events"
+ResponseSchema = "tcp"
+ResponseHost = "mosquitto-server"
+ResponsePort = "1883"
+ResponseQos = "1"
+ResponseKeepAlive = "3600"
+ResponseClientId = "CommandResponseSubscriber"
+ResponseTopic = "rfid/gw/response"

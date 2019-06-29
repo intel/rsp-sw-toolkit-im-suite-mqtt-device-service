@@ -1,6 +1,6 @@
 // -*- Mode: Go; indent-tabs-mode: t -*-
 //
-// Copyright (C) 2018 IOTech Ltd
+// Copyright (C) 2018-2019 IOTech Ltd
 //
 // SPDX-License-Identifier: Apache-2.0
 
@@ -26,52 +26,31 @@
 package driver
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
+	"github.com/pkg/errors"
 	"net/url"
 	"strings"
-
-	"github.com/pkg/errors"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	sdk "github.com/edgexfoundry/device-sdk-go"
 	sdkModel "github.com/edgexfoundry/device-sdk-go/pkg/models"
-	"github.com/edgexfoundry/go-mod-core-contracts/clients"
 )
 
 /*File is modified by Intel by adding some structs and functions to register Intel open source gateway
 to Edgex and get data from the gateway into Edgex*/
 
-type Addressable struct {
-	Name     string `json:"name"`
-	Protocol string `json:"protocol"`
-	Address  string `json:"address"`
-}
-
-type Device struct {
-	Name           string            `json:"name"`
-	Description    string            `json:"description"`
-	AdminState     string            `json:"adminState"`
-	OperatingState string            `json:"operatingState"`
-	Service        map[string]string `json:"service"`
-	Profile        map[string]string `json:"profile"`
-	Addressable    map[string]string `json:"addressable"`
-}
-
 // Modified by Intel to fix minor formatting issues.
 func startIncomingListening() error {
-	var scheme = driver.Config.Incoming.Protocol
-	var brokerUrl = driver.Config.Incoming.Host
-	var brokerPort = driver.Config.Incoming.Port
-	var username = driver.Config.Incoming.Username
-	var password = driver.Config.Incoming.Password
-	var mqttClientId = driver.Config.Incoming.MqttClientId
-	var qos = byte(driver.Config.Incoming.Qos)
-	var keepAlive = driver.Config.Incoming.KeepAlive
-	var topics = driver.Config.Incoming.Topics
+	var scheme = driver.Config.IncomingSchema
+	var brokerUrl = driver.Config.IncomingHost
+	var brokerPort = driver.Config.IncomingPort
+	var username = driver.Config.IncomingUser
+	var password = driver.Config.IncomingPassword
+	var mqttClientId = driver.Config.IncomingClientId
+	var qos = byte(driver.Config.IncomingQos)
+	var keepAlive = driver.Config.IncomingKeepAlive
+	var topics = driver.Config.IncomingTopics
 
 	uri := &url.URL{
 		Scheme: strings.ToLower(scheme),
@@ -80,10 +59,15 @@ func startIncomingListening() error {
 	}
 
 	client, err := createClient(mqttClientId, uri, keepAlive)
-	defer client.Disconnect(5000)
 	if err != nil {
 		return err
 	}
+
+	defer func() {
+		if client.IsConnected() {
+			client.Disconnect(5000)
+		}
+	}()
 
 	for _, topic := range topics {
 		token := client.Subscribe(topic, qos, onIncomingDataReceived)
@@ -145,71 +129,39 @@ func (jn *JSONNotification) getID() (string, error) {
 
 // Modified by Intel to add better error handling and handle incoming data from Intel open source gateway
 func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
-	var jn JSONNotification
-	if err := json.Unmarshal(message.Payload(), &jn); err != nil {
-		driver.Logger.Error(fmt.Sprintf("Unmarshal failed: %+v", err))
+	var data map[string]interface{}
+	json.Unmarshal(message.Payload(), &data)
+
+	if !checkDataWithKey(data, "name") || !checkDataWithKey(data, "cmd") {
 		return
 	}
 
-	if jn.Version != "2.0" {
-		driver.Logger.Error(fmt.Sprintf("Invalid version: %s", jn.Version))
+	deviceName := data["name"].(string)
+	cmd := data["cmd"].(string)
+
+	reading, ok := data[cmd]
+	if !ok {
+		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] Incoming reading ignored. No reading data found : topic=%v msg=%v", message.Topic(), string(message.Payload())))
 		return
 	}
 
-	deviceName, err := jn.getID()
-	if err != nil {
-		driver.Logger.Error(fmt.Sprintf("Failed to get device ID: %+v", err))
-		return
-	}
-
-	jn.Topic = message.Topic()
-	remarshaled, err := json.Marshal(jn)
-	if err != nil {
-		driver.Logger.Error(fmt.Sprintf("Failed to remashal message: %+v", err))
-		return
-	}
-
-	event := "gwevent"
-	reading := string(remarshaled)
 	service := sdk.RunningService()
 
-	deviceObject, ok := service.DeviceObject(deviceName, event, "get")
+	deviceObject, ok := service.DeviceResource(deviceName, cmd, "get")
 	if !ok {
-		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] "+
-			"Incoming reading ignored. "+
-			"No DeviceObject found: topic=%v msg=%v",
-			message.Topic(), string(message.Payload())))
-
-		driver.Logger.Info("Registering a new device...")
-
-		// Register new Addressable
-		if err := postAddressable(deviceName); err != nil {
-			driver.Logger.Warn(fmt.Sprintf("Unable to register new addressable %s, error %s", deviceName, err.Error()))
-			return
-		}
-		// Register new Device
-		if err := postDevice(deviceName); err != nil {
-			driver.Logger.Warn(fmt.Sprintf("Unable to register new device %s, error %s", deviceName, err.Error()))
-		}
+		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] Incoming reading ignored. No DeviceObject found : topic=%v msg=%v", message.Topic(), string(message.Payload())))
 		return
 	}
 
-	ro, ok := service.ResourceOperation(deviceName, event, "get")
-	if !ok {
-		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] "+
-			"Incoming reading ignored. "+
-			"No ResourceOperation found: topic=%v msg=%v",
-			message.Topic(), string(message.Payload())))
-		return
+	req := sdkModel.CommandRequest{
+		DeviceResourceName: cmd,
+		Type:               sdkModel.ParseValueType(deviceObject.Properties.Value.Type),
 	}
 
-	result, err := newResult(deviceObject, ro, reading)
+	result, err := newResult(req, reading)
 
 	if err != nil {
-		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] "+
-			"Incoming reading ignored. "+
-			"topic=%v msg=%v error=%v",
-			message.Topic(), string(message.Payload()), err))
+		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] Incoming reading ignored.   topic=%v msg=%v error=%v", message.Topic(), string(message.Payload()), err))
 		return
 	}
 
@@ -218,15 +170,12 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 		CommandValues: []*sdkModel.CommandValue{result},
 	}
 
-	driver.Logger.Info(fmt.Sprintf("[Incoming listener] "+
-		"Incoming reading received: "+
-		"topic=%v msg=%v",
-		message.Topic(), string(message.Payload())))
+	driver.Logger.Info(fmt.Sprintf("[Incoming listener] Incoming reading received: topic=%v msg=%v", message.Topic(), string(message.Payload())))
 
 	driver.AsyncCh <- asyncValues
 }
 
-func postAddressable(deviceName string) error {
+/*func postAddressable(deviceName string) error {
 
 	endPointURL := fmt.Sprintf("http://%s:%d%s", clients.CoreMetaDataServiceKey, driver.Config.Incoming.MetaDataPort, clients.ApiAddressableRoute)
 
@@ -309,4 +258,21 @@ func postDevice(deviceName string) error {
 
 	return nil
 
+}
+*/
+
+func checkDataWithKey(data map[string]interface{}, key string) bool {
+	val, ok := data[key]
+	if !ok {
+		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] Incoming reading ignored. No %v found : msg=%v", key, data))
+		return false
+	}
+
+	switch val.(type) {
+	case string:
+		return true
+	default:
+		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] Incoming reading ignored. %v should be string : msg=%v", key, data))
+		return false
+	}
 }

@@ -1,6 +1,6 @@
 // -*- Mode: Go; indent-tabs-mode: t -*-
 //
-// Copyright (C) 2018 IOTech Ltd
+// Copyright (C) 2019 IOTech Ltd
 //
 // SPDX-License-Identifier: Apache-2.0
 
@@ -26,56 +26,95 @@
 package driver
 
 import (
-	"flag"
 	"fmt"
-	"io/ioutil"
+	"reflect"
+	"strconv"
 
-	"github.com/BurntSushi/toml"
+	"github.com/edgexfoundry/go-mod-core-contracts/models"
 )
 
-// Intel added Command field to the struct
+type ConnectionInfo struct {
+	Schema   string
+	Host     string
+	Port     string
+	User     string
+	Password string
+	ClientId string
+	Topics    []string
+}
+
 type configuration struct {
-	Incoming SubscribeInfo
-	Command  SubscribeInfo
-	Response SubscribeInfo
+	IncomingSchema    string
+	IncomingHost      string
+	IncomingPort      int
+	IncomingUser      string
+	IncomingPassword  string
+	IncomingQos       int
+	IncomingKeepAlive int
+	IncomingClientId  string
+	IncomingTopics    []string
+
+	ResponseSchema    string
+	ResponseHost      string
+	ResponsePort      int
+	ResponseUser      string
+	ResponsePassword  string
+	ResponseQos       int
+	ResponseKeepAlive int
+	ResponseClientId  string
+	ResponseTopics    []string
 }
 
-type SubscribeInfo struct {
-	Protocol     string
-	Host         string
-	Port         int
-	Username     string
-	Password     string
-	Qos          int
-	KeepAlive    int
-	MqttClientId string
-	Topics       []string
-	MetaDataPort int
-}
-
-// LoadConfigFromFile use to load toml configuration
-func LoadConfigFromFile() (*configuration, error) {
+// CreateDriverConfig use to load driver config for incoming listener and response listener
+func CreateDriverConfig(configMap map[string]string) (*configuration, error) {
 	config := new(configuration)
-
-	confDir := flag.Lookup("confdir").Value.(flag.Getter).Get().(string)
-	if confDir == "" {
-		confDir = flag.Lookup("c").Value.(flag.Getter).Get().(string)
-	}
-
-	if confDir == "" {
-		confDir = "./res"
-	}
-
-	filePath := fmt.Sprintf("%v/configuration-driver.toml", confDir)
-
-	file, err := ioutil.ReadFile(filePath)
+	err := load(configMap, config)
 	if err != nil {
-		return config, fmt.Errorf("could not load configuration file (%s): %v", filePath, err.Error())
+		return config, err
+	}
+	return config, nil
+}
+
+// CreateConnectionInfo use to load MQTT connectionInfo for read and write command
+func CreateConnectionInfo(protocols map[string]models.ProtocolProperties) (*ConnectionInfo, error) {
+	info := new(ConnectionInfo)
+	protocol, ok := protocols[Protocol]
+	if !ok {
+		return info, fmt.Errorf("unable to load config, '%s' not exist", Protocol)
 	}
 
-	err = toml.Unmarshal(file, config)
+	err := load(protocol, info)
 	if err != nil {
-		return config, fmt.Errorf("unable to parse configuration file (%s): %v", filePath, err.Error())
+		return info, err
 	}
-	return config, err
+	return info, nil
+}
+
+// load by reflect to check map key and then fetch the value
+func load(config map[string]string, des interface{}) error {
+	errorMessage := "unable to load config, '%s' not exist"
+	val := reflect.ValueOf(des).Elem()
+	for i := 0; i < val.NumField(); i++ {
+		typeField := val.Type().Field(i)
+		valueField := val.Field(i)
+
+		val, ok := config[typeField.Name]
+		if !ok {
+			return fmt.Errorf(errorMessage, typeField.Name)
+		}
+
+		switch valueField.Kind() {
+		case reflect.Int:
+			intVal, err := strconv.Atoi(val)
+			if err != nil {
+				return err
+			}
+			valueField.SetInt(int64(intVal))
+		case reflect.String:
+			valueField.SetString(val)
+		default:
+			return fmt.Errorf("none supported value type %v ,%v", valueField.Kind(), typeField.Name)
+		}
+	}
+	return nil
 }

@@ -33,11 +33,10 @@ import (
 )
 
 const (
-	version     string = device_mqtt.Version
 	serviceName string = "mqtt-device-service"
 )
 
 func main() {
 	sd := driver.NewProtocolDriver()
-	startup.Bootstrap(serviceName, version, sd)
+	startup.Bootstrap(serviceName, device_mqtt.Version, sd)
 }

@@ -1,7 +1,13 @@
+
 # Gateway Device Service
 Based on the Edgex Go MQTT Device Service service, modified to support multiple
 topics and extract device IDs from Gateway messages. Right now, it's more PoC 
 then proper product.
+
+## Requisite
+* core-data
+* core-metadata
+* core-command
 
 ## Predefined configuration
 

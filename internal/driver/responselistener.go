@@ -1,6 +1,6 @@
 // -*- Mode: Go; indent-tabs-mode: t -*-
 //
-// Copyright (C) 2018 IOTech Ltd
+// Copyright (C) 2018-2019 IOTech Ltd
 //
 // SPDX-License-Identifier: Apache-2.0
 
@@ -36,15 +36,15 @@ import (
 )
 
 func startCommandResponseListening() error {
-	var scheme = driver.Config.Response.Protocol
-	var brokerUrl = driver.Config.Response.Host
-	var brokerPort = driver.Config.Response.Port
-	var username = driver.Config.Response.Username
-	var password = driver.Config.Response.Password
-	var mqttClientId = driver.Config.Response.MqttClientId
-	var qos = byte(driver.Config.Response.Qos)
-	var keepAlive = driver.Config.Response.KeepAlive
-	var topics = driver.Config.Response.Topics
+	var scheme = driver.Config.ResponseSchema
+	var brokerUrl = driver.Config.ResponseHost
+	var brokerPort = driver.Config.ResponsePort
+	var username = driver.Config.ResponseUser
+	var password = driver.Config.ResponsePassword
+	var mqttClientId = driver.Config.ResponseClientId
+	var qos = byte(driver.Config.ResponseQos)
+	var keepAlive = driver.Config.ResponseKeepAlive
+	var topics = driver.Config.ResponseTopics
 
 	uri := &url.URL{
 		Scheme: strings.ToLower(scheme),
@@ -53,10 +53,15 @@ func startCommandResponseListening() error {
 	}
 
 	client, err := createClient(mqttClientId, uri, keepAlive)
-	defer client.Disconnect(5000)
 	if err != nil {
 		return err
 	}
+
+	defer func() {
+		if client.IsConnected() {
+			client.Disconnect(5000)
+		}
+	}()
 
 	for _, topic := range topics {
 		token := client.Subscribe(topic, qos, onCommandResponseReceived)
@@ -80,7 +85,7 @@ func onCommandResponseReceived(client mqtt.Client, message mqtt.Message) {
 	}
 
 	if response.Id != "" {
-		driver.CommandResponses[response.Id] = string(message.Payload())
+		driver.CommandResponses.Store(response.Id, string(message.Payload()))
 		driver.Logger.Info(fmt.Sprintf("[Response listener] Command response received: topic=%v msg=%v", message.Topic(), string(message.Payload())))
 	} else {
 		driver.Logger.Warn(fmt.Sprintf("[Response listener] Command response ignored. No ID found in the message: topic=%v msg=%v", message.Topic(), string(message.Payload())))
