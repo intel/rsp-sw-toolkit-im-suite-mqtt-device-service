@@ -40,7 +40,7 @@ type ConnectionInfo struct {
 	User     string
 	Password string
 	ClientId string
-	Topics    []string
+	Topic   string
 }
 
 type configuration struct {
@@ -52,7 +52,7 @@ type configuration struct {
 	IncomingQos       int
 	IncomingKeepAlive int
 	IncomingClientId  string
-	IncomingTopics    []string
+	IncomingTopic     string
 
 	ResponseSchema    string
 	ResponseHost      string
@@ -62,7 +62,7 @@ type configuration struct {
 	ResponseQos       int
 	ResponseKeepAlive int
 	ResponseClientId  string
-	ResponseTopics    []string
+	ResponseTopic     string
 }
 
 // CreateDriverConfig use to load driver config for incoming listener and response listener

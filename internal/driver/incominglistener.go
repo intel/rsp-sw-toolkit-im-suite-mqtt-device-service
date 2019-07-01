@@ -50,7 +50,7 @@ func startIncomingListening() error {
 	var mqttClientId = driver.Config.IncomingClientId
 	var qos = byte(driver.Config.IncomingQos)
 	var keepAlive = driver.Config.IncomingKeepAlive
-	var topics = driver.Config.IncomingTopics
+	var topic = driver.Config.IncomingTopic
 
 	uri := &url.URL{
 		Scheme: strings.ToLower(scheme),
@@ -69,16 +69,14 @@ func startIncomingListening() error {
 		}
 	}()
 
-	for _, topic := range topics {
-		token := client.Subscribe(topic, qos, onIncomingDataReceived)
-		if token.Wait() && token.Error() != nil {
-			driver.Logger.Info(
-				fmt.Sprintf("[Incoming listener] Stop incoming data listening. Cause:%v",
-					token.Error(),
-				),
-			)
-			return token.Error()
-		}
+	token := client.Subscribe(topic, qos, onIncomingDataReceived)
+	if token.Wait() && token.Error() != nil {
+		driver.Logger.Info(
+			fmt.Sprintf("[Incoming listener] Stop incoming data listening. Cause:%v",
+				token.Error(),
+			),
+		)
+		return token.Error()
 	}
 
 	driver.Logger.Info("[Incoming listener] Start incoming data listening.")

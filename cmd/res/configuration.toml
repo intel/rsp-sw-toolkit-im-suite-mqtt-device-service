@@ -67,16 +67,18 @@ LogLevel = "DEBUG"
        Port = "1883"
        ClientId = "CommandPublisher"
        Topic = "rfid/gw/command"
-  [[DeviceList.AutoEvents]]
-    Frequency = "20s"
-    OnChange = false
-    Resource = "testrandfloat32"
+#  [[DeviceList.AutoEvents]]
+#    Frequency = "20s"
+#    OnChange = false
+#    Resource = "testrandfloat32"
 
 # Driver configs
 [Driver]
 IncomingSchema = "tcp"
 IncomingHost = "mosquitto-server"
 IncomingPort = "1883"
+IncomingUser = ""
+IncomingPassword = ""
 IncomingQos = "1"
 IncomingKeepAlive = "3600"
 IncomingClientId = "IncomingDataSubscriber"
@@ -84,6 +86,8 @@ IncomingTopic = "rfid/gw/events"
 ResponseSchema = "tcp"
 ResponseHost = "mosquitto-server"
 ResponsePort = "1883"
+ResponseUser = ""
+ResponsePassword = ""
 ResponseQos = "1"
 ResponseKeepAlive = "3600"
 ResponseClientId = "CommandResponseSubscriber"

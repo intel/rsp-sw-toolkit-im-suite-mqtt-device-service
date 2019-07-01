@@ -145,7 +145,7 @@ func (d *Driver) HandleReadCommands(deviceName string, protocols map[string]mode
 	}()
 
 	for i, req := range reqs {
-		res, err := d.handleReadCommandRequest(client, req, connectionInfo.Topics)
+		res, err := d.handleReadCommandRequest(client, req, connectionInfo.Topic)
 		if err != nil {
 			driver.Logger.Info(fmt.Sprintf("Handle read commands failed: %v", err))
 			return responses, err
@@ -158,7 +158,7 @@ func (d *Driver) HandleReadCommands(deviceName string, protocols map[string]mode
 }
 
 // Modified by Intel to handle command requests and responses related to Intel open source gateway
-func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel.CommandRequest, topics []string) (*sdkModel.CommandValue, error) {
+func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel.CommandRequest, topic string) (*sdkModel.CommandValue, error) {
 	var result = &sdkModel.CommandValue{}
 	var err error
 
@@ -173,9 +173,7 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 		return result, err
 	}
 
-	for _, topic := range topics {
-		deviceClient.Publish(topic, qos, retained, jsonData)
-	}
+	deviceClient.Publish(topic, qos, retained, jsonData)
 
 	driver.Logger.Info(fmt.Sprintf("Publish command: %v", string(jsonData)))
 
@@ -244,7 +242,7 @@ func (d *Driver) HandleWriteCommands(deviceName string, protocols map[string]mod
 	}()
 
 	for i, req := range reqs {
-		err = d.handleWriteCommandRequest(client, req, connectionInfo.Topics, params[i])
+		err = d.handleWriteCommandRequest(client, req, connectionInfo.Topic, params[i])
 		if err != nil {
 			driver.Logger.Info(fmt.Sprintf("Handle write commands failed: %v", err))
 			return err
@@ -254,7 +252,7 @@ func (d *Driver) HandleWriteCommands(deviceName string, protocols map[string]mod
 	return err
 }
 
-func (d *Driver) handleWriteCommandRequest(deviceClient MQTT.Client, req sdkModel.CommandRequest, topics []string, param *sdkModel.CommandValue) error {
+func (d *Driver) handleWriteCommandRequest(deviceClient MQTT.Client, req sdkModel.CommandRequest, topic string, param *sdkModel.CommandValue) error {
 	/*var err error
 	var qos = byte(0)
 	var retained = false
