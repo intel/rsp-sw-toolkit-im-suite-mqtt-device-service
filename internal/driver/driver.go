@@ -162,6 +162,7 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 	var result = &sdkModel.CommandValue{}
 	var err error
 
+	// request to gateway
 	var request commandModel.JsonRequest
 	request.JsonRpc = jsonRpc
 	request.Method = req.DeviceResourceName
@@ -170,11 +171,11 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 
 	jsonData, err := json.Marshal(request)
 	if err != nil {
+		err = fmt.Errorf("marshalling of command request failed: error=%v", err)
 		return result, err
 	}
 
 	deviceClient.Publish(topic, qos, retained, jsonData)
-
 	driver.Logger.Info(fmt.Sprintf("Publish command: %v", string(jsonData)))
 
 	// fetch response from MQTT broker after publish command successful
@@ -183,13 +184,15 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 		err = fmt.Errorf("can not fetch command response: method=%v", request.Method)
 		return result, err
 	}
+	driver.Logger.Info(fmt.Sprintf("Command response: %v", cmdResponse))
 
 	var responseMap map[string]json.RawMessage
 	if err := json.Unmarshal([]byte(cmdResponse), &responseMap); err != nil {
+		err = fmt.Errorf("unmarshalling of command response failed: error=%v", err)
 		return nil, err
 	}
 
-	// extract specific values from the response
+	// Parse response to extract result or error field
 	var reading string
 	_, ok = responseMap["result"]
 	if ok {
@@ -200,19 +203,18 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 		if ok {
 			reading = string(responseMap["error"])
 		} else {
-			err = fmt.Errorf("incorrect command response from rsp-gateway: %v", cmdResponse)
-			return nil, err
-		}
-
-	}
-	if reading != "" {
-		result, err = newResult(req, reading)
-		if err != nil {
+			err = fmt.Errorf("incorrect command response from gateway: %v", cmdResponse)
 			return nil, err
 		}
 	}
 
-	driver.Logger.Info(fmt.Sprintf("Get command finished: %v", result))
+	result, err = newResult(req, reading)
+	if err != nil {
+		return nil, err
+	} else {
+		driver.Logger.Info(fmt.Sprintf("Get command finished: %v", result))
+	}
+
 	return result, err
 }
 
@@ -252,7 +254,7 @@ func (d *Driver) HandleWriteCommands(deviceName string, protocols map[string]mod
 	return err
 }
 
-func (d *Driver) handleWriteCommandRequest(deviceClient MQTT.Client, req sdkModel.CommandRequest, topic string, param *sdkModel.CommandValue) error {
+/*func (d *Driver) handleWriteCommandRequest(deviceClient MQTT.Client, req sdkModel.CommandRequest, topic string, param *sdkModel.CommandValue) error {
 	/*var err error
 	var qos = byte(0)
 	var retained = false
@@ -301,9 +303,9 @@ func (d *Driver) handleWriteCommandRequest(deviceClient MQTT.Client, req sdkMode
 	}
 
 	driver.Logger.Info(fmt.Sprintf("Put command finished: %v", cmdResponse))
-*/
+
 	return nil
-}
+}*/
 
 func (d *Driver) Stop(force bool) error {
 	d.Logger.Warn("Driver's Stop function didn't implement")

@@ -4,7 +4,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package device_mqtt
+package mqtt_device_service
 
 // Global version for device-sdk-go
 var Version string = "to be replaced by makefile"

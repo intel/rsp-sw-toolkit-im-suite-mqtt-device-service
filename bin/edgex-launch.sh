@@ -17,10 +17,10 @@ DIR=$PWD
 CMD=../cmd
 
 function cleanup {
-	pkill edgex-mqtt-device-service
+	pkill mqtt-device-service
 
 cd $CMD
-exec -a edgex-mqtt-device-service ./mqtt-device-service &
+exec -a mqtt-device-service ./mqtt-device-service &
 cd $DIR
 
 
