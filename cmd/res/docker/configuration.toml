@@ -65,6 +65,8 @@ LogLevel = "DEBUG"
        Schema = "tcp"
        Host = "mosquitto-server"
        Port = "1883"
+       User = ""
+       Password = ""
        ClientId = "CommandPublisher"
        Topic = "rfid/gw/command"
 #  [[DeviceList.AutoEvents]]
