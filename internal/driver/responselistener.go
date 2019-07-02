@@ -35,8 +35,10 @@ import (
 	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/models"
 )
 
+// startCommandResponseListening begins listening for messages on the command
+// response channel.
 func startCommandResponseListening() error {
-	var scheme = driver.Config.ResponseSchema
+	var scheme = driver.Config.ResponseScheme
 	var brokerUrl = driver.Config.ResponseHost
 	var brokerPort = driver.Config.ResponsePort
 	var username = driver.Config.ResponseUser

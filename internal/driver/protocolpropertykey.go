@@ -9,16 +9,16 @@ package driver
 const (
 	Protocol = "mqtt"
 
-	Schema   = "Schema"
+	Scheme   = "Scheme"
 	Host     = "Host"
 	Port     = "Port"
 	User     = "User"
 	Password = "Password"
 	ClientId = "ClientId"
-	Topic    = "Topic"
+	Topics   = "Topics"
 
 	// Driver config
-	IncomingSchema    = "IncomingSchema"
+	IncomingScheme    = "IncomingScheme"
 	IncomingHost      = "IncomingHost"
 	IncomingPort      = "IncomingPort"
 	IncomingUser      = "IncomingUser"
@@ -26,9 +26,9 @@ const (
 	IncomingQos       = "IncomingQos"
 	IncomingKeepAlive = "IncomingKeepAlive"
 	IncomingClientId  = "IncomingClientId"
-	IncomingTopic     = "IncomingTopic"
+	IncomingTopics    = "IncomingTopics"
 
-	ResponseSchema    = "ResponseSchema"
+	ResponseScheme    = "ResponseScheme"
 	ResponseHost      = "ResponseHost"
 	ResponsePort      = "ResponsePort"
 	ResponseUser      = "ResponseUser"
@@ -36,5 +36,5 @@ const (
 	ResponseQos       = "ResponseQos"
 	ResponseKeepAlive = "ResponseKeepAlive"
 	ResponseClientId  = "ResponseClientId"
-	ResponseTopic     = "ResponseTopic"
+	ResponseTopics    = "ResponseTopics"
 )

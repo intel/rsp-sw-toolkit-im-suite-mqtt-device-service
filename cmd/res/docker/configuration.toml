@@ -62,29 +62,30 @@ LogLevel = "DEBUG"
   Labels = [ "MQTT", "Gateway", "RFID"]
   [DeviceList.Protocols]
     [DeviceList.Protocols.mqtt]
-       Schema = "tcp"
+       Scheme = "tcp"
        Host = "mosquitto-server"
        Port = "1883"
        ClientId = "CommandPublisher"
        Topic = "rfid/gw/command"
-  [[DeviceList.AutoEvents]]
-    Frequency = "20s"
-    OnChange = false
-    Resource = "testrandfloat32"
 
 # Driver configs
 [Driver]
-IncomingSchema = "tcp"
+IncomingScheme = "tcp"
 IncomingHost = "mosquitto-server"
 IncomingPort = "1883"
 IncomingQos = "1"
 IncomingKeepAlive = "3600"
 IncomingClientId = "IncomingDataSubscriber"
-IncomingTopic = "rfid/gw/events"
-ResponseSchema = "tcp"
+IncomingTopics = [
+    "rfid/gw/events",
+    "rfid/gw/alerts",
+    "rfid/gw/heartbeat"
+]
+
+ResponseScheme = "tcp"
 ResponseHost = "mosquitto-server"
 ResponsePort = "1883"
 ResponseQos = "1"
 ResponseKeepAlive = "3600"
 ResponseClientId = "CommandResponseSubscriber"
-ResponseTopic = "rfid/gw/response"
+ResponseTopics = ["rfid/gw/response"]

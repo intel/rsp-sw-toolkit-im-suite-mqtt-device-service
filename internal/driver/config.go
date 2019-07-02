@@ -29,22 +29,23 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/models"
 )
 
 type ConnectionInfo struct {
-	Schema   string
+	Scheme   string
 	Host     string
 	Port     string
 	User     string
 	Password string
 	ClientId string
-	Topics    []string
+	Topics   []string
 }
 
 type configuration struct {
-	IncomingSchema    string
+	IncomingScheme    string
 	IncomingHost      string
 	IncomingPort      int
 	IncomingUser      string
@@ -54,7 +55,7 @@ type configuration struct {
 	IncomingClientId  string
 	IncomingTopics    []string
 
-	ResponseSchema    string
+	ResponseScheme    string
 	ResponseHost      string
 	ResponsePort      int
 	ResponseUser      string
@@ -80,7 +81,7 @@ func CreateConnectionInfo(protocols map[string]models.ProtocolProperties) (*Conn
 	info := new(ConnectionInfo)
 	protocol, ok := protocols[Protocol]
 	if !ok {
-		return info, fmt.Errorf("unable to load config, '%s' not exist", Protocol)
+		return info, fmt.Errorf("config is missing %s protocol", Protocol)
 	}
 
 	err := load(protocol, info)
@@ -92,7 +93,6 @@ func CreateConnectionInfo(protocols map[string]models.ProtocolProperties) (*Conn
 
 // load by reflect to check map key and then fetch the value
 func load(config map[string]string, des interface{}) error {
-	errorMessage := "unable to load config, '%s' not exist"
 	val := reflect.ValueOf(des).Elem()
 	for i := 0; i < val.NumField(); i++ {
 		typeField := val.Type().Field(i)
@@ -100,7 +100,10 @@ func load(config map[string]string, des interface{}) error {
 
 		val, ok := config[typeField.Name]
 		if !ok {
-			return fmt.Errorf(errorMessage, typeField.Name)
+			return fmt.Errorf("config is missing property '%s'", typeField.Name)
+		}
+		if !valueField.CanSet() {
+			return fmt.Errorf("cannot set field '%s'", typeField.Name)
 		}
 
 		switch valueField.Kind() {
@@ -112,8 +115,27 @@ func load(config map[string]string, des interface{}) error {
 			valueField.SetInt(int64(intVal))
 		case reflect.String:
 			valueField.SetString(val)
+		case reflect.Slice:
+			splitVals := strings.Split(val, ",")
+			var slice reflect.Value
+			switch typeField.Type.Elem().Kind() {
+			case reflect.String:
+				slice = reflect.ValueOf(splitVals)
+			case reflect.Int:
+				slice = reflect.MakeSlice(valueField.Elem().Type(), len(splitVals), len(splitVals))
+				for idx, toConvert := range splitVals {
+					intVal, err := strconv.Atoi(toConvert)
+					if err != nil {
+						return err
+					}
+					slice.Index(idx).SetInt(int64(intVal))
+				}
+			}
+			slice = reflect.AppendSlice(valueField, slice)
+			valueField.Set(slice)
 		default:
-			return fmt.Errorf("none supported value type %v ,%v", valueField.Kind(), typeField.Name)
+			return fmt.Errorf("config uses unsupported property kind "+
+				"%v for field %v", valueField.Kind(), typeField.Name)
 		}
 	}
 	return nil

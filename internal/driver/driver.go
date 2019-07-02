@@ -53,23 +53,6 @@ const (
 	retained = false
 )
 
-type Config struct {
-	Incoming connectionInfo
-	Response connectionInfo
-}
-
-type connectionInfo struct {
-	MqttProtocol   string
-	MqttBroker     string
-	MqttBrokerPort int
-	MqttClientID   string
-	MqttTopic      string
-	MqttQos        int
-	MqttUser       string
-	MqttPassword   string
-	MqttKeepAlive  int
-}
-
 type Driver struct {
 	Logger           logger.LoggingClient
 	AsyncCh          chan<- *sdkModel.AsyncValues
@@ -84,6 +67,13 @@ func NewProtocolDriver() sdkModel.ProtocolDriver {
 	return driver
 }
 
+// Initialize an MQTT driver.
+//
+// Once initialized, the driver listens on the configured MQTT topics. When a
+// message comes in on a data topic, the driver formats the message appropriately
+// and forwards it to EdgeX. When a message comes in on a command response topic,
+// the driver checks for a corresponding command it sent previously. Assuming it
+// finds one, it formats the response appropriately for EdgeX and forwards it on.
 func (d *Driver) Initialize(lc logger.LoggingClient, asyncCh chan<- *sdkModel.AsyncValues) error {
 	d.Logger = lc
 	d.AsyncCh = asyncCh
@@ -116,7 +106,8 @@ func (d *Driver) DisconnectDevice(deviceName string, protocols map[string]models
 	return nil
 }
 
-// Modified by Intel to add better error handling
+// HandleReadCommands passes a slice of CommandRequest struct each representing
+// a ResourceOperation for a specific device resource.
 func (d *Driver) HandleReadCommands(deviceName string, protocols map[string]models.ProtocolProperties, reqs []sdkModel.CommandRequest) ([]*sdkModel.CommandValue, error) {
 	var responses = make([]*sdkModel.CommandValue, len(reqs))
 	var err error
@@ -128,7 +119,7 @@ func (d *Driver) HandleReadCommands(deviceName string, protocols map[string]mode
 	}
 
 	uri := &url.URL{
-		Scheme: strings.ToLower(connectionInfo.Schema),
+		Scheme: strings.ToLower(connectionInfo.Scheme),
 		Host:   fmt.Sprintf("%s:%s", connectionInfo.Host, connectionInfo.Port),
 		User:   url.UserPassword(connectionInfo.User, connectionInfo.Password),
 	}
@@ -157,7 +148,7 @@ func (d *Driver) HandleReadCommands(deviceName string, protocols map[string]mode
 	return responses, err
 }
 
-// Modified by Intel to handle command requests and responses related to Intel open source gateway
+// handleReadCommandRequest handles a
 func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel.CommandRequest, topics []string) (*sdkModel.CommandValue, error) {
 	var result = &sdkModel.CommandValue{}
 	var err error
@@ -202,7 +193,7 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 		if ok {
 			reading = string(responseMap["error"])
 		} else {
-			err = fmt.Errorf("incorrect command response from rsp-gateway: %v", cmdResponse)
+			err = fmt.Errorf("invalid command response: %v", cmdResponse)
 			return nil, err
 		}
 
@@ -218,6 +209,10 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 	return result, err
 }
 
+// HandleWriteCommands passes a slice of CommandRequest struct each representing
+// a ResourceOperation for a specific device resource.
+// Since the commands are actuation commands, params provide parameters for the individual
+// command.
 func (d *Driver) HandleWriteCommands(deviceName string, protocols map[string]models.ProtocolProperties, reqs []sdkModel.CommandRequest, params []*sdkModel.CommandValue) error {
 	var err error
 
@@ -228,7 +223,7 @@ func (d *Driver) HandleWriteCommands(deviceName string, protocols map[string]mod
 	}
 
 	uri := &url.URL{
-		Scheme: strings.ToLower(connectionInfo.Schema),
+		Scheme: strings.ToLower(connectionInfo.Scheme),
 		Host:   fmt.Sprintf("%s:%s", connectionInfo.Host, connectionInfo.Port),
 		User:   url.UserPassword(connectionInfo.User, connectionInfo.Password),
 	}
@@ -307,6 +302,10 @@ func (d *Driver) handleWriteCommandRequest(deviceClient MQTT.Client, req sdkMode
 	return nil
 }
 
+// Stop instructs the protocol-specific DS code to shutdown gracefully, or
+// if the force parameter is 'true', immediately. The driver is responsible
+// for closing any in-use channels, including the channel used to send async
+// readings (if supported).
 func (d *Driver) Stop(force bool) error {
 	d.Logger.Warn("Driver's Stop function didn't implement")
 	return nil

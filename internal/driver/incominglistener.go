@@ -42,7 +42,7 @@ to Edgex and get data from the gateway into Edgex*/
 
 // Modified by Intel to fix minor formatting issues.
 func startIncomingListening() error {
-	var scheme = driver.Config.IncomingSchema
+	var scheme = driver.Config.IncomingScheme
 	var brokerUrl = driver.Config.IncomingHost
 	var brokerPort = driver.Config.IncomingPort
 	var username = driver.Config.IncomingUser
@@ -130,7 +130,11 @@ func (jn *JSONNotification) getID() (string, error) {
 // Modified by Intel to add better error handling and handle incoming data from Intel open source gateway
 func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 	var data map[string]interface{}
-	json.Unmarshal(message.Payload(), &data)
+	if err := json.Unmarshal(message.Payload(), &data); err != nil {
+		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] "+
+			"Failed to unmarshal payload : topic=%v msg=%v err=%+v",
+			message.Topic(), string(message.Payload()), err))
+	}
 
 	if !checkDataWithKey(data, "name") || !checkDataWithKey(data, "cmd") {
 		return

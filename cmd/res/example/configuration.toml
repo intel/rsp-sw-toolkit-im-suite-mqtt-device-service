@@ -62,7 +62,7 @@ LogLevel = "DEBUG"
   Labels = [ "MQTT", "test"]
   [DeviceList.Protocols]
     [DeviceList.Protocols.mqtt]
-       Schema = "tcp"
+       Scheme = "tcp"
        Host = "0.0.0.0"
        Port = "1883"
        ClientId = "CommandPublisher"
@@ -76,7 +76,7 @@ LogLevel = "DEBUG"
 
 # Driver configs
 [Driver]
-IncomingSchema = "tcp"
+IncomingScheme = "tcp"
 IncomingHost = "0.0.0.0"
 IncomingPort = "1883"
 IncomingUser = "admin"
@@ -85,7 +85,7 @@ IncomingQos = "0"
 IncomingKeepAlive = "3600"
 IncomingClientId = "IncomingDataSubscriber"
 IncomingTopic = "DataTopic"
-ResponseSchema = "tcp"
+ResponseScheme = "tcp"
 ResponseHost = "0.0.0.0"
 ResponsePort = "1883"
 ResponseUser = "admin"
