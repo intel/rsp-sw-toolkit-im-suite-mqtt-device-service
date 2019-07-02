@@ -3,7 +3,7 @@ Host = "mqtt-device-service"
 Port = 49982
 ConnectRetries = 3
 Labels = []
-OpenMsg = "device mqtt started"
+OpenMsg = "mqtt-device-service started"
 Timeout = 5000
 EnableAsyncReadings = true
 AsyncBufferSize = 16
@@ -18,7 +18,7 @@ Type = "consul"
 
 [Logging]
 EnableRemote = false
-File = "./device-mqtt.log"
+File = "./mqtt-device-service.log"
 
 [Writable]
 LogLevel = "DEBUG"
