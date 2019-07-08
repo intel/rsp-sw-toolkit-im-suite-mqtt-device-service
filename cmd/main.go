@@ -23,9 +23,10 @@
  * notice embedded in Materials by Intel or Intel's suppliers or licensors in any way.
  */
 
+// Intel modified the project name from device-mqtt-go to mqtt-device-service
+
 package main
 
-// Intel modified mqtt-device-service imports to get the modified service from Intel repository
 import (
 	"github.com/edgexfoundry/device-sdk-go/pkg/startup"
 	mqtt_device_service "github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service"

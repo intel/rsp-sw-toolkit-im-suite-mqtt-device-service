@@ -116,7 +116,6 @@ func (d *Driver) DisconnectDevice(deviceName string, protocols map[string]models
 	return nil
 }
 
-// Modified by Intel to add better error handling
 func (d *Driver) HandleReadCommands(deviceName string, protocols map[string]models.ProtocolProperties, reqs []sdkModel.CommandRequest) ([]*sdkModel.CommandValue, error) {
 	var responses = make([]*sdkModel.CommandValue, len(reqs))
 	var err error
@@ -157,7 +156,7 @@ func (d *Driver) HandleReadCommands(deviceName string, protocols map[string]mode
 	return responses, err
 }
 
-// Modified by Intel to handle command requests and responses related to Intel open source gateway
+// Modified by Intel to handle command requests and responses to and from Intel open source gateway
 func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel.CommandRequest, topic string) (*sdkModel.CommandValue, error) {
 	var result = &sdkModel.CommandValue{}
 	var err error

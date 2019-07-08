@@ -1,5 +1,3 @@
-package models
-
 /*
  * INTEL CONFIDENTIAL
  * Copyright (2017) Intel Corporation.
@@ -18,6 +16,8 @@ package models
  * Unless otherwise agreed by Intel in writing, you may not remove or alter this notice or any other
  * notice embedded in Materials by Intel or Intel's suppliers or licensors in any way.
  */
+
+package models
 
 // Json request from EdgeX to gateway
 type JsonRequest struct {

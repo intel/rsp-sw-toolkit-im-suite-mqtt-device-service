@@ -74,7 +74,7 @@ func startCommandResponseListening() error {
 	select {}
 }
 
-// Modified by Intel to handle responses coming from Intel open source gateway and add better error handling
+// Modified by Intel to handle responses from Intel open source gateway
 func onCommandResponseReceived(client mqtt.Client, message mqtt.Message) {
 	var response models.JsonResponse
 
