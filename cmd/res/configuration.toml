@@ -80,11 +80,7 @@ IncomingPassword = ""
 IncomingQos = "1"
 IncomingKeepAlive = "3600"
 IncomingClientId = "IncomingDataSubscriber"
-IncomingTopics = [
-    "rfid/gw/events",
-    "rfid/gw/alerts",
-    "rfid/gw/heartbeat"
-]
+IncomingTopics = "rfid/gw/events,rfid/gw/alerts,rfid/gw/heartbeat"
 
 ResponseScheme = "tcp"
 ResponseHost = "mosquitto-server"
@@ -94,4 +90,4 @@ ResponsePassword = ""
 ResponseQos = "1"
 ResponseKeepAlive = "3600"
 ResponseClientId = "CommandResponseSubscriber"
-ResponseTopics = ["rfid/gw/response"]
+ResponseTopics = "rfid/gw/response"

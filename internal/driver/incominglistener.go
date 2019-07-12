@@ -1,14 +1,9 @@
-// -*- Mode: Go; indent-tabs-mode: t -*-
-//
-// Copyright (C) 2018-2019 IOTech Ltd
-//
-// SPDX-License-Identifier: Apache-2.0
-
 package driver
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/models"
 	"net/url"
 	"strings"
 
@@ -17,24 +12,19 @@ import (
 	sdkModel "github.com/edgexfoundry/device-sdk-go/pkg/models"
 )
 
-func startIncomingListening() error {
-	var scheme = driver.Config.IncomingScheme
-	var brokerUrl = driver.Config.IncomingHost
-	var brokerPort = driver.Config.IncomingPort
-	var username = driver.Config.IncomingUser
-	var password = driver.Config.IncomingPassword
-	var mqttClientId = driver.Config.IncomingClientId
-	var qos = byte(driver.Config.IncomingQos)
-	var keepAlive = driver.Config.IncomingKeepAlive
-	var topic = driver.Config.IncomingTopic
-
-	uri := &url.URL{
-		Scheme: strings.ToLower(scheme),
-		Host:   fmt.Sprintf("%s:%d", brokerUrl, brokerPort),
-		User:   url.UserPassword(username, password),
-	}
-
-	client, err := createClient(mqttClientId, uri, keepAlive)
+// startIncomingListening starts listening on all the configured IncomingTopics;
+// when a new message comes in, the onIncomingDataReceived method converts it to
+// an EdgeX message.
+func startIncomingListening(done <-chan interface{}) error {
+	conf := *driver.Config
+	client, err := createClient(
+		conf.IncomingClientId,
+		&url.URL{
+			Scheme: strings.ToLower(conf.IncomingScheme),
+			Host:   fmt.Sprintf("%s:%d", conf.IncomingHost, conf.IncomingPort),
+			User:   url.UserPassword(conf.IncomingUser, conf.IncomingPassword),
+		},
+		conf.IncomingKeepAlive)
 	if err != nil {
 		return err
 	}
@@ -45,54 +35,73 @@ func startIncomingListening() error {
 		}
 	}()
 
-	token := client.Subscribe(topic, qos, onIncomingDataReceived)
-	if token.Wait() && token.Error() != nil {
-		driver.Logger.Info(fmt.Sprintf("[Incoming listener] Stop incoming data listening. Cause:%v", token.Error()))
-		return token.Error()
+	for _, topic := range conf.IncomingTopics {
+		token := client.Subscribe(topic, byte(conf.IncomingQos), onIncomingDataReceived)
+		if token.Wait() && token.Error() != nil {
+			driver.Logger.Info(
+				fmt.Sprintf("[Incoming listener] Stop incoming data listening. Cause:%v",
+					token.Error(),
+				),
+			)
+			return token.Error()
+		}
 	}
 
-	driver.Logger.Info("[Incoming listener] Start incoming data listening. ")
-	select {}
+	driver.Logger.Info("[Incoming listener] Start incoming data listener. ")
+	<-done
+	driver.Logger.Info("[Incoming listener] Stopping incoming data listener. ")
+	return nil
 }
 
 func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
-	var data map[string]interface{}
-	if err := json.Unmarshal(message.Payload(), &data); err != nil {
-		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] "+
-			"Failed to unmarshal payload : topic=%v msg=%v err=%+v",
-			message.Topic(), string(message.Payload()), err))
-	}
-
-	if !checkDataWithKey(data, "name") || !checkDataWithKey(data, "cmd") {
+	var jn models.JSONRPC
+	if err := json.Unmarshal(message.Payload(), &jn); err != nil {
+		driver.Logger.Error(fmt.Sprintf("Unmarshal failed: %+v", err))
 		return
 	}
 
-	deviceName := data["name"].(string)
-	cmd := data["cmd"].(string)
-
-	reading, ok := data[cmd]
-	if !ok {
-		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] Incoming reading ignored. No reading data found : topic=%v msg=%v", message.Topic(), string(message.Payload())))
+	if jn.Version != jsonRPC20 {
+		driver.Logger.Error(fmt.Sprintf("Invalid version: %s", jn.Version))
 		return
 	}
 
+	deviceName, err := jn.GetID()
+	if err != nil {
+		driver.Logger.Error(fmt.Sprintf("Failed to get device ID: %+v", err))
+		return
+	}
+
+	jn.Topic = message.Topic()
+	remarshaled, err := json.Marshal(jn)
+	if err != nil {
+		driver.Logger.Error(fmt.Sprintf("Failed to remashal message: %+v", err))
+		return
+	}
+
+	event := gwevent
+	reading := string(remarshaled)
 	service := sdk.RunningService()
 
-	deviceObject, ok := service.DeviceResource(deviceName, cmd, "get")
+	deviceObject, ok := service.DeviceResource(deviceName, event, "get")
 	if !ok {
-		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] Incoming reading ignored. No DeviceObject found : topic=%v msg=%v", message.Topic(), string(message.Payload())))
+		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] "+
+			"Incoming reading ignored. "+
+			"No DeviceObject found: topic=%v device=%v method=%v",
+			message.Topic(), deviceName, jn.Method))
 		return
 	}
 
 	req := sdkModel.CommandRequest{
-		DeviceResourceName: cmd,
-		Type:               sdkModel.ParseValueType(deviceObject.Properties.Value.Type),
+		DeviceResourceName: jn.Method,
+		Type: sdkModel.ParseValueType(deviceObject.Properties.Value.Type),
 	}
-
 	result, err := newResult(req, reading)
 
 	if err != nil {
-		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] Incoming reading ignored.   topic=%v msg=%v error=%v", message.Topic(), string(message.Payload()), err))
+		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] "+
+			"Incoming reading ignored. "+
+			"topic=%v msg=%v error=%v",
+			message.Topic(), string(message.Payload()), err))
 		return
 	}
 
@@ -101,24 +110,10 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 		CommandValues: []*sdkModel.CommandValue{result},
 	}
 
-	driver.Logger.Info(fmt.Sprintf("[Incoming listener] Incoming reading received: topic=%v msg=%v", message.Topic(), string(message.Payload())))
+	driver.Logger.Info(fmt.Sprintf("[Incoming listener] "+
+		"Incoming reading received: "+
+		"topic=%v method=%v msgLen=%v",
+		message.Topic(), jn.Method, len(message.Payload())))
 
 	driver.AsyncCh <- asyncValues
-
-}
-
-func checkDataWithKey(data map[string]interface{}, key string) bool {
-	val, ok := data[key]
-	if !ok {
-		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] Incoming reading ignored. No %v found : msg=%v", key, data))
-		return false
-	}
-
-	switch val.(type) {
-	case string:
-		return true
-	default:
-		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] Incoming reading ignored. %v should be string : msg=%v", key, data))
-		return false
-	}
 }
