@@ -46,7 +46,7 @@ func startCommandResponseListening() error {
 	var mqttClientId = driver.Config.ResponseClientId
 	var qos = byte(driver.Config.ResponseQos)
 	var keepAlive = driver.Config.ResponseKeepAlive
-	var topics = driver.Config.ResponseTopics
+	var topic = driver.Config.ResponseTopic
 
 	uri := &url.URL{
 		Scheme: strings.ToLower(scheme),
@@ -65,19 +65,18 @@ func startCommandResponseListening() error {
 		}
 	}()
 
-	for _, topic := range topics {
-		token := client.Subscribe(topic, qos, onCommandResponseReceived)
-		if token.Wait() && token.Error() != nil {
-			driver.Logger.Info(fmt.Sprintf("[Response listener] Stop command response listening. Cause:%v", token.Error()))
-			return token.Error()
-		}
+
+	token := client.Subscribe(topic, qos, onCommandResponseReceived)
+	if token.Wait() && token.Error() != nil {
+		driver.Logger.Info(fmt.Sprintf("[Response listener] Stop command response listening. Cause:%v", token.Error()))
+		return token.Error()
 	}
 
 	driver.Logger.Info("[Response listener] Start command response listening. ")
 	select {}
 }
 
-// Modified by Intel to handle responses coming from Intel open source gateway and add better error handling
+// Modified by Intel to handle responses from Intel open source gateway
 func onCommandResponseReceived(client mqtt.Client, message mqtt.Message) {
 	var response models.JsonResponse
 

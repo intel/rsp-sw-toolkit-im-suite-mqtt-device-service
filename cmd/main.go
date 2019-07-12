@@ -17,12 +17,13 @@
  * notice embedded in Materials by Intel or Intel's suppliers or licensors in any way.
  */
 
+// Intel modified the project name from device-mqtt-go to mqtt-device-service
+
 package main
 
-// Intel modified mqtt-device-service imports to get the modified service from Intel repository
 import (
 	"github.com/edgexfoundry/device-sdk-go/pkg/startup"
-	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service"
+	mqtt_device_service "github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service"
 	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/driver"
 )
 
@@ -32,5 +33,5 @@ const (
 
 func main() {
 	sd := driver.NewProtocolDriver()
-	startup.Bootstrap(serviceName, device_mqtt.Version, sd)
+	startup.Bootstrap(serviceName, mqtt_device_service.Version, sd)
 }

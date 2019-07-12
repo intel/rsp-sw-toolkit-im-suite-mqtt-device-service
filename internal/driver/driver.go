@@ -53,6 +53,23 @@ const (
 	retained = false
 )
 
+type Config struct {
+	Incoming connectionInfo
+	Response connectionInfo
+}
+
+type connectionInfo struct {
+	MqttProtocol   string
+	MqttBroker     string
+	MqttBrokerPort int
+	MqttClientID   string
+	MqttTopic      string
+	MqttQos        int
+	MqttUser       string
+	MqttPassword   string
+	MqttKeepAlive  int
+}
+
 type Driver struct {
 	Logger           logger.LoggingClient
 	AsyncCh          chan<- *sdkModel.AsyncValues
@@ -153,6 +170,7 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 	var result = &sdkModel.CommandValue{}
 	var err error
 
+	// request to gateway
 	var request commandModel.JsonRequest
 	request.JsonRpc = jsonRpc
 	request.Method = req.DeviceResourceName
@@ -161,6 +179,7 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 
 	jsonData, err := json.Marshal(request)
 	if err != nil {
+		err = fmt.Errorf("marshalling of command request failed: error=%v", err)
 		return result, err
 	}
 
@@ -176,13 +195,15 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 		err = fmt.Errorf("can not fetch command response: method=%v", request.Method)
 		return result, err
 	}
+	driver.Logger.Info(fmt.Sprintf("Command response: %v", cmdResponse))
 
 	var responseMap map[string]json.RawMessage
 	if err := json.Unmarshal([]byte(cmdResponse), &responseMap); err != nil {
+		err = fmt.Errorf("unmarshalling of command response failed: error=%v", err)
 		return nil, err
 	}
 
-	// extract specific values from the response
+	// Parse response to extract result or error field
 	var reading string
 	_, ok = responseMap["result"]
 	if ok {
@@ -196,16 +217,15 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 			err = fmt.Errorf("invalid command response: %v", cmdResponse)
 			return nil, err
 		}
-
-	}
-	if reading != "" {
-		result, err = newResult(req, reading)
-		if err != nil {
-			return nil, err
-		}
 	}
 
-	driver.Logger.Info(fmt.Sprintf("Get command finished: %v", result))
+	result, err = newResult(req, reading)
+	if err != nil {
+		return nil, err
+	} else {
+		driver.Logger.Info(fmt.Sprintf("Get command finished: %v", result))
+	}
+
 	return result, err
 }
 

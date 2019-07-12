@@ -35,6 +35,6 @@ docker: $(DOCKERS)
 docker_mqtt-device-service_go:
 	docker build \
 		--label "git_sha=$(GIT_SHA)" \
-		-t edgexfoundry/docker-mqtt-device-service-go:$(GIT_SHA) \
-		-t edgexfoundry/docker-device-mqtt-device-service-go:$(VERSION)-dev \
+		-t mqtt-device-service-go:$(GIT_SHA) \
+		-t mqtt-device-service-go:$(VERSION)-dev \
 		.

@@ -1,15 +1,15 @@
 [Service]
-Host = "localhost"
+Host = "mqtt-device-service"
 Port = 49982
 ConnectRetries = 3
 Labels = []
-OpenMsg = "mqtt device service started"
+OpenMsg = "mqtt-device-service started"
 Timeout = 5000
 EnableAsyncReadings = true
 AsyncBufferSize = 16
 
 [Registry]
-Host = "localhost"
+Host = "edgex-core-consul"
 Port = 8500
 CheckInterval = "10s"
 FailLimit = 3
@@ -18,7 +18,7 @@ Type = "consul"
 
 [Logging]
 EnableRemote = false
-File = "./device-mqtt.log"
+File = "./mqtt-device-service.log"
 
 [Writable]
 LogLevel = "DEBUG"
@@ -27,21 +27,21 @@ LogLevel = "DEBUG"
   [Clients.Data]
   Name = "edgex-core-data"
   Protocol = "http"
-  Host = "localhost"
+  Host = "edgex-core-data"
   Port = 48080
   Timeout = 50000
 
   [Clients.Metadata]
   Name = "edgex-core-metadata"
   Protocol = "http"
-  Host = "localhost"
+  Host = "edgex-core-metadata"
   Port = 48081
   Timeout = 50000
 
   [Clients.Logging]
   Name = "edgex-support-logging"
   Protocol = "http"
-  Host = "localhost"
+  Host = "edgex-support-logging"
   Port = 48061
 
 [Device]
@@ -65,6 +65,8 @@ LogLevel = "DEBUG"
        Scheme = "tcp"
        Host = "mosquitto-server"
        Port = "1883"
+       User = ""
+       Password = ""
        ClientId = "CommandPublisher"
        Topic = "rfid/gw/command"
 
@@ -73,6 +75,8 @@ LogLevel = "DEBUG"
 IncomingScheme = "tcp"
 IncomingHost = "mosquitto-server"
 IncomingPort = "1883"
+IncomingUser = ""
+IncomingPassword = ""
 IncomingQos = "1"
 IncomingKeepAlive = "3600"
 IncomingClientId = "IncomingDataSubscriber"
@@ -85,6 +89,8 @@ IncomingTopics = [
 ResponseScheme = "tcp"
 ResponseHost = "mosquitto-server"
 ResponsePort = "1883"
+ResponseUser = ""
+ResponsePassword = ""
 ResponseQos = "1"
 ResponseKeepAlive = "3600"
 ResponseClientId = "CommandResponseSubscriber"
