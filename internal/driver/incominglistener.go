@@ -65,12 +65,6 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 		return
 	}
 
-	deviceName, err := jn.GetID()
-	if err != nil {
-		driver.Logger.Error(fmt.Sprintf("Failed to get device ID: %+v", err))
-		return
-	}
-
 	jn.Topic = message.Topic()
 	remarshaled, err := json.Marshal(jn)
 	if err != nil {
@@ -78,11 +72,12 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 		return
 	}
 
-	event := gwevent
+	event := gwevent // todo: possibly replace with message.Topic()
 	reading := string(remarshaled)
 	service := sdk.RunningService()
+	deviceName := driver.Config.DeviceName
 
-	deviceObject, ok := service.DeviceResource(deviceName, event, "get")
+	resource, ok := service.DeviceResource(deviceName, event, "get")
 	if !ok {
 		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] "+
 			"Incoming reading ignored. "+
@@ -93,7 +88,7 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 
 	req := sdkModel.CommandRequest{
 		DeviceResourceName: jn.Method,
-		Type: sdkModel.ParseValueType(deviceObject.Properties.Value.Type),
+		Type:               sdkModel.ParseValueType(resource.Properties.Value.Type),
 	}
 	result, err := newResult(req, reading)
 

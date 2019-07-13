@@ -76,6 +76,7 @@ LogLevel = "DEBUG"
 
 # Driver configs
 [Driver]
+DeviceName = "MQTT test device"
 IncomingScheme = "tcp"
 IncomingHost = "0.0.0.0"
 IncomingPort = "1883"

@@ -72,6 +72,9 @@ LogLevel = "DEBUG"
 
 # Driver configs
 [Driver]
+# device name to use when sending data received on the IncomingTopics
+DeviceName = "rrs-gateway"
+
 IncomingScheme = "tcp"
 IncomingHost = "mosquitto-server"
 IncomingPort = "1883"
@@ -91,3 +94,4 @@ ResponseQos = "1"
 ResponseKeepAlive = "3600"
 ResponseClientId = "CommandResponseSubscriber"
 ResponseTopics = "rfid/gw/response"
+

@@ -18,6 +18,7 @@ const (
 	Topics   = "Topics"
 
 	// Driver config
+	DeviceName = "DeviceName"
 	IncomingScheme    = "IncomingScheme"
 	IncomingHost      = "IncomingHost"
 	IncomingPort      = "IncomingPort"

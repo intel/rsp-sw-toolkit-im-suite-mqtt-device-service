@@ -34,6 +34,7 @@ import (
 	"github.com/edgexfoundry/go-mod-core-contracts/models"
 )
 
+// ConnectionInfo holds the values for connecting to an MQTT device.
 type ConnectionInfo struct {
 	Scheme   string
 	Host     string
@@ -44,7 +45,11 @@ type ConnectionInfo struct {
 	Topics   []string
 }
 
+// configuration holds the values for the device configuration, including what
+// MQTT broker to connect to for incoming data and command responses.
 type configuration struct {
+	// IncomingTopics provide reads to be sent to EdgeX.
+	IncomingTopics    []string
 	IncomingScheme    string
 	IncomingHost      string
 	IncomingPort      int
@@ -53,8 +58,12 @@ type configuration struct {
 	IncomingQos       int
 	IncomingKeepAlive int
 	IncomingClientId  string
-	IncomingTopics    []string
 
+	// DeviceName is used when sending messages that came in on the IncomingTopics
+	DeviceName        string
+
+	// ResponseTopics provide replies to commands.
+	ResponseTopics    []string
 	ResponseScheme    string
 	ResponseHost      string
 	ResponsePort      int
@@ -63,17 +72,13 @@ type configuration struct {
 	ResponseQos       int
 	ResponseKeepAlive int
 	ResponseClientId  string
-	ResponseTopics    []string
 }
 
 // CreateDriverConfig use to load driver config for incoming listener and response listener
 func CreateDriverConfig(configMap map[string]string) (*configuration, error) {
 	config := new(configuration)
 	err := load(configMap, config)
-	if err != nil {
-		return config, err
-	}
-	return config, nil
+	return config, err
 }
 
 // CreateConnectionInfo use to load MQTT connectionInfo for read and write command

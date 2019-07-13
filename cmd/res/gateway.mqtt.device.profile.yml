@@ -4,6 +4,12 @@ model: "MQTT-Gateway"
 labels:
 - "RFID"
 description: "RFID Gateway MQTT Device Service"
+
+# there must be a DeviceResource and ResourceOperation with GET for any data the
+# MQTT device service will push, even if it's just event data, because the Device
+# Services SDK hides nearly everything, and the only access is via the cleverly
+# titled 'asyncCh' channel, which takes CommandValues (aka, responses to command
+# requests). As a result, there's a lot of duplication necessary.
 deviceResources:
 -
   name: gwevent

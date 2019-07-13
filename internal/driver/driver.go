@@ -52,8 +52,6 @@ const (
 	qos       = byte(1)
 	retained  = false
 	gwevent   = "gwevent"
-	incoming  = "incoming"
-	response  = "response"
 )
 
 type Driver struct {
@@ -61,6 +59,8 @@ type Driver struct {
 	AsyncCh          chan<- *sdkModel.AsyncValues
 	CommandResponses sync.Map
 	Config           *configuration
+
+
 
 	done chan interface{}
 }
@@ -71,6 +71,16 @@ func NewProtocolDriver() sdkModel.ProtocolDriver {
 		driver = new(Driver)
 	})
 	return driver
+}
+
+// GetServiceName gets the name of the running service, as it's known to EdgeX,
+// or returns an empty string if there is no running service.
+func GetServiceName() string {
+	srv := device.RunningService()
+	if srv == nil {
+		return ""
+	}
+	return srv.Name()
 }
 
 // Initialize an MQTT driver.
@@ -109,12 +119,12 @@ func (d *Driver) Initialize(lc logger.LoggingClient, asyncCh chan<- *sdkModel.As
 	return nil
 }
 
-// HandleReadCommands accepts CommandRequests for ResourceOperations.
+// HandleReadCommands handles CommandRequests to read data via MQTT.
 //
-// It satisfies them by creating a new MQTT client for the device, sending the
+// It satisfies them by creating a new MQTT client with the protocol, sending the
 // requests as JSON RPC messages on all configured topics, then waiting for a
-// response on all response topics; once a response comes in, it returns that
-// result.
+// response on any of the response topics; once a response comes in, it returns
+// that result.
 func (d *Driver) HandleReadCommands(deviceName string, protocols map[string]models.ProtocolProperties, reqs []sdkModel.CommandRequest) ([]*sdkModel.CommandValue, error) {
 	var responses = make([]*sdkModel.CommandValue, len(reqs))
 	var err error
@@ -250,8 +260,11 @@ func createClient(clientID string, uri *url.URL, keepAlive int) (MQTT.Client, er
 			driver.Logger.Warn(fmt.Sprintf("Reconnection sucessful"))
 		}
 	})
+	// todo: this should probably *not* be hardcoded
 	opts.SetTLSConfig(&tls.Config{InsecureSkipVerify: true})
 
+	// todo: this method could probably keep a cache of clients, hashed by their
+	//   incoming uri + clientID; if it's not a bottleneck, then it's probably not worth it.
 	client := MQTT.NewClient(opts)
 	token := client.Connect()
 	if token.Wait() && token.Error() != nil {
