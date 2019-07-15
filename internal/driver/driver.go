@@ -167,6 +167,15 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 	request.Method = req.DeviceResourceName
 	// create a unique id to track every response
 	request.Id = bson.NewObjectId().Hex()
+	driver.Logger.Info(fmt.Sprintf("Attributes: %v Length: %v", req.Attributes, len(req.Attributes)))
+
+	//paramsString, err := json.Marshal(req.Attributes)
+	//if err != nil {
+	//	err = fmt.Errorf("marshalling of command request with params failed: error=%v", err)
+	//	return result, err
+	//}
+	//
+	//request.Params = paramsString
 
 	jsonData, err := json.Marshal(request)
 	if err != nil {
@@ -219,8 +228,8 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 
 func (d *Driver) HandleWriteCommands(deviceName string, protocols map[string]models.ProtocolProperties, reqs []sdkModel.CommandRequest, params []*sdkModel.CommandValue) error {
 	var err error
-
-	/*// create device client and open connection
+/*
+	// create device client and open connection
 	connectionInfo, err := CreateConnectionInfo(protocols)
 	if err != nil {
 		return err
@@ -253,26 +262,25 @@ func (d *Driver) HandleWriteCommands(deviceName string, protocols map[string]mod
 	return err
 }
 
-/*func (d *Driver) handleWriteCommandRequest(deviceClient MQTT.Client, req sdkModel.CommandRequest, topic string, param *sdkModel.CommandValue) error {
+func (d *Driver) handleWriteCommandRequest(deviceClient MQTT.Client, req sdkModel.CommandRequest, topic string, param *sdkModel.CommandValue) error {
 	/*var err error
 	var qos = byte(0)
 	var retained = false
 
 	var method = "set"
 	var cmdUuid = bson.NewObjectId().Hex()
-	var cmd = req.DeviceResourceName
+	var cmd = req.DeviceObject.Name
 
 	data := make(map[string]interface{})
 	data["uuid"] = cmdUuid
 	data["method"] = method
 	data["cmd"] = cmd
 
-	commandValue, err := newCommandValue(req.Type, param)
+	commandValue, err := newCommandValue(req.DeviceObject, param)
 	if err != nil {
 		return err
-	} else {
-		data[cmd] = commandValue
 	}
+	data[cmd] = commandValue
 
 	jsonData, err := json.Marshal(data)
 	if err != nil {
@@ -283,13 +291,12 @@ func (d *Driver) HandleWriteCommands(deviceName string, protocols map[string]mod
 
 	driver.Logger.Info(fmt.Sprintf("Publish command: %v", string(jsonData)))
 
-	//wait and fetch response from CommandResponses map
-	var cmdResponse interface{}
+	// wait and fetch response from CommandResponses map
+	var cmdResponse string
 	var ok bool
 	for i := 0; i < 5; i++ {
-		cmdResponse, ok = d.CommandResponses.Load(cmdUuid)
+		cmdResponse, ok = d.CommandResponses[cmdUuid]
 		if ok {
-			d.CommandResponses.Delete(cmdUuid)
 			break
 		} else {
 			time.Sleep(time.Second * time.Duration(1))
@@ -301,10 +308,10 @@ func (d *Driver) HandleWriteCommands(deviceName string, protocols map[string]mod
 		return err
 	}
 
-	driver.Logger.Info(fmt.Sprintf("Put command finished: %v", cmdResponse))
+	driver.Logger.Info(fmt.Sprintf("Put command finished: %v", cmdResponse))*/
 
 	return nil
-}*/
+}
 
 func (d *Driver) Stop(force bool) error {
 	d.Logger.Warn("Driver's Stop function didn't implement")

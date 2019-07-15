@@ -65,6 +65,16 @@ deviceResources:
       { type: "String", readWrite: "R", defaultValue: "" }
     units:
       { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: behavior_get
+  description: "info of a particular behavior from gateway"
+  attributes:
+    { name: "behavior_get" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
 
 deviceCommands:
 -
@@ -91,6 +101,10 @@ deviceCommands:
   name: upstream_get_mqtt_status
   get:
     - { index: "1", operation: "get", object: "upstream_get_mqtt_status", parameter: "upstream_get_mqtt_status", property: "value" }
+-
+  name: behavior_get
+  put:
+    - { index: "1", operation: "put", object: "behavior_get", parameter: "behavior_get", property: "value" }
 
 coreCommands:
 -
@@ -158,4 +172,18 @@ coreCommands:
         code: "500"
         description: "internal server error"
         expectedValues: []
+-
+  name: behavior_get
+  put:
+    path: "/api/v1/device/{deviceId}/behavior_get"
+    responses:
+      -
+        code: "200"
+        description: "get info of a particular behavior from gateway"
+        expectedValues: ["behavior_get"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
+
 

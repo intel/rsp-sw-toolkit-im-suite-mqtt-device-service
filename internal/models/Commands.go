@@ -24,6 +24,7 @@ type JsonRequest struct {
 	JsonRpc string `json:"jsonrpc"`
 	Id      string `json:"id"`
 	Method  string `json:"method"`
+	Params  interface{} `json:"params"`
 }
 
 // Json response from the gateway
