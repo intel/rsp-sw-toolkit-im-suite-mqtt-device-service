@@ -89,15 +89,19 @@ func TestCreateConnectionInfo_fail(t *testing.T) {
 
 func TestCreateDriverConfig(t *testing.T) {
 	configs := map[string]string{
-		DeviceName:     "test-device",
+		DeviceName: "test-device",
+
+		OnConnectPublishTopic: "", OnConnectPublishMessage: "",
+
 		IncomingScheme: "tcp", IncomingHost: "0.0.0.0", IncomingPort: "1883",
 		IncomingUser: "admin", IncomingPassword: "public", IncomingQos: "0",
-		IncomingKeepAlive: "3600", IncomingClientId: "IncomingDataSubscriber", IncomingTopics: "DataTopic",
-		IncomingTopicResourceMappings: "TopicMapping",
+		IncomingKeepAlive: "3600", IncomingClientId: "IncomingDataSubscriber",
+		IncomingTopics: "DataTopic", IncomingTopicResourceMappings: "TopicMapping",
 
 		ResponseScheme: "tcp", ResponseHost: "0.0.0.0", ResponsePort: "1883",
 		ResponseUser: "admin", ResponsePassword: "public", ResponseQos: "0",
-		ResponseKeepAlive: "3600", ResponseClientId: "CommandResponseSubscriber", ResponseTopics: "ResponseTopic",
+		ResponseKeepAlive: "3600", ResponseClientId: "CommandResponseSubscriber",
+		ResponseTopics: "ResponseTopic",
 	}
 	driverConfig, err := CreateDriverConfig(configs)
 	if err != nil {

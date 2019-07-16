@@ -3,6 +3,7 @@ package driver
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/go-uuid"
 	"github.com/pkg/errors"
 	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/models"
 	"net/url"
@@ -71,6 +72,27 @@ func mapTopicToValueDescriptor(topic string) (string, error) {
 	return "", fmt.Errorf("unable to determine valueDescriptor for topic: %s", topic)
 }
 
+func onMqttConnect(client mqtt.Client) {
+	conf := *driver.Config
+
+	driver.Logger.Info("mqtt incoming listener client connected")
+
+	topic := conf.OnConnectPublishTopic
+	if topic != "" {
+		id, err := uuid.GenerateUUID()
+		if err != nil {
+			id = "unknown"
+		}
+
+		// replace {{uuid}} placeholder with generated id
+		msg := strings.Replace(conf.OnConnectPublishMessage, "{{uuid}}", id, 1)
+
+		driver.Logger.Debug(fmt.Sprintf("publish onconnect topic: %s, message: %s", topic, msg))
+
+		client.Publish(topic, qos, retained, msg)
+	}
+}
+
 // startIncomingListening starts listening on all the configured IncomingTopics;
 // when a new message comes in, the onIncomingDataReceived method converts it to
 // an EdgeX message.
@@ -90,7 +112,7 @@ func startIncomingListening(done <-chan interface{}) error {
 			Host:   fmt.Sprintf("%s:%d", conf.IncomingHost, conf.IncomingPort),
 			User:   url.UserPassword(conf.IncomingUser, conf.IncomingPassword),
 		},
-		conf.IncomingKeepAlive)
+		conf.IncomingKeepAlive, onMqttConnect)
 	if err != nil {
 		return err
 	}

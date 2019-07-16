@@ -18,7 +18,11 @@ const (
 	Topics   = "Topics"
 
 	// Driver config
-	DeviceName                    = "DeviceName"
+	DeviceName = "DeviceName"
+	OnConnectPublishTopic   = "OnConnectPublishTopic"
+	OnConnectPublishMessage = "OnConnectPublishMessage"
+
+	// Incoming connection info
 	IncomingScheme                = "IncomingScheme"
 	IncomingHost                  = "IncomingHost"
 	IncomingPort                  = "IncomingPort"
@@ -30,6 +34,7 @@ const (
 	IncomingTopics                = "IncomingTopics"
 	IncomingTopicResourceMappings = "IncomingTopicResourceMappings"
 
+	// Response connection info
 	ResponseScheme    = "ResponseScheme"
 	ResponseHost      = "ResponseHost"
 	ResponsePort      = "ResponsePort"

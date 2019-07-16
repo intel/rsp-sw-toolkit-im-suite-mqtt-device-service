@@ -43,7 +43,7 @@ func startCommandResponseListening(done <-chan interface{}) error {
 		Scheme: strings.ToLower(conf.ResponseScheme),
 		Host:   fmt.Sprintf("%s:%d", conf.ResponseHost, conf.ResponsePort),
 		User:   url.UserPassword(conf.ResponseUser, conf.ResponsePassword),
-	}, conf.ResponseKeepAlive)
+	}, conf.ResponseKeepAlive, nil)
 	if err != nil {
 		return err
 	}

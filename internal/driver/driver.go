@@ -138,7 +138,7 @@ func (d *Driver) HandleReadCommands(deviceName string, protocols map[string]mode
 		User:   url.UserPassword(connectionInfo.User, connectionInfo.Password),
 	}
 
-	client, err := createClient(connectionInfo.ClientId, uri, 30)
+	client, err := createClient(connectionInfo.ClientId, uri, 30, nil)
 	if err != nil {
 		return responses, err
 	}
@@ -239,7 +239,7 @@ func (d *Driver) Stop(force bool) error {
 }
 
 // Create a MQTT client
-func createClient(clientID string, uri *url.URL, keepAlive int) (MQTT.Client, error) {
+func createClient(clientID string, uri *url.URL, keepAlive int, onConn MQTT.OnConnectHandler) (MQTT.Client, error) {
 	driver.Logger.Info(fmt.Sprintf("Create MQTT client and connection: uri=%v clientID=%v ", uri.String(), clientID))
 	opts := MQTT.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("%s://%s", uri.Scheme, uri.Host))
@@ -248,15 +248,22 @@ func createClient(clientID string, uri *url.URL, keepAlive int) (MQTT.Client, er
 	password, _ := uri.User.Password()
 	opts.SetPassword(password)
 	opts.SetKeepAlive(time.Second * time.Duration(keepAlive))
+
+	if onConn != nil {
+		opts.SetOnConnectHandler(onConn)
+	}
+
 	opts.SetConnectionLostHandler(func(client MQTT.Client, e error) {
 		driver.Logger.Warn(fmt.Sprintf("Connection lost : %v", e))
 		token := client.Connect()
 		if token.Wait() && token.Error() != nil {
+			// todo: the main incomingListener client should probably panic() if it can't re-connect after X tries
 			driver.Logger.Warn(fmt.Sprintf("Reconnection failed : %v", token.Error()))
 		} else {
 			driver.Logger.Warn(fmt.Sprintf("Reconnection sucessful"))
 		}
 	})
+
 	// todo: this should probably *not* be hardcoded
 	opts.SetTLSConfig(&tls.Config{InsecureSkipVerify: true})
 
