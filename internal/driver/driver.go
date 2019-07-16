@@ -48,10 +48,9 @@ var once sync.Once
 var driver *Driver
 
 const (
-	jsonRPC20 = "2.0"
-	qos       = byte(1)
-	retained  = false
-	gwevent   = "gw_event"
+	jsonRpcVersion = "2.0"
+	qos            = byte(1)
+	retained       = false
 )
 
 type Driver struct {
@@ -167,7 +166,7 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 	var err error
 
 	request := commandModel.JSONRPC{
-		Version: jsonRPC20,
+		Version: jsonRpcVersion,
 		Method:  req.DeviceResourceName,
 		Id:      bson.NewObjectId().Hex(),
 	}

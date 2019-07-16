@@ -126,7 +126,7 @@ func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
 		return
 	}
 
-	if jn.Version != jsonRPC20 {
+	if jn.Version != jsonRpcVersion {
 		driver.Logger.Error(fmt.Sprintf("Invalid version: %s", jn.Version))
 		return
 	}
