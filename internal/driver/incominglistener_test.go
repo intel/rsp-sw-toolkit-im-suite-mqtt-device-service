@@ -60,9 +60,9 @@ func TestInvalidTopicMappingsSize(t *testing.T) {
 func TestTopicMappingRegexes(t *testing.T) {
 	tests := []struct {
 		// a single topic to simulate subscribing to (MAY CONTAIN WILDCARDS)
-		topic   string
+		topic string
 		// a list of non-wildcard topics that SHOULD match the generated regex pattern
-		match   []string
+		match []string
 		// a list of non-wildcard topics that SHOULD NOT match the generated regex pattern
 		noMatch []string
 	}{

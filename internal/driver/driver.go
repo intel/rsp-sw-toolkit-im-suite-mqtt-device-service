@@ -60,8 +60,6 @@ type Driver struct {
 	CommandResponses sync.Map
 	Config           *configuration
 
-
-
 	done chan interface{}
 }
 
