@@ -51,7 +51,7 @@ const (
 	jsonRPC20 = "2.0"
 	qos       = byte(1)
 	retained  = false
-	gwevent   = "gwevent"
+	gwevent   = "gw_event"
 )
 
 type Driver struct {

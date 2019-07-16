@@ -12,10 +12,50 @@ description: "RFID Gateway MQTT Device Service"
 # requests). As a result, there's a lot of duplication necessary.
 deviceResources:
 -
-  name: gwevent
+  name: gw_event
   description: "Gateway Event"
   attributes:
-    { name: "gwevent" }
+    { name: "gw_event" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: gw_alert
+  description: "Gateway Alert"
+  attributes:
+    { name: "gw_alert" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: gw_heartbeat
+  description: "Gateway Heartbeat"
+  attributes:
+    { name: "gw_heartbeat" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: gw_notification
+  description: "Gateway Jsonrpc Notification"
+  attributes:
+    { name: "gw_notification" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: rsp_data
+  description: "RSP Raw Data"
+  attributes:
+    { name: "rsp_data" }
   properties:
     value:
       { type: "String", readWrite: "R", defaultValue: "" }
@@ -74,9 +114,25 @@ deviceResources:
 
 deviceCommands:
 -
-  name: gwevent
+  name: gw_event
   get:
-  - { index: "1", operation: "get", object: "gwevent", parameter: "gwevent", property: "value" }
+  - { index: "1", operation: "get", object: "gw_event", parameter: "gw_event", property: "value" }
+-
+  name: gw_alert
+  get:
+    - { index: "1", operation: "get", object: "gw_event", parameter: "gw_event", property: "value" }
+-
+  name: gw_heartbeat
+  get:
+    - { index: "1", operation: "get", object: "gw_event", parameter: "gw_event", property: "value" }
+-
+  name: gw_notification
+  get:
+    - { index: "1", operation: "get", object: "gw_notification", parameter: "gw_notification", property: "value" }
+-
+  name: rsp_data
+  get:
+    - { index: "1", operation: "get", object: "rsp_data", parameter: "rsp_data", property: "value" }
 -
   name: sensor_get_device_ids
   get:

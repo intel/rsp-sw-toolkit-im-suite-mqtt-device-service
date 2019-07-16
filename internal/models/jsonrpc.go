@@ -40,9 +40,6 @@ type JSONRPC struct {
 	Version string `json:"jsonrpc"`
 	Id      string `json:"id"`
 	Method  string `json:"method"`
-	// Topic will be set by us and sent upstream, indicating the topic on which
-	// the original JSON message came.
-	Topic string `json:"topic,omitempty"` // TODO: this should probably be moved into Params to fit the spec
 	// Params is rest of the message from which we'll extract the Gateway's ID.
 	Params json.RawMessage `json:"params,omitempty"`
 }

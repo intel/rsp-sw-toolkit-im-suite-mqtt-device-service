@@ -3,14 +3,35 @@ package driver
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/pkg/errors"
 	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/models"
 	"net/url"
+	"regexp"
 	"strings"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	sdk "github.com/edgexfoundry/device-sdk-go"
 	sdkModel "github.com/edgexfoundry/device-sdk-go/pkg/models"
 )
+
+var (
+	topicMappings = map[*regexp.Regexp]string{
+		compileOrPanic("rfid/gw/heartbeat"): "gw_heartbeat",
+		compileOrPanic("rfid/gw/events"): "gw_event",
+		compileOrPanic("rfid/gw/alerts"): "gw_alert",
+		compileOrPanic("rfid/gw/response"): "gw_notification",
+		compileOrPanic("rfid/rsp/data/.+"): "rsp_data",
+	}
+)
+
+func compileOrPanic(pattern string) *regexp.Regexp {
+	res, err := regexp.Compile(pattern)
+	if err != nil {
+		panic(errors.Wrapf(err,"unable to compile regex %v", pattern))
+	}
+
+	return res
+}
 
 // startIncomingListening starts listening on all the configured IncomingTopics;
 // when a new message comes in, the onIncomingDataReceived method converts it to
@@ -65,19 +86,27 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 		return
 	}
 
-	jn.Topic = message.Topic()
-	remarshaled, err := json.Marshal(jn)
-	if err != nil {
-		driver.Logger.Error(fmt.Sprintf("Failed to remashal message: %+v", err))
+	topic := message.Topic()
+	var valueDescriptor string
+
+	for pattern, descriptor := range topicMappings {
+		if pattern.MatchString(topic) {
+			valueDescriptor = descriptor
+			driver.Logger.Info(fmt.Sprintf("valueDescriptor: %s", valueDescriptor))
+			break
+		}
+	}
+
+	if valueDescriptor == "" {
+		driver.Logger.Warn(fmt.Sprintf("unable to determine valueDescriptor for topic: %s", topic))
 		return
 	}
 
-	event := gwevent // todo: possibly replace with message.Topic()
-	reading := string(remarshaled)
+	reading := string(message.Payload())
 	service := sdk.RunningService()
 	deviceName := driver.Config.DeviceName
 
-	resource, ok := service.DeviceResource(deviceName, event, "get")
+	resource, ok := service.DeviceResource(deviceName, valueDescriptor, "get")
 	if !ok {
 		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] "+
 			"Incoming reading ignored. "+
@@ -87,7 +116,7 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 	}
 
 	req := sdkModel.CommandRequest{
-		DeviceResourceName: jn.Method,
+		DeviceResourceName: valueDescriptor,
 		Type:               sdkModel.ParseValueType(resource.Properties.Value.Type),
 	}
 	result, err := newResult(req, reading)
