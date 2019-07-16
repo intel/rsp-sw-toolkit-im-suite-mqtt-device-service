@@ -3,6 +3,7 @@ package driver
 import (
 	"fmt"
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -112,21 +113,21 @@ func TestTopicMappingRegexes(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+			topicMappings = mappings
 
-			for regex := range mappings {
-				for _, match := range test.match {
-					if !regex.MatchString(match) {
-						t.Errorf("string %s did not match regex %v generated for topic %s", match, regex, test.topic)
-					}
-				}
-
-				for _, noMatch := range test.noMatch {
-					if regex.MatchString(noMatch) {
-						t.Errorf("expected string %s to not match regex %v generated for topic %s, but it did match", noMatch, regex, test.topic)
-					}
+			for _, match := range test.match {
+				if _, err := mapTopicToValueDescriptor(match); err != nil {
+					t.Errorf("string %s did not match regex %v generated for topic %s",
+						match, reflect.ValueOf(mappings).MapKeys()[0], test.topic)
 				}
 			}
 
+			for _, noMatch := range test.noMatch {
+				if _, err := mapTopicToValueDescriptor(noMatch); err == nil {
+					t.Errorf("expected string %s to not match regex %#v generated for topic %s, but it did match",
+						noMatch, reflect.ValueOf(mappings).MapKeys()[0], test.topic)
+				}
+			}
 		})
 	}
 }

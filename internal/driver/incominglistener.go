@@ -57,6 +57,20 @@ func compileTopicMappings(conf configuration) (map[*regexp.Regexp]string, error)
 	return mappings, nil
 }
 
+// mapTopicToValueDescriptor takes a topic (non-wildcard) and attempts to match it against the
+// configured topic mappings in order to determine the valueDescriptor / device resource to use
+// returns an error if nothing matches
+func mapTopicToValueDescriptor(topic string) (string, error) {
+	for pattern, descriptor := range topicMappings {
+		if pattern.MatchString(topic) {
+			driver.Logger.Info(fmt.Sprintf("topic: %s, valueDescriptor: %s", topic, descriptor))
+			return descriptor, nil
+		}
+	}
+
+	return "", fmt.Errorf("unable to determine valueDescriptor for topic: %s", topic)
+}
+
 // startIncomingListening starts listening on all the configured IncomingTopics;
 // when a new message comes in, the onIncomingDataReceived method converts it to
 // an EdgeX message.
@@ -105,7 +119,7 @@ func startIncomingListening(done <-chan interface{}) error {
 	return nil
 }
 
-func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
+func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
 	var jn models.JSONRPC
 	if err := json.Unmarshal(message.Payload(), &jn); err != nil {
 		driver.Logger.Error(fmt.Sprintf("Unmarshal failed: %+v", err))
@@ -117,19 +131,9 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 		return
 	}
 
-	topic := message.Topic()
-	var valueDescriptor string
-
-	for pattern, descriptor := range topicMappings {
-		if pattern.MatchString(topic) {
-			valueDescriptor = descriptor
-			driver.Logger.Info(fmt.Sprintf("valueDescriptor: %s", valueDescriptor))
-			break
-		}
-	}
-
-	if valueDescriptor == "" {
-		driver.Logger.Warn(fmt.Sprintf("unable to determine valueDescriptor for topic: %s", topic))
+	valueDescriptor, err := mapTopicToValueDescriptor(message.Topic())
+	if err != nil {
+		driver.Logger.Warn(err.Error())
 		return
 	}
 
