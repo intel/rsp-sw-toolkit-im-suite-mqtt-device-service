@@ -19,17 +19,15 @@ var (
 )
 
 // pre-compute regexes for topic->deviceResource value descriptor mappings
-func initTopicMappings() error {
-	conf := *driver.Config
-
+func compileTopicMappings(conf configuration) (map[*regexp.Regexp]string, error) {
 	// make sure that there is exactly one mapping for every topic
 	if len(conf.IncomingTopics) != len(conf.IncomingTopicResourceMappings) {
-		return fmt.Errorf("incoming topics (len: %d) %v has a different length than topic mappings (len: %d) %v",
+		return nil, fmt.Errorf("incoming topics (len: %d) %#v has a different length than topic mappings (len: %d) %#v",
 			len(conf.IncomingTopics), conf.IncomingTopics,
 			len(conf.IncomingTopicResourceMappings), conf.IncomingTopicResourceMappings)
 	}
 
-	topicMappings = make(map[*regexp.Regexp]string, len(conf.IncomingTopicResourceMappings))
+	mappings := make(map[*regexp.Regexp]string, len(conf.IncomingTopicResourceMappings))
 
 	for index, topic := range conf.IncomingTopics {
 		pattern := topic
@@ -37,22 +35,26 @@ func initTopicMappings() error {
 
 		// '+' is a single-level wildcard for mqtt topics. we only want to match from the last / to the / after the +
 		//    replacements are unlimited
-		pattern = strings.Replace(pattern, "+", "[^/]+", -1)
+		pattern = strings.ReplaceAll(pattern, "+", "[^/]+")
+		// escape the '$' character as it is used in `$SYS` topics
+		pattern = strings.ReplaceAll(pattern, "$", "\\$")
 		// '#' is a multi-level wildcard for mqtt topics. once we see this, we match anything after it.
 		//   it should only exist at the end of the topic, and only once
 		pattern = strings.Replace(pattern, "#", ".+", 1)
+		// make it be exact matches
+		pattern = fmt.Sprintf("^%s$", pattern)
 
 		driver.Logger.Debug(fmt.Sprintf("topic: %s, pattern: %s", topic, pattern))
 
 		res, err := regexp.Compile(pattern)
 		if err != nil {
-			return errors.Wrapf(err, "unable to compile regex %s for topic %s", pattern, topic)
+			return nil, errors.Wrapf(err, "unable to compile regex %s for topic %s", pattern, topic)
 		}
 
-		topicMappings[res] = conf.IncomingTopicResourceMappings[index]
+		mappings[res] = conf.IncomingTopicResourceMappings[index]
 	}
 
-	return nil
+	return mappings, nil
 }
 
 // startIncomingListening starts listening on all the configured IncomingTopics;
@@ -61,9 +63,11 @@ func initTopicMappings() error {
 func startIncomingListening(done <-chan interface{}) error {
 	conf := *driver.Config
 
-	if err := initTopicMappings(); err != nil {
+	mappings, err := compileTopicMappings(conf)
+	if err != nil {
 		return errors.Wrap(err, "issue creating topic mappings to device resource value descriptors")
 	}
+	topicMappings = mappings
 
 	client, err := createClient(
 		conf.IncomingClientId,
