@@ -81,6 +81,7 @@ func onMqttConnect(client mqtt.Client) {
 	if topic != "" {
 		id, err := uuid.GenerateUUID()
 		if err != nil {
+			driver.Logger.Warn(fmt.Sprintf("unable to generate uuid for on connect message: %s", err.Error()))
 			id = "unknown"
 		}
 
@@ -156,6 +157,17 @@ func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
 	valueDescriptor, err := mapTopicToValueDescriptor(message.Topic())
 	if err != nil {
 		driver.Logger.Warn(err.Error())
+		return
+	}
+
+	// todo: this is a bit of a hack. it is assuming that the first response topic is also
+	//    registered as an incoming topic where we are only interested in the json notifications
+	if message.Topic() == driver.Config.ResponseTopics[0] && jn.Id != "" {
+		// we only want to ingest json notifications, which do not contain an id field
+		driver.Logger.Debug(fmt.Sprintf("[Incoming listener] "+
+			"Incoming response ignored. "+
+			"topic=%v msg=%v",
+			message.Topic(), string(message.Payload())))
 		return
 	}
 
