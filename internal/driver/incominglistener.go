@@ -9,28 +9,50 @@ import (
 	"regexp"
 	"strings"
 
-	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/eclipse/paho.mqtt.golang"
 	sdk "github.com/edgexfoundry/device-sdk-go"
 	sdkModel "github.com/edgexfoundry/device-sdk-go/pkg/models"
 )
 
 var (
-	topicMappings = map[*regexp.Regexp]string{
-		compileOrPanic("rfid/gw/heartbeat"): "gw_heartbeat",
-		compileOrPanic("rfid/gw/events"): "gw_event",
-		compileOrPanic("rfid/gw/alerts"): "gw_alert",
-		compileOrPanic("rfid/gw/response"): "gw_notification",
-		compileOrPanic("rfid/rsp/data/.+"): "rsp_data",
-	}
+	topicMappings map[*regexp.Regexp]string
 )
 
-func compileOrPanic(pattern string) *regexp.Regexp {
-	res, err := regexp.Compile(pattern)
-	if err != nil {
-		panic(errors.Wrapf(err,"unable to compile regex %v", pattern))
+// pre-compute regexes for topic->deviceResource value descriptor mappings
+func initTopicMappings() error {
+	conf := *driver.Config
+
+	// make sure that there is exactly one mapping for every topic
+	if len(conf.IncomingTopics) != len(conf.IncomingTopicResourceMappings) {
+		return fmt.Errorf("incoming topics (len: %d) %v has a different length than topic mappings (len: %d) %v",
+			len(conf.IncomingTopics), conf.IncomingTopics,
+			len(conf.IncomingTopicResourceMappings), conf.IncomingTopicResourceMappings)
 	}
 
-	return res
+	topicMappings = make(map[*regexp.Regexp]string, len(conf.IncomingTopicResourceMappings))
+
+	for index, topic := range conf.IncomingTopics {
+		pattern := topic
+		// note, replacing '+' needs to happen first to avoid multiple substitution
+
+		// '+' is a single-level wildcard for mqtt topics. we only want to match from the last / to the / after the +
+		//    replacements are unlimited
+		pattern = strings.Replace(pattern, "+", "[^/]+", -1)
+		// '#' is a multi-level wildcard for mqtt topics. once we see this, we match anything after it.
+		//   it should only exist at the end of the topic, and only once
+		pattern = strings.Replace(pattern, "#", ".+", 1)
+
+		driver.Logger.Debug(fmt.Sprintf("topic: %s, pattern: %s", topic, pattern))
+
+		res, err := regexp.Compile(pattern)
+		if err != nil {
+			return errors.Wrapf(err, "unable to compile regex %s for topic %s", pattern, topic)
+		}
+
+		topicMappings[res] = conf.IncomingTopicResourceMappings[index]
+	}
+
+	return nil
 }
 
 // startIncomingListening starts listening on all the configured IncomingTopics;
@@ -38,6 +60,11 @@ func compileOrPanic(pattern string) *regexp.Regexp {
 // an EdgeX message.
 func startIncomingListening(done <-chan interface{}) error {
 	conf := *driver.Config
+
+	if err := initTopicMappings(); err != nil {
+		return errors.Wrap(err, "issue creating topic mappings to device resource value descriptors")
+	}
+
 	client, err := createClient(
 		conf.IncomingClientId,
 		&url.URL{

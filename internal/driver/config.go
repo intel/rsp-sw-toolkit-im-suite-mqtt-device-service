@@ -49,18 +49,21 @@ type ConnectionInfo struct {
 // MQTT broker to connect to for incoming data and command responses.
 type configuration struct {
 	// IncomingTopics provide reads to be sent to EdgeX.
-	IncomingTopics    []string
-	IncomingScheme    string
-	IncomingHost      string
-	IncomingPort      int
-	IncomingUser      string
-	IncomingPassword  string
-	IncomingQos       int
-	IncomingKeepAlive int
-	IncomingClientId  string
+	IncomingTopics []string
+	// IncomingTopicResourceMappings provide a mapping of topic to device resource value descriptor
+	//   note: these MUST be in the same order as the IncomingTopics, and lengths must match
+	IncomingTopicResourceMappings []string
+	IncomingScheme                string
+	IncomingHost                  string
+	IncomingPort                  int
+	IncomingUser                  string
+	IncomingPassword              string
+	IncomingQos                   int
+	IncomingKeepAlive             int
+	IncomingClientId              string
 
 	// DeviceName is used when sending messages that came in on the IncomingTopics
-	DeviceName        string
+	DeviceName string
 
 	// ResponseTopics provide replies to commands.
 	ResponseTopics    []string
