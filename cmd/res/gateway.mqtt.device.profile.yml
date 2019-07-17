@@ -62,6 +62,16 @@ deviceResources:
     units:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
+  name: rsp_status
+  description: "RSP Status"
+  attributes:
+    { name: "rsp_status" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
   name: sensor_get_device_ids
   description: "list of sensors known to the gateway"
   attributes:
@@ -133,6 +143,10 @@ deviceCommands:
   name: rsp_data
   get:
     - { index: "1", operation: "get", object: "rsp_data", parameter: "rsp_data", property: "value" }
+-
+  name: rsp_status
+  get:
+    - { index: "1", operation: "get", object: "rsp_status", parameter: "rsp_data", property: "value" }
 -
   name: sensor_get_device_ids
   get:
