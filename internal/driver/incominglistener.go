@@ -35,9 +35,9 @@ func compileTopicMappings(conf configuration) (map[*regexp.Regexp]string, error)
 
 		// '+' is a single-level wildcard for mqtt topics. we only want to match from the last / to the / after the +
 		//    replacements are unlimited
-		pattern = strings.ReplaceAll(pattern, "+", "[^/]+")
+		pattern = strings.Replace(pattern, "+", "[^/]+", -1)
 		// escape the '$' character as it is used in `$SYS` topics
-		pattern = strings.ReplaceAll(pattern, "$", "\\$")
+		pattern = strings.Replace(pattern, "$", "\\$", -1)
 		// '#' is a multi-level wildcard for mqtt topics. once we see this, we match anything after it.
 		//   it should only exist at the end of the topic, and only once
 		pattern = strings.Replace(pattern, "#", ".+", 1)
