@@ -130,11 +130,11 @@ deviceCommands:
 -
   name: gw_alert
   get:
-    - { index: "1", operation: "get", object: "gw_event", parameter: "gw_event", property: "value" }
+    - { index: "1", operation: "get", object: "gw_alert", parameter: "gw_alert", property: "value" }
 -
   name: gw_heartbeat
   get:
-    - { index: "1", operation: "get", object: "gw_event", parameter: "gw_event", property: "value" }
+    - { index: "1", operation: "get", object: "gw_heartbeat", parameter: "gw_heartbeat", property: "value" }
 -
   name: gw_notification
   get:
@@ -146,7 +146,7 @@ deviceCommands:
 -
   name: rsp_status
   get:
-    - { index: "1", operation: "get", object: "rsp_status", parameter: "rsp_data", property: "value" }
+    - { index: "1", operation: "get", object: "rsp_status", parameter: "rsp_status", property: "value" }
 -
   name: sensor_get_device_ids
   get:
