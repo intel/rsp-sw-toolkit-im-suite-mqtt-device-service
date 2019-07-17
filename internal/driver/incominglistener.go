@@ -87,7 +87,7 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 	}
 
 	req := sdkModel.CommandRequest{
-		DeviceResourceName: jn.Method,
+		DeviceResourceName: event,
 		Type:               sdkModel.ParseValueType(resource.Properties.Value.Type),
 	}
 	result, err := newResult(req, reading)
