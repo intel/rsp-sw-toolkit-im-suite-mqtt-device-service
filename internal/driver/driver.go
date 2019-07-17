@@ -29,6 +29,8 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 	"net/url"
 	"strings"
@@ -41,7 +43,6 @@ import (
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 	"github.com/edgexfoundry/go-mod-core-contracts/models"
 	commandModel "github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/models"
-	"gopkg.in/mgo.v2/bson"
 )
 
 var once sync.Once
@@ -102,14 +103,14 @@ func (d *Driver) Initialize(lc logger.LoggingClient, asyncCh chan<- *sdkModel.As
 	go func() {
 		err := startCommandResponseListening(done)
 		if err != nil {
-			panic(fmt.Errorf("start command response Listener failed, please check MQTT broker settings are correct, %v", err))
+			panic(errors.Wrap(err, "start command response Listener failed, please check MQTT broker settings are correct"))
 		}
 	}()
 
 	go func() {
 		err := startIncomingListening(done)
 		if err != nil {
-			panic(fmt.Errorf("start incoming data Listener failed, please check MQTT broker settings are correct, %v", err))
+			panic(errors.Wrap(err, "start incoming data Listener failed, please check MQTT broker settings are correct"))
 		}
 	}()
 
@@ -165,10 +166,10 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 	var result = &sdkModel.CommandValue{}
 	var err error
 
-	request := commandModel.JSONRPC{
+	request := commandModel.JsonRequest{
 		Version: jsonRpcVersion,
 		Method:  req.DeviceResourceName,
-		Id:      bson.NewObjectId().Hex(),
+		Id:      uuid.New().String(),
 	}
 
 	jsonData, err := json.Marshal(request)

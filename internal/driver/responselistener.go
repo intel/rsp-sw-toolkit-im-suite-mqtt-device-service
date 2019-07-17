@@ -48,11 +48,7 @@ func startCommandResponseListening(done <-chan interface{}) error {
 		return err
 	}
 
-	defer func() {
-		if client.IsConnected() {
-			client.Disconnect(5000)
-		}
-	}()
+	defer client.Disconnect(5000)
 
 	for _, topic := range conf.ResponseTopics {
 		token := client.Subscribe(topic, byte(conf.ResponseQos), onCommandResponseReceived)
@@ -73,7 +69,7 @@ func startCommandResponseListening(done <-chan interface{}) error {
 }
 
 // Modified by Intel to handle responses from Intel open source gateway
-func onCommandResponseReceived(client mqtt.Client, message mqtt.Message) {
+func onCommandResponseReceived(_ mqtt.Client, message mqtt.Message) {
 	var response models.JsonResponse
 
 	if err := json.Unmarshal(message.Payload(), &response); err != nil {
@@ -85,6 +81,6 @@ func onCommandResponseReceived(client mqtt.Client, message mqtt.Message) {
 		driver.CommandResponses.Store(response.Id, string(message.Payload()))
 		driver.Logger.Info(fmt.Sprintf("[Response listener] Command response received: topic=%v msg=%v", message.Topic(), string(message.Payload())))
 	} else {
-		driver.Logger.Warn(fmt.Sprintf("[Response listener] Command response ignored. No ID found in the message: topic=%v msg=%v", message.Topic(), string(message.Payload())))
+		driver.Logger.Debug(fmt.Sprintf("[Response listener] Command response ignored. No ID found in the message: topic=%v msg=%v", message.Topic(), string(message.Payload())))
 	}
 }

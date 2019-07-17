@@ -18,7 +18,7 @@ const (
 	Topics   = "Topics"
 
 	// Driver config
-	DeviceName = "DeviceName"
+	DeviceName              = "DeviceName"
 	OnConnectPublishTopic   = "OnConnectPublishTopic"
 	OnConnectPublishMessage = "OnConnectPublishMessage"
 

@@ -49,8 +49,8 @@ type ConnectionInfo struct {
 // MQTT broker to connect to for incoming data and command responses.
 type configuration struct {
 	// DeviceName is used when sending messages that came in on the IncomingTopics
-	DeviceName string
-	OnConnectPublishTopic string
+	DeviceName              string
+	OnConnectPublishTopic   string
 	OnConnectPublishMessage string
 
 	// IncomingTopics provide reads to be sent to EdgeX.

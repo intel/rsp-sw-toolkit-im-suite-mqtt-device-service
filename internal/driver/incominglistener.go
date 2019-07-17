@@ -3,7 +3,7 @@ package driver
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/go-uuid"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/models"
 	"net/url"
@@ -72,6 +72,12 @@ func mapTopicToValueDescriptor(topic string) (string, error) {
 	return "", fmt.Errorf("unable to determine valueDescriptor for topic: %s", topic)
 }
 
+func replaceMessagePlaceholders(message string) string {
+	id := uuid.New().String()
+	// replace {{uuid}} placeholder with generated id
+	return strings.Replace(message, "{{uuid}}", id, 1)
+}
+
 func onMqttConnect(client mqtt.Client) {
 	conf := *driver.Config
 
@@ -79,17 +85,8 @@ func onMqttConnect(client mqtt.Client) {
 
 	topic := conf.OnConnectPublishTopic
 	if topic != "" {
-		id, err := uuid.GenerateUUID()
-		if err != nil {
-			driver.Logger.Warn(fmt.Sprintf("unable to generate uuid for on connect message: %s", err.Error()))
-			id = "unknown"
-		}
-
-		// replace {{uuid}} placeholder with generated id
-		msg := strings.Replace(conf.OnConnectPublishMessage, "{{uuid}}", id, 1)
-
+		msg := replaceMessagePlaceholders(conf.OnConnectPublishMessage)
 		driver.Logger.Debug(fmt.Sprintf("publish onconnect topic: %s, message: %s", topic, msg))
-
 		client.Publish(topic, qos, retained, msg)
 	}
 }
@@ -118,11 +115,7 @@ func startIncomingListening(done <-chan interface{}) error {
 		return err
 	}
 
-	defer func() {
-		if client.IsConnected() {
-			client.Disconnect(5000)
-		}
-	}()
+	defer client.Disconnect(5000)
 
 	for _, topic := range conf.IncomingTopics {
 		token := client.Subscribe(topic, byte(conf.IncomingQos), onIncomingDataReceived)
@@ -143,7 +136,7 @@ func startIncomingListening(done <-chan interface{}) error {
 }
 
 func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
-	var jn models.JSONRPC
+	var jn models.JsonRequest
 	if err := json.Unmarshal(message.Payload(), &jn); err != nil {
 		driver.Logger.Error(fmt.Sprintf("Unmarshal failed: %+v", err))
 		return
