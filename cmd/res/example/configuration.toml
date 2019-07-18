@@ -68,7 +68,7 @@ LogLevel = "DEBUG"
        ClientId = "CommandPublisher"
        User = "admin"
        Password = "public"
-       Topic = "CommandTopic"
+       Topics = "CommandTopic"
   [[DeviceList.AutoEvents]]
     Frequency = "20s"
     OnChange = false

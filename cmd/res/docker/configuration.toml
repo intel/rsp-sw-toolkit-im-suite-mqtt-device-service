@@ -68,7 +68,7 @@ LogLevel = "DEBUG"
        User = ""
        Password = ""
        ClientId = "CommandPublisher"
-       Topic = "rfid/gw/command"
+       Topics = "rfid/gw/command"
 
 # Driver configs
 [Driver]
