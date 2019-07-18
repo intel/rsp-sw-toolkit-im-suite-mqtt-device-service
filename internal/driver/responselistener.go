@@ -48,11 +48,7 @@ func startCommandResponseListening(done <-chan interface{}) error {
 		return err
 	}
 
-	defer func() {
-		if client.IsConnected() {
-			client.Disconnect(5000)
-		}
-	}()
+	defer client.Disconnect(5000)
 
 	for _, topic := range conf.ResponseTopics {
 		token := client.Subscribe(topic, byte(conf.ResponseQos), onCommandResponseReceived)

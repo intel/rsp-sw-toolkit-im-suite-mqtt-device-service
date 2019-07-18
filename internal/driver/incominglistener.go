@@ -29,11 +29,7 @@ func startIncomingListening(done <-chan interface{}) error {
 		return err
 	}
 
-	defer func() {
-		if client.IsConnected() {
-			client.Disconnect(5000)
-		}
-	}()
+	defer client.Disconnect(5000)
 
 	for _, topic := range conf.IncomingTopics {
 		token := client.Subscribe(topic, byte(conf.IncomingQos), onIncomingDataReceived)
@@ -54,19 +50,19 @@ func startIncomingListening(done <-chan interface{}) error {
 }
 
 func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
-	var jn models.JSONRPC
-	if err := json.Unmarshal(message.Payload(), &jn); err != nil {
+	var incomingData models.JSONRPC
+	if err := json.Unmarshal(message.Payload(), &incomingData); err != nil {
 		driver.Logger.Error(fmt.Sprintf("Unmarshal failed: %+v", err))
 		return
 	}
 
-	if jn.Version != jsonRPC20 {
-		driver.Logger.Error(fmt.Sprintf("Invalid version: %s", jn.Version))
+	if incomingData.Version != jsonRPC {
+		driver.Logger.Error(fmt.Sprintf("Invalid version: %s", incomingData.Version))
 		return
 	}
 
-	jn.Topic = message.Topic()
-	remarshaled, err := json.Marshal(jn)
+	incomingData.Topic = message.Topic()
+	remarshaled, err := json.Marshal(incomingData)
 	if err != nil {
 		driver.Logger.Error(fmt.Sprintf("Failed to remashal message: %+v", err))
 		return
@@ -82,12 +78,12 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] "+
 			"Incoming reading ignored. "+
 			"No DeviceObject found: topic=%v device=%v method=%v",
-			message.Topic(), deviceName, jn.Method))
+			message.Topic(), deviceName, incomingData.Method))
 		return
 	}
 
 	req := sdkModel.CommandRequest{
-		DeviceResourceName: jn.Method,
+		DeviceResourceName: incomingData.Method,
 		Type:               sdkModel.ParseValueType(resource.Properties.Value.Type),
 	}
 	result, err := newResult(req, reading)
@@ -108,7 +104,7 @@ func onIncomingDataReceived(client mqtt.Client, message mqtt.Message) {
 	driver.Logger.Info(fmt.Sprintf("[Incoming listener] "+
 		"Incoming reading received: "+
 		"topic=%v method=%v msgLen=%v",
-		message.Topic(), jn.Method, len(message.Payload())))
+		message.Topic(), incomingData.Method, len(message.Payload())))
 
 	driver.AsyncCh <- asyncValues
 }

@@ -21,7 +21,6 @@ package models
 
 import (
 	"encoding/json"
-	"github.com/pkg/errors"
 )
 
 // Json response from the gateway
@@ -32,9 +31,6 @@ type JsonResponse struct {
 	Error   interface{} `json:"error"`
 }
 
-// todo: can JsonResponse be an JSONRPC message too?
-// JSONRPC represents a JSON RPC message.
-//
 // It's used for data messages from the Gateway and command requests to the Gateway.
 type JSONRPC struct {
 	Version string `json:"jsonrpc"`
@@ -45,36 +41,4 @@ type JSONRPC struct {
 	Topic string `json:"topic,omitempty"` // TODO: this should probably be moved into Params to fit the spec
 	// Params is rest of the message from which we'll extract the Gateway's ID.
 	Params json.RawMessage `json:"params,omitempty"`
-}
-
-// EitherID is used to unmarshal the Gateway's ID, regardless of how it came
-type EitherID struct {
-	GatewayID *OptString `json:"gateway_id"`
-	DeviceID  *OptString `json:"device_id"`
-}
-
-// OptString represents an optional string (and should be used as a pointer)
-type OptString string
-
-// IsPresent returns true if the OptString is neither nil nor empty
-func (id *OptString) IsPresent() bool {
-	return id != nil && *id != ""
-}
-
-func (jn *JSONRPC) GetID() (string, error) {
-	if jn == nil || len(jn.Params) == 0 {
-		return "", errors.New("JSON notification is nil or is missing parameters")
-	}
-
-	var ids EitherID
-	if err := json.Unmarshal(jn.Params, &ids); err != nil {
-		return "", errors.Wrap(err, "unable to unmarshal the gateway ID")
-	}
-
-	if ids.GatewayID.IsPresent() {
-		return string(*(ids.GatewayID)), nil
-	} else if ids.DeviceID.IsPresent() {
-		return string(*(ids.DeviceID)), nil
-	}
-	return "", errors.New("neither gateway_id nor device_id found in message")
 }
