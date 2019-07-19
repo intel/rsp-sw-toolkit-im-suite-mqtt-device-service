@@ -96,7 +96,7 @@ func TestCreateDriverConfig(t *testing.T) {
 		IncomingScheme: "tcp", IncomingHost: "0.0.0.0", IncomingPort: "1883",
 		IncomingUser: "admin", IncomingPassword: "public", IncomingQos: "0",
 		IncomingKeepAlive: "3600", IncomingClientId: "IncomingDataSubscriber",
-		IncomingTopics: "DataTopic", IncomingTopicResourceMappings: "TopicMapping",
+		IncomingTopics: "DataTopic",
 
 		ResponseScheme: "tcp", ResponseHost: "0.0.0.0", ResponsePort: "1883",
 		ResponseUser: "admin", ResponsePassword: "public", ResponseQos: "0",

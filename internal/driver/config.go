@@ -54,18 +54,15 @@ type configuration struct {
 	OnConnectPublishMessage string
 
 	// IncomingTopics provide reads to be sent to EdgeX.
-	IncomingTopics []string
-	// IncomingTopicResourceMappings provide a mapping of topic to device resource value descriptor
-	//   note: these MUST be in the same order as the IncomingTopics, and lengths must match
-	IncomingTopicResourceMappings []string
-	IncomingScheme                string
-	IncomingHost                  string
-	IncomingPort                  int
-	IncomingUser                  string
-	IncomingPassword              string
-	IncomingQos                   int
-	IncomingKeepAlive             int
-	IncomingClientId              string
+	IncomingTopics    []string
+	IncomingScheme    string
+	IncomingHost      string
+	IncomingPort      int
+	IncomingUser      string
+	IncomingPassword  string
+	IncomingQos       int
+	IncomingKeepAlive int
+	IncomingClientId  string
 
 	// ResponseTopics provide replies to commands.
 	ResponseTopics    []string

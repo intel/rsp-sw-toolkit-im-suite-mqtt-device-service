@@ -75,6 +75,7 @@ func NewProtocolDriver() sdkModel.ProtocolDriver {
 // or returns an empty string if there is no running service.
 func GetServiceName() string {
 	srv := device.RunningService()
+
 	if srv == nil {
 		return ""
 	}

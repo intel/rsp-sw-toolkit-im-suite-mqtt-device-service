@@ -32,7 +32,6 @@ const (
 	IncomingKeepAlive             = "IncomingKeepAlive"
 	IncomingClientId              = "IncomingClientId"
 	IncomingTopics                = "IncomingTopics"
-	IncomingTopicResourceMappings = "IncomingTopicResourceMappings"
 
 	// Response connection info
 	ResponseScheme    = "ResponseScheme"
