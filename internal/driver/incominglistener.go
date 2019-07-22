@@ -71,19 +71,19 @@ func startIncomingListening(done <-chan interface{}) error {
 }
 
 func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
-	var jn models.JsonRequest
-	if err := json.Unmarshal(message.Payload(), &jn); err != nil {
+	var incomingData models.JsonRequest
+	if err := json.Unmarshal(message.Payload(), &incomingData); err != nil {
 		driver.Logger.Error(fmt.Sprintf("Unmarshal failed: %+v", err))
 		return
 	}
 
-	if jn.Version != jsonRpcVersion {
-		driver.Logger.Error(fmt.Sprintf("Invalid version: %s", jn.Version))
+	if incomingData.Version != jsonRpcVersion {
+		driver.Logger.Error(fmt.Sprintf("Invalid version: %s", incomingData.Version))
 		return
 	}
 
 	// JsonRpc Responses do not contain a method field. We also do not want to send these to core-data
-	resourceName := jn.Method
+	resourceName := incomingData.Method
 	if resourceName == "" {
 		driver.Logger.Debug(fmt.Sprintf("[Incoming listener] "+
 			"Incoming reading ignored. "+
@@ -101,7 +101,7 @@ func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
 		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] "+
 			"Incoming reading ignored. "+
 			"No DeviceObject found: topic=%v device=%v method=%v",
-			message.Topic(), deviceName, jn.Method))
+			message.Topic(), deviceName, incomingData.Method))
 		return
 	}
 
@@ -127,7 +127,7 @@ func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
 	driver.Logger.Info(fmt.Sprintf("[Incoming listener] "+
 		"Incoming reading received: "+
 		"topic=%v method=%v msgLen=%v",
-		message.Topic(), jn.Method, len(message.Payload())))
+		message.Topic(), incomingData.Method, len(message.Payload())))
 
 	driver.AsyncCh <- asyncValues
 }

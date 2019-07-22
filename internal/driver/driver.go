@@ -71,17 +71,6 @@ func NewProtocolDriver() sdkModel.ProtocolDriver {
 	return driver
 }
 
-// GetServiceName gets the name of the running service, as it's known to EdgeX,
-// or returns an empty string if there is no running service.
-func GetServiceName() string {
-	srv := device.RunningService()
-
-	if srv == nil {
-		return ""
-	}
-	return srv.Name()
-}
-
 // Initialize an MQTT driver.
 //
 // Once initialized, the driver listens on the configured MQTT topics. When a
@@ -225,7 +214,7 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 	return result, err
 }
 
-// HandleWriteCommands ignores all requests; write commands are not currently supported.
+// HandleWriteCommands ignores all requests; write commands (PUT requests) are not currently supported.
 func (d *Driver) HandleWriteCommands(deviceName string, protocols map[string]models.ProtocolProperties, reqs []sdkModel.CommandRequest, params []*sdkModel.CommandValue) error {
 	return nil
 }
@@ -374,7 +363,8 @@ func newResult(req sdkModel.CommandRequest, reading interface{}) (*sdkModel.Comm
 	return result, err
 }
 
-func newCommandValue(valueType sdkModel.ValueType, param *sdkModel.CommandValue) (interface{}, error) {
+// Not used for now as PUT request commands are not supported
+/*func newCommandValue(valueType sdkModel.ValueType, param *sdkModel.CommandValue) (interface{}, error) {
 	var commandValue interface{}
 	var err error
 	switch valueType {
@@ -407,7 +397,7 @@ func newCommandValue(valueType sdkModel.ValueType, param *sdkModel.CommandValue)
 	}
 
 	return commandValue, err
-}
+}*/
 
 // fetchCommandResponse use to wait and fetch response from CommandResponses map
 func (d *Driver) fetchCommandResponse(cmdUuid string) (string, bool) {
