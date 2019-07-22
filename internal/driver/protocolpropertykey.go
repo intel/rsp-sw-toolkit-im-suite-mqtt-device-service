@@ -23,15 +23,15 @@ const (
 	OnConnectPublishMessage = "OnConnectPublishMessage"
 
 	// Incoming connection info
-	IncomingScheme                = "IncomingScheme"
-	IncomingHost                  = "IncomingHost"
-	IncomingPort                  = "IncomingPort"
-	IncomingUser                  = "IncomingUser"
-	IncomingPassword              = "IncomingPassword"
-	IncomingQos                   = "IncomingQos"
-	IncomingKeepAlive             = "IncomingKeepAlive"
-	IncomingClientId              = "IncomingClientId"
-	IncomingTopics                = "IncomingTopics"
+	IncomingScheme    = "IncomingScheme"
+	IncomingHost      = "IncomingHost"
+	IncomingPort      = "IncomingPort"
+	IncomingUser      = "IncomingUser"
+	IncomingPassword  = "IncomingPassword"
+	IncomingQos       = "IncomingQos"
+	IncomingKeepAlive = "IncomingKeepAlive"
+	IncomingClientId  = "IncomingClientId"
+	IncomingTopics    = "IncomingTopics"
 
 	// Response connection info
 	ResponseScheme    = "ResponseScheme"
