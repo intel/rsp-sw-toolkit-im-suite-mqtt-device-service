@@ -85,9 +85,9 @@ func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
 	// JsonRpc Responses do not contain a method field. We also do not want to send these to core-data
 	resourceName := incomingData.Method
 	if resourceName == "" {
-		driver.Logger.Debug(fmt.Sprintf("[Incoming listener] "+
+		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] "+
 			"Incoming reading ignored. "+
-			"JsonRpc Response messages not handled. msg=%s",
+			"No method field in message. msg=%s",
 			string(message.Payload())))
 		return
 	}

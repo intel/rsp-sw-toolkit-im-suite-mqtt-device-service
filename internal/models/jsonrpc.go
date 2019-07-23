@@ -25,10 +25,10 @@ import (
 
 // Json response from the gateway
 type JsonResponse struct {
-	Version string      `json:"jsonrpc"`
-	Id      string      `json:"id"`
-	Result  interface{} `json:"result"`
-	Error   interface{} `json:"error"`
+	Version string          `json:"jsonrpc"`
+	Id      string          `json:"id"`
+	Result  json.RawMessage `json:"result"`
+	Error   json.RawMessage `json:"error"`
 }
 
 type JsonRequest struct {
