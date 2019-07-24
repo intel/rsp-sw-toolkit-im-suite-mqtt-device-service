@@ -1,0 +1,40 @@
+name: "Sensor.Device.MQTT.Profile"
+manufacturer: "Intel"
+model: "MQTT-Gateway"
+labels:
+- "RFID"
+description: "RFID Gateway MQTT Device Service"
+deviceResources:
+-
+  name: sensor_get_basic_info
+  description: "information of a sensor"
+  attributes:
+    { name: "sensor_get_basic_info" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+
+deviceCommands:
+-
+  name: behavior_get
+  get:
+    - { index: "1", operation: "get", object: "sensor_get_basic_info", parameter: "sensor_get_basic_info", property: "value" }
+
+coreCommands:
+-
+  name: sensor_get_basic_info
+  put:
+    path: "/api/v1/device/{deviceId}/sensor_get_basic_info"
+    responses:
+      -
+        code: "200"
+        description: "information of a sensor"
+        expectedValues: ["sensor_get_basic_info"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
+
+

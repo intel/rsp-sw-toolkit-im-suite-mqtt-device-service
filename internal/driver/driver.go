@@ -167,7 +167,6 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 	request.Method = req.DeviceResourceName
 	// create a unique id to track every response
 	request.Id = bson.NewObjectId().Hex()
-	driver.Logger.Info(fmt.Sprintf("Attributes: %v Length: %v", req.Attributes, len(req.Attributes)))
 
 	//paramsString, err := json.Marshal(req.Attributes)
 	//if err != nil {
