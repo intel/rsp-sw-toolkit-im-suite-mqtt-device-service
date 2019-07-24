@@ -7,9 +7,9 @@ import (
 	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/models"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/eclipse/paho.mqtt.golang"
-	sdk "github.com/edgexfoundry/device-sdk-go"
 	sdkModel "github.com/edgexfoundry/device-sdk-go/pkg/models"
 )
 
@@ -71,6 +71,7 @@ func startIncomingListening(done <-chan interface{}) error {
 }
 
 func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
+	//go func(message mqtt.Message) {
 	var incomingData models.JsonRequest
 	if err := json.Unmarshal(message.Payload(), &incomingData); err != nil {
 		driver.Logger.Error(fmt.Sprintf("Unmarshal failed: %+v", err))
@@ -92,42 +93,17 @@ func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
 		return
 	}
 
-	deviceName := driver.Config.DeviceName
-	reading := string(message.Payload())
-	service := sdk.RunningService()
-
-	resource, ok := service.DeviceResource(deviceName, resourceName, "get")
-	if !ok {
-		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] "+
-			"Incoming reading ignored. "+
-			"No DeviceObject found: topic=%v device=%v method=%v",
-			message.Topic(), deviceName, incomingData.Method))
-		return
-	}
-
-	req := sdkModel.CommandRequest{
-		DeviceResourceName: resourceName,
-		Type:               sdkModel.ParseValueType(resource.Properties.Value.Type),
-	}
-	result, err := newResult(req, reading)
-
-	if err != nil {
-		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] "+
-			"Incoming reading ignored. "+
-			"topic=%v msg=%v error=%v",
-			message.Topic(), string(message.Payload()), err))
-		return
-	}
-
-	asyncValues := &sdkModel.AsyncValues{
-		DeviceName:    deviceName,
-		CommandValues: []*sdkModel.CommandValue{result},
-	}
+	origin := time.Now().UnixNano() / int64(time.Millisecond)
+	value := sdkModel.NewStringValue(resourceName, origin, string(message.Payload()))
 
 	driver.Logger.Info(fmt.Sprintf("[Incoming listener] "+
 		"Incoming reading received: "+
 		"topic=%v method=%v msgLen=%v",
 		message.Topic(), incomingData.Method, len(message.Payload())))
 
-	driver.AsyncCh <- asyncValues
+	driver.AsyncCh <- &sdkModel.AsyncValues{
+		DeviceName:    driver.Config.DeviceName,
+		CommandValues: []*sdkModel.CommandValue{value},
+	}
+	//}(message)
 }
