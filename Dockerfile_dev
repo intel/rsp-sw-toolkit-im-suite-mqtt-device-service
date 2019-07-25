@@ -31,4 +31,4 @@ ENV APP_PORT=49982
 EXPOSE $APP_PORT
 
 ENTRYPOINT ["/mqtt-device-service"]
-CMD ["--registry","--profile=docker","--confdir=/res"]
+CMD ["--profile=docker","--confdir=/res"]

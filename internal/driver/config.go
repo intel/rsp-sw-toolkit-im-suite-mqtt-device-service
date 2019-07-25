@@ -29,22 +29,33 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/models"
 )
 
+// ConnectionInfo holds the values for connecting to an MQTT device.
 type ConnectionInfo struct {
-	Schema   string
+	Scheme   string
 	Host     string
 	Port     string
 	User     string
 	Password string
 	ClientId string
-	Topic   string
+	Topics   []string
 }
 
+// configuration holds the values for the device configuration, including what
+// MQTT broker to connect to for incoming data and command responses.
 type configuration struct {
-	IncomingSchema    string
+	// DeviceName is used when sending messages that came in on the IncomingTopics
+	DeviceName              string
+	OnConnectPublishTopic   string
+	OnConnectPublishMessage string
+
+	// IncomingTopics provide reads to be sent to EdgeX.
+	IncomingTopics    []string
+	IncomingScheme    string
 	IncomingHost      string
 	IncomingPort      int
 	IncomingUser      string
@@ -52,9 +63,10 @@ type configuration struct {
 	IncomingQos       int
 	IncomingKeepAlive int
 	IncomingClientId  string
-	IncomingTopic     string
 
-	ResponseSchema    string
+	// ResponseTopics provide replies to commands.
+	ResponseTopics    []string
+	ResponseScheme    string
 	ResponseHost      string
 	ResponsePort      int
 	ResponseUser      string
@@ -62,17 +74,13 @@ type configuration struct {
 	ResponseQos       int
 	ResponseKeepAlive int
 	ResponseClientId  string
-	ResponseTopic     string
 }
 
 // CreateDriverConfig use to load driver config for incoming listener and response listener
 func CreateDriverConfig(configMap map[string]string) (*configuration, error) {
 	config := new(configuration)
 	err := load(configMap, config)
-	if err != nil {
-		return config, err
-	}
-	return config, nil
+	return config, err
 }
 
 // CreateConnectionInfo use to load MQTT connectionInfo for read and write command
@@ -80,7 +88,7 @@ func CreateConnectionInfo(protocols map[string]models.ProtocolProperties) (*Conn
 	info := new(ConnectionInfo)
 	protocol, ok := protocols[Protocol]
 	if !ok {
-		return info, fmt.Errorf("unable to load config, '%s' not exist", Protocol)
+		return info, fmt.Errorf("config is missing %s protocol", Protocol)
 	}
 
 	err := load(protocol, info)
@@ -92,7 +100,6 @@ func CreateConnectionInfo(protocols map[string]models.ProtocolProperties) (*Conn
 
 // load by reflect to check map key and then fetch the value
 func load(config map[string]string, des interface{}) error {
-	errorMessage := "unable to load config, '%s' not exist"
 	val := reflect.ValueOf(des).Elem()
 	for i := 0; i < val.NumField(); i++ {
 		typeField := val.Type().Field(i)
@@ -100,7 +107,10 @@ func load(config map[string]string, des interface{}) error {
 
 		val, ok := config[typeField.Name]
 		if !ok {
-			return fmt.Errorf(errorMessage, typeField.Name)
+			return fmt.Errorf("config is missing property '%s'", typeField.Name)
+		}
+		if !valueField.CanSet() {
+			return fmt.Errorf("cannot set field '%s'", typeField.Name)
 		}
 
 		switch valueField.Kind() {
@@ -112,8 +122,27 @@ func load(config map[string]string, des interface{}) error {
 			valueField.SetInt(int64(intVal))
 		case reflect.String:
 			valueField.SetString(val)
+		case reflect.Slice:
+			splitVals := strings.Split(val, ",")
+			var slice reflect.Value
+			switch typeField.Type.Elem().Kind() {
+			case reflect.String:
+				slice = reflect.ValueOf(splitVals)
+			case reflect.Int:
+				slice = reflect.MakeSlice(valueField.Elem().Type(), len(splitVals), len(splitVals))
+				for idx, toConvert := range splitVals {
+					intVal, err := strconv.Atoi(toConvert)
+					if err != nil {
+						return err
+					}
+					slice.Index(idx).SetInt(int64(intVal))
+				}
+			}
+			slice = reflect.AppendSlice(valueField, slice)
+			valueField.Set(slice)
 		default:
-			return fmt.Errorf("none supported value type %v ,%v", valueField.Kind(), typeField.Name)
+			return fmt.Errorf("config uses unsupported property kind "+
+				"%v for field %v", valueField.Kind(), typeField.Name)
 		}
 	}
 	return nil
