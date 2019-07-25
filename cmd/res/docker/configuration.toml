@@ -74,6 +74,20 @@ LogLevel = "DEBUG"
 [Driver]
 DeviceName = "rrs-gateway"
 
+# topic and message to publish to mqtt when the client is connected
+OnConnectPublishTopic = "rfid/gw/command"
+# {{uuid}} will be replaced at runtime with a generated uuid value
+OnConnectPublishMessage = """\
+{\
+  "jsonrpc":"2.0",\
+  "method":"subscribe",\
+  "id":"{{uuid}}",\
+  "params":[\
+    "sensor_config_notification",\
+    "sensor_connection_state_notification"\
+  ]\
+}"""
+
 IncomingScheme = "tcp"
 IncomingHost = "mosquitto-server"
 IncomingPort = "1883"
@@ -82,7 +96,7 @@ IncomingPassword = ""
 IncomingQos = "1"
 IncomingKeepAlive = "3600"
 IncomingClientId = "IncomingDataSubscriber"
-IncomingTopics = "rfid/gw/events,rfid/gw/alerts,rfid/gw/heartbeat"
+IncomingTopics = "rfid/gw/events,rfid/gw/alerts,rfid/gw/heartbeat,rfid/gw/notification,rfid/rsp/data/+,rfid/rsp/rsp_status/+"
 
 ResponseScheme = "tcp"
 ResponseHost = "mosquitto-server"

@@ -38,3 +38,13 @@ docker_mqtt-device-service_go:
 		-t mqtt-device-service-go:$(GIT_SHA) \
 		-t mqtt-device-service-go:$(VERSION)-dev \
 		.
+
+iterate::
+	docker service scale Inventory-Suite-Dev_mqtt-device-service=0 -d
+	$(MAKE) -C .. mqtt-device-service
+	docker service scale Inventory-Suite-Dev_mqtt-device-service=1 -d
+	while [ -z `docker ps -qf name=mqtt-device-service` ]; \
+	do \
+		sleep 1;\
+	done
+	docker logs -f `docker ps -qf name=mqtt-device-service`

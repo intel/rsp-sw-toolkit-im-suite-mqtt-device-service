@@ -43,7 +43,7 @@ func startCommandResponseListening(done <-chan interface{}) error {
 		Scheme: strings.ToLower(conf.ResponseScheme),
 		Host:   fmt.Sprintf("%s:%d", conf.ResponseHost, conf.ResponsePort),
 		User:   url.UserPassword(conf.ResponseUser, conf.ResponsePassword),
-	}, conf.ResponseKeepAlive)
+	}, conf.ResponseKeepAlive, nil)
 	if err != nil {
 		return err
 	}
@@ -69,7 +69,7 @@ func startCommandResponseListening(done <-chan interface{}) error {
 }
 
 // Modified by Intel to handle responses from Intel open source gateway
-func onCommandResponseReceived(client mqtt.Client, message mqtt.Message) {
+func onCommandResponseReceived(_ mqtt.Client, message mqtt.Message) {
 	var response models.JsonResponse
 
 	if err := json.Unmarshal(message.Payload(), &response); err != nil {
@@ -81,6 +81,6 @@ func onCommandResponseReceived(client mqtt.Client, message mqtt.Message) {
 		driver.CommandResponses.Store(response.Id, string(message.Payload()))
 		driver.Logger.Info(fmt.Sprintf("[Response listener] Command response received: topic=%v msg=%v", message.Topic(), string(message.Payload())))
 	} else {
-		driver.Logger.Warn(fmt.Sprintf("[Response listener] Command response ignored. No ID found in the message: topic=%v msg=%v", message.Topic(), string(message.Payload())))
+		driver.Logger.Debug(fmt.Sprintf("[Response listener] Command response ignored. No ID found in the message: topic=%v msg=%v", message.Topic(), string(message.Payload())))
 	}
 }

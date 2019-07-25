@@ -3,6 +3,7 @@ manufacturer: "Intel"
 model: "MQTT-Gateway"
 labels:
 - "RFID"
+- "MQTT"
 description: "RFID Gateway MQTT Device Service"
 
 # there must be a DeviceResource and ResourceOperation with GET for any data the
@@ -12,10 +13,100 @@ description: "RFID Gateway MQTT Device Service"
 # requests). As a result, there's a lot of duplication necessary.
 deviceResources:
 -
-  name: gwevent
+  name: inventory_event
   description: "Gateway Event"
   attributes:
-    { name: "gwevent" }
+    { name: "inventory_event" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: inventory_complete
+  description: "Sensor Inventory Complete"
+  attributes:
+    { name: "inventory_complete" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: sensor_config_notification
+  description: "sensor_config_notification"
+  attributes:
+    { name: "sensor_config_notification" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: sensor_connection_state_notification
+  description: "sensor_connection_state_notification"
+  attributes:
+    { name: "sensor_connection_state_notification" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: device_alert
+  description: "Gateway Alert"
+  attributes:
+    { name: "device_alert" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: gateway_heartbeat
+  description: "Gateway Heartbeat"
+  attributes:
+    { name: "gateway_heartbeat" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: heartbeat
+  description: "Sensor Heartbeat"
+  attributes:
+    { name: "heartbeat" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: gw_notification
+  description: "Gateway Jsonrpc Notification"
+  attributes:
+    { name: "gw_notification" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: inventory_data
+  description: "RSP Raw Data"
+  attributes:
+    { name: "inventory_data" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: rsp_status
+  description: "RSP Status"
+  attributes:
+    { name: "rsp_status" }
   properties:
     value:
       { type: "String", readWrite: "R", defaultValue: "" }
@@ -74,13 +165,49 @@ deviceResources:
 
 deviceCommands:
 -
-  name: gwevent
+  name: inventory_event
   get:
-  - { index: "1", operation: "get", object: "gwevent", parameter: "gwevent", property: "value" }
+    - { index: "1", operation: "get", object: "inventory_event", parameter: "inventory_event", property: "value" }
+-
+  name: inventory_complete
+  get:
+    - { index: "1", operation: "get", object: "inventory_complete", parameter: "inventory_complete", property: "value" }
+-
+  name: sensor_config_notification
+  get:
+    - { index: "1", operation: "get", object: "sensor_config_notification", parameter: "sensor_config_notification", property: "value" }
+-
+  name: sensor_connection_state_notification
+  get:
+    - { index: "1", operation: "get", object: "sensor_connection_state_notification", parameter: "sensor_connection_state_notification", property: "value" }
+-
+  name: device_alert
+  get:
+    - { index: "1", operation: "get", object: "device_alert", parameter: "device_alert", property: "value" }
+-
+  name: gateway_heartbeat
+  get:
+    - { index: "1", operation: "get", object: "gateway_heartbeat", parameter: "gateway_heartbeat", property: "value" }
+-
+  name: heartbeat
+  get:
+    - { index: "1", operation: "get", object: "heartbeat", parameter: "heartbeat", property: "value" }
+-
+  name: gw_notification
+  get:
+    - { index: "1", operation: "get", object: "gw_notification", parameter: "gw_notification", property: "value" }
+-
+  name: inventory_data
+  get:
+    - { index: "1", operation: "get", object: "inventory_data", parameter: "inventory_data", property: "value" }
+-
+  name: rsp_status
+  get:
+    - { index: "1", operation: "get", object: "rsp_status", parameter: "rsp_status", property: "value" }
 -
   name: sensor_get_device_ids
   get:
-  - { index: "1", operation: "get", object: "sensor_get_device_ids", parameter: "sensor_get_device_ids", property: "value" }
+    - { index: "1", operation: "get", object: "sensor_get_device_ids", parameter: "sensor_get_device_ids", property: "value" }
 -
   name: behavior_get_all
   get:

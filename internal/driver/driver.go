@@ -29,6 +29,8 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 	"net/url"
 	"strings"
@@ -41,17 +43,15 @@ import (
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 	"github.com/edgexfoundry/go-mod-core-contracts/models"
 	commandModel "github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/models"
-	"gopkg.in/mgo.v2/bson"
 )
 
 var once sync.Once
 var driver *Driver
 
 const (
-	jsonRPC   = "2.0"
-	qos       = byte(1)
-	retained  = false
-	gwevent   = "gwevent"
+	jsonRpcVersion = "2.0"
+	qos            = byte(1)
+	retained       = false
 )
 
 type Driver struct {
@@ -59,7 +59,8 @@ type Driver struct {
 	AsyncCh          chan<- *sdkModel.AsyncValues
 	CommandResponses sync.Map
 	Config           *configuration
-	done             chan interface{}
+
+	done chan interface{}
 }
 
 // NewProtocolDriver returns the package-level driver instance.
@@ -92,14 +93,14 @@ func (d *Driver) Initialize(lc logger.LoggingClient, asyncCh chan<- *sdkModel.As
 	go func() {
 		err := startCommandResponseListening(done)
 		if err != nil {
-			panic(fmt.Errorf("start command response Listener failed, please check MQTT broker settings are correct, %v", err))
+			panic(errors.Wrap(err, "start command response Listener failed, please check MQTT broker settings are correct"))
 		}
 	}()
 
 	go func() {
 		err := startIncomingListening(done)
 		if err != nil {
-			panic(fmt.Errorf("start incoming data Listener failed, please check MQTT broker settings are correct, %v", err))
+			panic(errors.Wrap(err, "start incoming data Listener failed, please check MQTT broker settings are correct"))
 		}
 	}()
 
@@ -128,7 +129,7 @@ func (d *Driver) HandleReadCommands(deviceName string, protocols map[string]mode
 		User:   url.UserPassword(connectionInfo.User, connectionInfo.Password),
 	}
 
-	client, err := createClient(connectionInfo.ClientId, uri, 30)
+	client, err := createClient(connectionInfo.ClientId, uri, 30, nil)
 	if err != nil {
 		return responses, err
 	}
@@ -155,10 +156,10 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 	var result = &sdkModel.CommandValue{}
 	var err error
 
-	request := commandModel.JSONRPC{
-		Version: jsonRPC,
+	request := commandModel.JsonRequest{
+		Version: jsonRpcVersion,
 		Method:  req.DeviceResourceName,
-		Id:      bson.NewObjectId().Hex(),
+		Id:      uuid.New().String(),
 	}
 
 	jsonData, err := json.Marshal(request)
@@ -229,7 +230,7 @@ func (d *Driver) Stop(force bool) error {
 }
 
 // Create a MQTT client
-func createClient(clientID string, uri *url.URL, keepAlive int) (MQTT.Client, error) {
+func createClient(clientID string, uri *url.URL, keepAlive int, onConn MQTT.OnConnectHandler) (MQTT.Client, error) {
 	driver.Logger.Info(fmt.Sprintf("Create MQTT client and connection: uri=%v clientID=%v ", uri.String(), clientID))
 	opts := MQTT.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("%s://%s", uri.Scheme, uri.Host))
@@ -238,15 +239,22 @@ func createClient(clientID string, uri *url.URL, keepAlive int) (MQTT.Client, er
 	password, _ := uri.User.Password()
 	opts.SetPassword(password)
 	opts.SetKeepAlive(time.Second * time.Duration(keepAlive))
+
+	if onConn != nil {
+		opts.SetOnConnectHandler(onConn)
+	}
+
 	opts.SetConnectionLostHandler(func(client MQTT.Client, e error) {
 		driver.Logger.Warn(fmt.Sprintf("Connection lost : %v", e))
 		token := client.Connect()
 		if token.Wait() && token.Error() != nil {
+			// todo: the main incomingListener client should probably panic() if it can't re-connect after X tries
 			driver.Logger.Warn(fmt.Sprintf("Reconnection failed : %v", token.Error()))
 		} else {
 			driver.Logger.Warn(fmt.Sprintf("Reconnection sucessful"))
 		}
 	})
+
 	// todo: this should probably *not* be hardcoded
 	opts.SetTLSConfig(&tls.Config{InsecureSkipVerify: true})
 

@@ -25,20 +25,15 @@ import (
 
 // Json response from the gateway
 type JsonResponse struct {
-	Version string      `json:"jsonrpc"`
-	Id      string      `json:"id"`
-	Result  interface{} `json:"result"`
-	Error   interface{} `json:"error"`
+	Version string          `json:"jsonrpc"`
+	Id      string          `json:"id"`
+	Result  json.RawMessage `json:"result"`
+	Error   json.RawMessage `json:"error"`
 }
 
-// It's used for data messages from the Gateway and command requests to the Gateway.
-type JSONRPC struct {
-	Version string `json:"jsonrpc"`
-	Id      string `json:"id"`
-	Method  string `json:"method"`
-	// Topic will be set by us and sent upstream, indicating the topic on which
-	// the original JSON message came.
-	Topic string `json:"topic,omitempty"` // TODO: this should probably be moved into Params to fit the spec
-	// Params is rest of the message from which we'll extract the Gateway's ID.
-	Params json.RawMessage `json:"params,omitempty"`
+type JsonRequest struct {
+	Version string          `json:"jsonrpc"`
+	Id      string          `json:"id"`
+	Method  string          `json:"method"`
+	Params  json.RawMessage `json:"params,omitempty"`
 }
