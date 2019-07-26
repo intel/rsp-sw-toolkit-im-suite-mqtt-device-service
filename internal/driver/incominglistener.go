@@ -11,7 +11,10 @@ import (
 	"github.com/eclipse/paho.mqtt.golang"
 	sdk "github.com/edgexfoundry/device-sdk-go"
 	sdkModel "github.com/edgexfoundry/device-sdk-go/pkg/models"
+	edgexModels "github.com/edgexfoundry/go-mod-core-contracts/models"
 )
+
+const sensorHeartbeat = "heartbeat"
 
 func replaceMessagePlaceholders(message string) string {
 	id := uuid.New().String()
@@ -90,6 +93,30 @@ func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
 			"No method field in message. msg=%s",
 			string(message.Payload())))
 		return
+	}
+
+	if resourceName == sensorHeartbeat {
+
+		var responseMap map[string]json.RawMessage
+		if err := json.Unmarshal(incomingData.Params, &responseMap); err != nil {
+			err = fmt.Errorf("unmarshalling of heartbeat params failed: error=%v", err)
+			return
+		}
+		deviceId := string(responseMap["device_id"])
+
+		_, _ = sdk.RunningService().AddDevice(edgexModels.Device{
+			Name: deviceId,
+			AdminState: edgexModels.Unlocked,
+			OperatingState: edgexModels.Enabled,
+			Protocols: map[string]edgexModels.ProtocolProperties {
+				"mqtt": {
+					"scheme": "tcp",
+				},
+			},
+			Profile: edgexModels.DeviceProfile{
+				Name: "Sensor.Device.MQTT.Profile",
+			},
+		})
 	}
 
 	deviceName := driver.Config.DeviceName
