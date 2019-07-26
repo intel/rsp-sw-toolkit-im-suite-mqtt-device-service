@@ -27,7 +27,7 @@ func onMqttConnect(client mqtt.Client) {
 	topic := conf.OnConnectPublishTopic
 	if topic != "" {
 		msg := replaceMessagePlaceholders(conf.OnConnectPublishMessage)
-		driver.Logger.Debug(fmt.Sprintf("publish onconnect topic: %s, message: %s", topic, msg))
+		driver.Logger.Debug("publish onconnect", "topic", topic, "message", msg)
 		client.Publish(topic, qos, retained, msg)
 	}
 }
@@ -55,11 +55,7 @@ func startIncomingListening(done <-chan interface{}) error {
 	for _, topic := range conf.IncomingTopics {
 		token := client.Subscribe(topic, byte(conf.IncomingQos), onIncomingDataReceived)
 		if token.Wait() && token.Error() != nil {
-			driver.Logger.Info(
-				fmt.Sprintf("[Incoming listener] Stop incoming data listening. Cause:%v",
-					token.Error(),
-				),
-			)
+			driver.Logger.Info("[Incoming listener] Stop incoming data listening.", "cause", token.Error())
 			return token.Error()
 		}
 	}
@@ -71,7 +67,6 @@ func startIncomingListening(done <-chan interface{}) error {
 }
 
 func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
-	//go func(message mqtt.Message) {
 	var incomingData models.JsonRequest
 	if err := json.Unmarshal(message.Payload(), &incomingData); err != nil {
 		driver.Logger.Error(fmt.Sprintf("Unmarshal failed: %+v", err))
@@ -86,24 +81,23 @@ func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
 	// JsonRpc Responses do not contain a method field. We also do not want to send these to core-data
 	resourceName := incomingData.Method
 	if resourceName == "" {
-		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] "+
+		driver.Logger.Warn("[Incoming listener] "+
 			"Incoming reading ignored. "+
-			"No method field in message. msg=%s",
-			string(message.Payload())))
+			"No method field in message.",
+			"msg", string(message.Payload()))
 		return
 	}
 
 	origin := time.Now().UnixNano() / int64(time.Millisecond)
 	value := sdkModel.NewStringValue(resourceName, origin, string(message.Payload()))
 
-	driver.Logger.Info(fmt.Sprintf("[Incoming listener] "+
-		"Incoming reading received: "+
-		"topic=%v method=%v msgLen=%v",
-		message.Topic(), incomingData.Method, len(message.Payload())))
+	driver.Logger.Info("[Incoming listener] Incoming reading received",
+		"topic", message.Topic(),
+		"method", incomingData.Method,
+		"msgLen", len(message.Payload()))
 
 	driver.AsyncCh <- &sdkModel.AsyncValues{
 		DeviceName:    driver.Config.DeviceName,
 		CommandValues: []*sdkModel.CommandValue{value},
 	}
-	//}(message)
 }

@@ -79,3 +79,6 @@ tail:
 
 scale:
 	$(call scale,$(n),$(args))
+
+fmt:
+	go fmt ./...

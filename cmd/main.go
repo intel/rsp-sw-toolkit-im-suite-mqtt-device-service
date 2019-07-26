@@ -23,7 +23,7 @@ package main
 
 import (
 	"github.com/edgexfoundry/device-sdk-go/pkg/startup"
-	mqtt_device_service "github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service"
+	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service"
 	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/driver"
 )
 

@@ -83,7 +83,7 @@ func (d *Driver) Initialize(lc logger.LoggingClient, asyncCh chan<- *sdkModel.As
 
 	config, err := CreateDriverConfig(device.DriverConfigs())
 	if err != nil {
-		panic(fmt.Errorf("read MQTT driver configuration failed: %v", err))
+		panic(errors.Wrap(err, "read MQTT driver configuration failed"))
 	}
 	d.Config = config
 
@@ -137,7 +137,7 @@ func (d *Driver) HandleReadCommands(deviceName string, protocols map[string]mode
 	for i, req := range reqs {
 		res, err := d.handleReadCommandRequest(client, req, connectionInfo.Topics)
 		if err != nil {
-			driver.Logger.Info(fmt.Sprintf("Handle read commands failed: %v", err))
+			driver.Logger.Warn("Handle read commands failed", "cause", err)
 			return responses, err
 		}
 
@@ -168,7 +168,7 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 		deviceClient.Publish(topic, qos, retained, jsonData)
 	}
 
-	driver.Logger.Info(fmt.Sprintf("Publish command: %v", string(jsonData)))
+	driver.Logger.Info("Publish command", "command", string(jsonData))
 
 	// fetch response from MQTT broker after publish command successful
 	cmdResponse, ok := d.fetchCommandResponse(request.Id)
@@ -176,7 +176,7 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 		err = fmt.Errorf("can not fetch command response: method=%v", request.Method)
 		return nil, err
 	}
-	driver.Logger.Info(fmt.Sprintf("Command response: %v", cmdResponse))
+	driver.Logger.Info("Command response", "response", cmdResponse)
 
 	var responseMap map[string]json.RawMessage
 	if err := json.Unmarshal([]byte(cmdResponse), &responseMap); err != nil {
@@ -203,7 +203,7 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 	origin := time.Now().UnixNano() / int64(time.Millisecond)
 	value := sdkModel.NewStringValue(req.DeviceResourceName, origin, reading)
 
-	driver.Logger.Info(fmt.Sprintf("Get command finished: %v", cmdResponse))
+	driver.Logger.Info("Get command finished", "response", cmdResponse)
 
 	return value, err
 }
@@ -225,7 +225,7 @@ func (d *Driver) Stop(force bool) error {
 
 // Create a MQTT client
 func createClient(clientID string, uri *url.URL, keepAlive int, onConn MQTT.OnConnectHandler) (MQTT.Client, error) {
-	driver.Logger.Info(fmt.Sprintf("Create MQTT client and connection: uri=%v clientID=%v ", uri.String(), clientID))
+	driver.Logger.Info("Create MQTT client and connection", "uri", uri.String(), "clientId", clientID)
 	opts := MQTT.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("%s://%s", uri.Scheme, uri.Host))
 	opts.SetClientID(clientID)
@@ -239,13 +239,15 @@ func createClient(clientID string, uri *url.URL, keepAlive int, onConn MQTT.OnCo
 	}
 
 	opts.SetConnectionLostHandler(func(client MQTT.Client, e error) {
-		driver.Logger.Warn(fmt.Sprintf("Connection lost : %v", e))
+		driver.Logger.Warn("Connection lost", "cause", e)
 		token := client.Connect()
 		if token.Wait() && token.Error() != nil {
 			// todo: the main incomingListener client should probably panic() if it can't re-connect after X tries
-			driver.Logger.Warn(fmt.Sprintf("Reconnection failed : %v", token.Error()))
+			driver.Logger.Warn("Reconnection failed", "cause", token.Error())
+			// PANIC!!!
+			panic(errors.Wrap(token.Error(), "unable to re-connect to mqtt broker"))
 		} else {
-			driver.Logger.Warn(fmt.Sprintf("Reconnection sucessful"))
+			driver.Logger.Warn("Reconnection successful")
 		}
 	})
 
