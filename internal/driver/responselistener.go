@@ -53,7 +53,7 @@ func startCommandResponseListening(done <-chan interface{}) error {
 	for _, topic := range conf.ResponseTopics {
 		token := client.Subscribe(topic, byte(conf.ResponseQos), onCommandResponseReceived)
 		if token.Wait() && token.Error() != nil {
-			driver.Logger.Info("[Incoming listener] Stop command response listening.", "cause", token.Error())
+			driver.Logger.Info("[Response listener] Stop command response listening.", "cause", token.Error())
 			return token.Error()
 		}
 	}
