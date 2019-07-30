@@ -97,12 +97,13 @@ func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
 
 	if resourceName == sensorHeartbeat {
 
-		var responseMap map[string]json.RawMessage
+		var responseMap map[string]interface{}
 		if err := json.Unmarshal(incomingData.Params, &responseMap); err != nil {
 			err = fmt.Errorf("unmarshalling of heartbeat params failed: error=%v", err)
 			return
 		}
-		deviceId := string(responseMap["device_id"])
+		deviceId := responseMap["device_id"].(string)
+		driver.Logger.Info("Sensor device id", deviceId)
 
 		_, _ = sdk.RunningService().AddDevice(edgexModels.Device{
 			Name: deviceId,
@@ -110,7 +111,13 @@ func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
 			OperatingState: edgexModels.Enabled,
 			Protocols: map[string]edgexModels.ProtocolProperties {
 				"mqtt": {
-					"scheme": "tcp",
+					"Scheme":   "tcp",
+					"Host":     "mosquitto-server",
+					"Port":     "1883",
+					"User":     "",
+					"Password": "",
+					"ClientId": "CommandPublisher",
+					"Topics":   "rfid/gw/command",
 				},
 			},
 			Profile: edgexModels.DeviceProfile{

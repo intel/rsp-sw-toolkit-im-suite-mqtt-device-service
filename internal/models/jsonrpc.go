@@ -32,8 +32,12 @@ type JsonResponse struct {
 }
 
 type JsonRequest struct {
-	Version string          `json:"jsonrpc"`
-	Id      string          `json:"id"`
-	Method  string          `json:"method"`
+	Version string        `json:"jsonrpc"`
+	Id      string        `json:"id"`
+	Method  string        `json:"method"`
 	Params  json.RawMessage `json:"params,omitempty"`
+}
+
+type DeviceIdParam struct {
+	DeviceId string `json:"device_id"`
 }

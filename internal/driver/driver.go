@@ -136,7 +136,8 @@ func (d *Driver) HandleReadCommands(deviceName string, protocols map[string]mode
 	defer client.Disconnect(5000)
 
 	for i, req := range reqs {
-		res, err := d.handleReadCommandRequest(client, req, connectionInfo.Topics)
+		driver.Logger.Info("Name of the device", deviceName)
+		res, err := d.handleReadCommandRequest(deviceName, client, req, connectionInfo.Topics)
 		if err != nil {
 			driver.Logger.Info(fmt.Sprintf("Handle read commands failed: %v", err))
 			return responses, err
@@ -152,7 +153,7 @@ func (d *Driver) HandleReadCommands(deviceName string, protocols map[string]mode
 // of the HandleReadCommands.
 //
 // The command request is published on all of the incoming connection info topics.
-func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel.CommandRequest, topics []string) (*sdkModel.CommandValue, error) {
+func (d *Driver) handleReadCommandRequest(deviceName string, deviceClient MQTT.Client, req sdkModel.CommandRequest, topics []string) (*sdkModel.CommandValue, error) {
 	var result = &sdkModel.CommandValue{}
 	var err error
 
@@ -162,13 +163,14 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 		Id:      uuid.New().String(),
 	}
 
-	//paramsString, err := json.Marshal(req.Attributes)
-	//if err != nil {
-	//	err = fmt.Errorf("marshalling of command request with params failed: error=%v", err)
-	//	return result, err
-	//}
-	//
-	//request.Params = paramsString
+	if strings.HasPrefix(deviceName, "RSP") {
+		deviceIdParam := commandModel.DeviceIdParam{deviceName}
+		request.Params, err = json.Marshal(deviceIdParam)
+		if err != nil {
+			err = fmt.Errorf("marshalling of command parameters failed: error=%v", err)
+			return nil, err
+		}
+	}
 
 	jsonData, err := json.Marshal(request)
 	if err != nil {

@@ -1,9 +1,9 @@
 name: "Sensor.Device.MQTT.Profile"
 manufacturer: "Intel"
-model: "MQTT-Gateway"
+model: "MQTT-Sensor"
 labels:
 - "RFID"
-description: "RFID Gateway MQTT Device Service"
+description: "Sensor profile"
 deviceResources:
 -
   name: sensor_get_basic_info
@@ -18,14 +18,14 @@ deviceResources:
 
 deviceCommands:
 -
-  name: behavior_get
+  name: sensor_get_basic_info
   get:
     - { index: "1", operation: "get", object: "sensor_get_basic_info", parameter: "sensor_get_basic_info", property: "value" }
 
 coreCommands:
 -
   name: sensor_get_basic_info
-  put:
+  get:
     path: "/api/v1/device/{deviceId}/sensor_get_basic_info"
     responses:
       -
