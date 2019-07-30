@@ -77,6 +77,7 @@ DeviceName = "rrs-gateway"
 
 # topic and message to publish to mqtt when the client is connected
 OnConnectPublishTopic = "rfid/gw/command"
+OnConnectPublishClientId = "CommandPublisher"
 # {{uuid}} will be replaced at runtime with a generated uuid value
 OnConnectPublishMessage = """\
 {\

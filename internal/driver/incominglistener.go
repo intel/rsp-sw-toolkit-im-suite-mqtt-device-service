@@ -74,6 +74,8 @@ func startIncomingListening(done <-chan interface{}) error {
 }
 
 func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
+	conf := *driver.Config
+
 	var incomingData models.JsonRequest
 	if err := json.Unmarshal(message.Payload(), &incomingData); err != nil {
 		driver.Logger.Error(fmt.Sprintf("Unmarshal failed: %+v", err))
@@ -111,13 +113,13 @@ func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
 			OperatingState: edgexModels.Enabled,
 			Protocols: map[string]edgexModels.ProtocolProperties {
 				"mqtt": {
-					"Scheme":   "tcp",
-					"Host":     "mosquitto-server",
-					"Port":     "1883",
-					"User":     "",
-					"Password": "",
-					"ClientId": "CommandPublisher",
-					"Topics":   "rfid/gw/command",
+					"Scheme":   conf.IncomingScheme,
+					"Host":     conf.IncomingHost,
+					"Port":     fmt.Sprintf("%d", conf.IncomingPort),
+					"User":     conf.IncomingUser,
+					"Password": conf.IncomingPassword,
+					"ClientId": conf.OnConnectPublishClientId,
+					"Topics":   conf.OnConnectPublishTopic,
 				},
 			},
 			Profile: edgexModels.DeviceProfile{

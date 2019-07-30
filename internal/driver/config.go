@@ -52,6 +52,7 @@ type configuration struct {
 	DeviceName              string
 	OnConnectPublishTopic   string
 	OnConnectPublishMessage string
+	OnConnectPublishClientId string
 
 	// IncomingTopics provide reads to be sent to EdgeX.
 	IncomingTopics    []string
