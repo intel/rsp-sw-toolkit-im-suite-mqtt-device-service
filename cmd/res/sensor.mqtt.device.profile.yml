@@ -15,12 +15,96 @@ deviceResources:
       { type: "String", readWrite: "R", defaultValue: "" }
     units:
       { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: remove_device
+  description: "remove a device"
+  attributes:
+    { name: "remove_device" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: sensor_get_bist_results
+  description: "built-in-self-test(BIST) results"
+  attributes:
+    { name: "sensor_get_bist_results" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: sensor_get_geo_region
+  description: "geographic region of the device"
+  attributes:
+    { name: "sensor_get_geo_region" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: sensor_get_state
+  description: "state of the device"
+  attributes:
+    { name: "sensor_get_state" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: sensor_get_versions
+  description: "software versions of the device"
+  attributes:
+    { name: "sensor_get_versions" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: sensor_update_software
+  description: "update software of the device"
+  attributes:
+    { name: "sensor_update_software" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
 
 deviceCommands:
+-
+  name: remove_device
+  get:
+    - { index: "1", operation: "get", object: "remove_device", parameter: "remove_device", property: "value" }
 -
   name: sensor_get_basic_info
   get:
     - { index: "1", operation: "get", object: "sensor_get_basic_info", parameter: "sensor_get_basic_info", property: "value" }
+-
+  name: sensor_get_bist_results
+  get:
+    - { index: "1", operation: "get", object: "sensor_get_bist_results", parameter: "sensor_get_bist_results", property: "value" }
+-
+  name: sensor_get_geo_region
+  get:
+    - { index: "1", operation: "get", object: "sensor_get_geo_region", parameter: "sensor_get_geo_region", property: "value" }
+-
+  name: sensor_get_state
+  get:
+    - { index: "1", operation: "get", object: "sensor_get_state", parameter: "sensor_get_state", property: "value" }
+-
+  name: sensor_get_versions
+  get:
+    - { index: "1", operation: "get", object: "sensor_get_versions", parameter: "sensor_get_versions", property: "value" }
+-
+  name: sensor_update_software
+  get:
+    - { index: "1", operation: "get", object: "sensor_update_software", parameter: "sensor_update_software", property: "value" }
 
 coreCommands:
 -
@@ -36,5 +120,84 @@ coreCommands:
         code: "500"
         description: "internal server error"
         expectedValues: []
+-
+  name: remove_device
+  get:
+    path: "/api/v1/device/{deviceId}/remove_device"
+    responses:
+      -
+        code: "200"
+        description: "remove a device"
+        expectedValues: ["remove_device"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
+-
+  name: sensor_get_bist_results
+  get:
+    path: "/api/v1/device/{deviceId}/sensor_get_bist_results"
+    responses:
+      -
+        code: "200"
+        description: "built-in-self-test(BIST) results"
+        expectedValues: ["sensor_get_bist_results"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
+-
+  name: sensor_get_geo_region
+  get:
+    path: "/api/v1/device/{deviceId}/sensor_get_geo_region"
+    responses:
+      -
+        code: "200"
+        description: "geographic region of the device"
+        expectedValues: ["sensor_get_geo_region"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
+-
+  name: sensor_get_state
+  get:
+    path: "/api/v1/device/{deviceId}/sensor_get_state"
+    responses:
+      -
+        code: "200"
+        description: " state of the device"
+        expectedValues: ["sensor_get_state"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
+-
+  name: sensor_get_versions
+  get:
+    path: "/api/v1/device/{deviceId}/sensor_get_versions"
+    responses:
+      -
+        code: "200"
+        description: "software versions of the device"
+        expectedValues: ["sensor_get_versions"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
+-
+  name: sensor_update_software
+  get:
+    path: "/api/v1/device/{deviceId}/sensor_update_software"
+    responses:
+      -
+        code: "200"
+        description: "update software of the device"
+        expectedValues: ["sensor_update_software"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
+
 
 
