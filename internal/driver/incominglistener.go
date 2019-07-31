@@ -7,6 +7,7 @@ import (
 	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/models"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/eclipse/paho.mqtt.golang"
 	sdk "github.com/edgexfoundry/device-sdk-go"
@@ -30,7 +31,7 @@ func onMqttConnect(client mqtt.Client) {
 	topic := conf.OnConnectPublishTopic
 	if topic != "" {
 		msg := replaceMessagePlaceholders(conf.OnConnectPublishMessage)
-		driver.Logger.Debug(fmt.Sprintf("publish onconnect topic: %s, message: %s", topic, msg))
+		driver.Logger.Debug("publish onconnect", "topic", topic, "message", msg)
 		client.Publish(topic, qos, retained, msg)
 	}
 }
@@ -58,11 +59,7 @@ func startIncomingListening(done <-chan interface{}) error {
 	for _, topic := range conf.IncomingTopics {
 		token := client.Subscribe(topic, byte(conf.IncomingQos), onIncomingDataReceived)
 		if token.Wait() && token.Error() != nil {
-			driver.Logger.Info(
-				fmt.Sprintf("[Incoming listener] Stop incoming data listening. Cause:%v",
-					token.Error(),
-				),
-			)
+			driver.Logger.Info("[Incoming listener] Stop incoming data listening.", "cause", token.Error())
 			return token.Error()
 		}
 	}
@@ -90,10 +87,10 @@ func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
 	// JsonRpc Responses do not contain a method field. We also do not want to send these to core-data
 	resourceName := incomingData.Method
 	if resourceName == "" {
-		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] "+
+		driver.Logger.Warn("[Incoming listener] "+
 			"Incoming reading ignored. "+
-			"No method field in message. msg=%s",
-			string(message.Payload())))
+			"No method field in message.",
+			"msg", string(message.Payload()))
 		return
 	}
 
@@ -128,42 +125,16 @@ func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
 		})
 	}
 
-	deviceName := driver.Config.DeviceName
-	reading := string(message.Payload())
-	service := sdk.RunningService()
+	origin := time.Now().UnixNano() / int64(time.Millisecond)
+	value := sdkModel.NewStringValue(resourceName, origin, string(message.Payload()))
 
-	resource, ok := service.DeviceResource(deviceName, resourceName, "get")
-	if !ok {
-		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] "+
-			"Incoming reading ignored. "+
-			"No DeviceObject found: topic=%v device=%v method=%v",
-			message.Topic(), deviceName, incomingData.Method))
-		return
+	driver.Logger.Info("[Incoming listener] Incoming reading received",
+		"topic", message.Topic(),
+		"method", incomingData.Method,
+		"msgLen", len(message.Payload()))
+
+	driver.AsyncCh <- &sdkModel.AsyncValues{
+		DeviceName:    driver.Config.DeviceName,
+		CommandValues: []*sdkModel.CommandValue{value},
 	}
-
-	req := sdkModel.CommandRequest{
-		DeviceResourceName: resourceName,
-		Type:               sdkModel.ParseValueType(resource.Properties.Value.Type),
-	}
-	result, err := newResult(req, reading)
-
-	if err != nil {
-		driver.Logger.Warn(fmt.Sprintf("[Incoming listener] "+
-			"Incoming reading ignored. "+
-			"topic=%v msg=%v error=%v",
-			message.Topic(), string(message.Payload()), err))
-		return
-	}
-
-	asyncValues := &sdkModel.AsyncValues{
-		DeviceName:    deviceName,
-		CommandValues: []*sdkModel.CommandValue{result},
-	}
-
-	driver.Logger.Info(fmt.Sprintf("[Incoming listener] "+
-		"Incoming reading received: "+
-		"topic=%v method=%v msgLen=%v",
-		message.Topic(), incomingData.Method, len(message.Payload())))
-
-	driver.AsyncCh <- asyncValues
 }
