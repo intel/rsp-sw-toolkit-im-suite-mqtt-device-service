@@ -35,6 +35,11 @@ RUN apk add --no-cache ${ALPINE_PKG_BASE} ${ALPINE_PKG_EXTRA}
 
 WORKDIR $GOPATH/src/github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service
 
+ENV GO111MODULE=on
+# Download go modules first so they can be cached for faster subsequent builds
+COPY go.mod go.mod
+RUN go mod download
+
 COPY . .
 
 # To run tests in the build container:

@@ -53,11 +53,7 @@ func startCommandResponseListening(done <-chan interface{}) error {
 	for _, topic := range conf.ResponseTopics {
 		token := client.Subscribe(topic, byte(conf.ResponseQos), onCommandResponseReceived)
 		if token.Wait() && token.Error() != nil {
-			driver.Logger.Info(
-				fmt.Sprintf("[Incoming listener] Stop command response listening. Cause:%v",
-					token.Error(),
-				),
-			)
+			driver.Logger.Info("[Response listener] Stop command response listening.", "cause", token.Error())
 			return token.Error()
 		}
 	}
@@ -73,14 +69,15 @@ func onCommandResponseReceived(_ mqtt.Client, message mqtt.Message) {
 	var response models.JsonResponse
 
 	if err := json.Unmarshal(message.Payload(), &response); err != nil {
-		driver.Logger.Error(fmt.Sprintf("[Response listener] Unmarshal failed: %+v", err))
+		driver.Logger.Error("[Response listener] Unmarshal failed", "cause", err)
 		return
 	}
 
 	if response.Id != "" {
 		driver.CommandResponses.Store(response.Id, string(message.Payload()))
-		driver.Logger.Info(fmt.Sprintf("[Response listener] Command response received: topic=%v msg=%v", message.Topic(), string(message.Payload())))
+		driver.Logger.Info("[Response listener] Command response received", "topic", message.Topic(), "msg", string(message.Payload()))
 	} else {
-		driver.Logger.Debug(fmt.Sprintf("[Response listener] Command response ignored. No ID found in the message: topic=%v msg=%v", message.Topic(), string(message.Payload())))
+		driver.Logger.Debug("[Response listener] Command response ignored. No ID found in the message",
+			"topic", message.Topic(), "msg", string(message.Payload()))
 	}
 }
