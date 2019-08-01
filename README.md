@@ -1,7 +1,7 @@
 
-# Gateway Device Service
+# MQTT Device Service
 Based on the Edgex Go MQTT Device Service service, modified to support multiple
-topics and extract device IDs from Gateway messages. Right now, it's more PoC 
+topics and extract device IDs from RSP-controller messages. Right now, it's more PoC 
 then proper product.
 
 ## Requisite
@@ -32,7 +32,7 @@ Qos = 1
 KeepAlive = 3600
 MqttClientId = "IncomingDataSubscriber"
 # modified to handle multiple topics -- subscribes to all of them
-Topics = ["rfid/gw/events", "rfid/gw/alerts", "rfid/gw/heartbeat"]
+Topics = ["rfid/controller/events", "rfid/controller/alerts", "rfid/controller/heartbeat"]
 
 [Response]
 Protocol = "tls"
@@ -51,22 +51,22 @@ Topic = ["ResponseTopic"]
 
 ### Device list
 The end of the [configuration.toml](cmd/res/dev/configuration.toml) file should
-have the name and address of your Gateway. This works successfully with the EdgeX
+have the name and address of your RSP-controller. This works successfully with the EdgeX
 stack running somewhere other than the IMA stack, but if you're running them
-on the same machine, you _should_ be able to set the `Address` to the Gateway's
+on the same machine, you _should_ be able to set the `Address` to the RSP-controller's
 service name. Note that this isn't bothering to define several aspects of the
 `Addressable` -- such as `protocol` or `username`/`password`. Perhaps it really
 is needed, but as it stands, it didn't seem necessary. 
 
 ```toml
 [[DeviceList]]
-  # Name needs to match the gateway's device ID
-  Name = "rrs-gateway"
-  Profile = "Gateway.Device.MQTT.Profile"
-  Description = "Gateway Device MQTT Broker Connection"
-  Labels = [ "MQTT", "Gateway", "RFID"]
+  # Name needs to match the RSP-controller's device ID
+  Name = "rsp-controller"
+  Profile = "RSP-controller.Device.MQTT.Profile"
+  Description = "RSP-controller Device MQTT Broker Connection"
+  Labels = [ "MQTT", "RSP-controller", "RFID"]
   [DeviceList.Addressable]
-    Name = "Gateway address"
+    Name = "RSP-controller address"
     Protocol = "TCP"
     # this address probably doesn't matter
     Address = "192.168.99.100"
@@ -107,16 +107,16 @@ on the same Docker host & network as your EdgeX instance.
 
 `make clean` will remove the "control" file to prevents rebuild.
 
-## Sending Commands to gateway
-To send commands from Edgex to Intel open source gateway we can use some client such as POSTMAN [https://www.getpostman.com/].
+## Sending Commands to RSP-controller
+To send commands from Edgex to Intel open source RSP-controller we can use some client such as POSTMAN [https://www.getpostman.com/].
  
 Open POSTMAN or any similar tool and execute the following apis:
 
 - Replace `localhost` in the below api with your respective server IP address if not running on localhost. This api is
-used to find all the executable commands for a particular device (rrs-gateway is the default name of the Intel open
-source gateway)
+used to find all the executable commands for a particular device (rsp-controller is the default name of the Intel open
+source RSP-controller)
 ```
-GET to http://localhost:48082/api/v1/device/name/rrs-gateway
+GET to http://localhost:48082/api/v1/device/name/rsp-controller
 ```
 - If the GET request is successful a json response is received from which all the executable commands can be found
 
@@ -125,10 +125,10 @@ GET to http://localhost:48082/api/v1/device/name/rrs-gateway
 - The commands can be be sent by modifying the above api. For e.g. the below api is used to send a command known as
 `behavior_get_all` 
 ```
-GET to http://localhost:48082/api/v1/device/name/rrs-gateway/command/behavior_get_all
+GET to http://localhost:48082/api/v1/device/name/rsp-controller/command/behavior_get_all
 ```
 
-- If the above request is successful a json response is received from which the gateway response can be found in the
+- If the above request is successful a json response is received from which the RSP-controller response can be found in the
 `value` field.
 
 ![GET command](docs/Response.png)

@@ -56,10 +56,10 @@ LogLevel = "DEBUG"
 
 # Pre-define Devices
 [[DeviceList]]
-  Name = "rrs-gateway"
-  Profile = "Gateway.Device.MQTT.Profile"
-  Description = "Gateway Device MQTT Broker Connection"
-  Labels = [ "MQTT", "Gateway", "RFID"]
+  Name = "rsp-controller"
+  Profile = "RSP-controller.Device.MQTT.Profile"
+  Description = "RSP-controller Device MQTT Broker Connection"
+  Labels = [ "MQTT", "RSP-controller", "RFID"]
   [DeviceList.Protocols]
     [DeviceList.Protocols.mqtt]
        Scheme = "tcp"
@@ -73,11 +73,12 @@ LogLevel = "DEBUG"
 # Driver configs
 [Driver]
 # device name to use when sending data received on the IncomingTopics
-DeviceName = "rrs-gateway"
+DeviceName = "rsp-controller"
 
 # topic and message to publish to mqtt when the client is connected
 OnConnectPublishTopic = "rfid/controller/command"
 OnConnectPublishClientId = "CommandPublisher"
+
 # {{uuid}} will be replaced at runtime with a generated uuid value
 OnConnectPublishMessage = """\
 {\
@@ -98,7 +99,7 @@ IncomingPassword = ""
 IncomingQos = "1"
 IncomingKeepAlive = "3600"
 IncomingClientId = "IncomingDataSubscriber"
-#IncomingTopics = "rfid/gw/events,rfid/gw/alerts,rfid/gw/heartbeat,rfid/gw/notification,rfid/rsp/data/+,rfid/rsp/rsp_status/+"
+#IncomingTopics = "rfid/controller/events,rfid/controller/alerts,rfid/controller/heartbeat,rfid/controller/notification,rfid/rsp/data/+,rfid/rsp/rsp_status/+"
 IncomingTopics = "rfid/rsp/rsp_status/+"
 
 ResponseScheme = "tcp"
