@@ -68,7 +68,7 @@ LogLevel = "DEBUG"
        User = ""
        Password = ""
        ClientId = "CommandPublisher"
-       Topics = "rfid/gw/command"
+       Topics = "rfid/controller/command"
 
 # Driver configs
 [Driver]
@@ -76,7 +76,7 @@ LogLevel = "DEBUG"
 DeviceName = "rrs-gateway"
 
 # topic and message to publish to mqtt when the client is connected
-OnConnectPublishTopic = "rfid/gw/command"
+OnConnectPublishTopic = "rfid/controller/command"
 OnConnectPublishClientId = "CommandPublisher"
 # {{uuid}} will be replaced at runtime with a generated uuid value
 OnConnectPublishMessage = """\
@@ -109,5 +109,5 @@ ResponsePassword = ""
 ResponseQos = "1"
 ResponseKeepAlive = "3600"
 ResponseClientId = "CommandResponseSubscriber"
-ResponseTopics = "rfid/gw/response"
+ResponseTopics = "rfid/controller/response"
 

@@ -16,10 +16,10 @@ deviceResources:
     units:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
-  name: remove_device
-  description: "remove a device"
+  name: sensor_remove
+  description: "remove a sensor"
   attributes:
-    { name: "remove_device" }
+    { name: "sensor_remove" }
   properties:
     value:
       { type: "String", readWrite: "R", defaultValue: "" }
@@ -78,9 +78,9 @@ deviceResources:
 
 deviceCommands:
 -
-  name: remove_device
+  name: sensor_remove
   get:
-    - { index: "1", operation: "get", object: "remove_device", parameter: "remove_device", property: "value" }
+    - { index: "1", operation: "get", object: "sensor_remove", parameter: "sensor_remove", property: "value" }
 -
   name: sensor_get_basic_info
   get:
@@ -121,14 +121,14 @@ coreCommands:
         description: "internal server error"
         expectedValues: []
 -
-  name: remove_device
+  name: sensor_remove
   get:
-    path: "/api/v1/device/{deviceId}/remove_device"
+    path: "/api/v1/device/{deviceId}/sensor_remove"
     responses:
       -
         code: "200"
-        description: "remove a device"
-        expectedValues: ["remove_device"]
+        description: "remove a sensor"
+        expectedValues: ["sensor_remove"]
       -
         code: "500"
         description: "internal server error"

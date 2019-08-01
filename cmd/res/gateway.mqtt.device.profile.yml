@@ -63,10 +63,10 @@ deviceResources:
     units:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
-  name: gateway_heartbeat
+  name: controller_heartbeat
   description: "Gateway Heartbeat"
   attributes:
-    { name: "gateway_heartbeat" }
+    { name: "controller_heartbeat" }
   properties:
     value:
       { type: "String", readWrite: "R", defaultValue: "" }
@@ -154,7 +154,7 @@ deviceResources:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
   name: upstream_get_mqtt_status
-  description: "info of MQTT broker connected to gateway and EdgeX"
+  description: "info of MQTT controller connection"
   attributes:
     { name: "upstream_get_mqtt_status" }
   properties:
@@ -163,10 +163,30 @@ deviceResources:
     units:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
-  name: behavior_get
-  description: "info of a particular behavior from gateway"
+  name: downstream_get_mqtt_status
+  description: "info of MQTT sensor connection"
   attributes:
-    { name: "behavior_get" }
+    { name: "downstream_get_mqtt_status" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: gpio_clear_mappings
+  description: "clear gpio mappings"
+  attributes:
+    { name: "gpio_clear_mappings" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: scheduler_get_run_state
+  description: "run state of scheduler"
+  attributes:
+    { name: "scheduler_get_run_state" }
   properties:
     value:
       { type: "String", readWrite: "R", defaultValue: "" }
@@ -195,9 +215,9 @@ deviceCommands:
   get:
     - { index: "1", operation: "get", object: "device_alert", parameter: "device_alert", property: "value" }
 -
-  name: gateway_heartbeat
+  name: controller_heartbeat
   get:
-    - { index: "1", operation: "get", object: "gateway_heartbeat", parameter: "gateway_heartbeat", property: "value" }
+    - { index: "1", operation: "get", object: "gateway_heartbeat", parameter: "controller_heartbeat", property: "value" }
 -
   name: heartbeat
   get:
@@ -235,9 +255,17 @@ deviceCommands:
   get:
     - { index: "1", operation: "get", object: "upstream_get_mqtt_status", parameter: "upstream_get_mqtt_status", property: "value" }
 -
-  name: behavior_get
-  put:
-    - { index: "1", operation: "put", object: "behavior_get", parameter: "behavior_get", property: "value" }
+  name: downstream_get_mqtt_status
+  get:
+    - { index: "1", operation: "get", object: "downstream_get_mqtt_status", parameter: "downstream_get_mqtt_status", property: "value" }
+-
+  name: gpio_clear_mappings
+  get:
+    - { index: "1", operation: "get", object: "gpio_clear_mappings", parameter: "gpio_clear_mappings", property: "value" }
+-
+  name: scheduler_get_run_state
+  get:
+    - { index: "1", operation: "get", object: "scheduler_get_run_state", parameter: "scheduler_get_run_state", property: "value" }
 
 coreCommands:
 -
@@ -305,4 +333,42 @@ coreCommands:
         code: "500"
         description: "internal server error"
         expectedValues: []
-
+-
+  name: downstream_get_mqtt_status
+  get:
+    path: "/api/v1/device/{deviceId}/downstream_get_mqtt_status"
+    responses:
+      -
+        code: "200"
+        description: "info of MQTT sensor connection"
+        expectedValues: ["downstream_get_mqtt_status"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
+-
+  name: gpio_clear_mappings
+  get:
+    path: "/api/v1/device/{deviceId}/gpio_clear_mappings"
+    responses:
+      -
+        code: "200"
+        description: "info of MQTT sensor connection"
+        expectedValues: ["gpio_clear_mappings"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
+-
+  name: scheduler_get_run_state
+  get:
+    path: "/api/v1/device/{deviceId}/scheduler_get_run_state"
+    responses:
+      -
+        code: "200"
+        description: "run state of scheduler"
+        expectedValues: ["scheduler_get_run_state"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
