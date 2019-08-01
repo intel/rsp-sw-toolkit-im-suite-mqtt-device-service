@@ -184,7 +184,7 @@ func (d *Driver) handleReadCommandRequest(deviceName string, deviceClient MQTT.C
 	// fetch response from MQTT broker after publish command successful
 	cmdResponse, ok := d.fetchCommandResponse(request.Id)
 	if !ok {
-		err = fmt.Errorf("can not fetch command response: method=%v", request.Method)
+		err = fmt.Errorf("no command response or getting response delayed for method=%v", request.Method)
 		return nil, err
 	}
 	driver.Logger.Info("Command response", "response", cmdResponse)
@@ -280,7 +280,7 @@ func createClient(clientID string, uri *url.URL, keepAlive int, onConn MQTT.OnCo
 func (d *Driver) fetchCommandResponse(cmdUuid string) (string, bool) {
 	var cmdResponse interface{}
 	var ok bool
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 10; i++ {
 		cmdResponse, ok = d.CommandResponses.Load(cmdUuid)
 		if ok {
 			d.CommandResponses.Delete(cmdUuid)
