@@ -116,7 +116,7 @@ Open POSTMAN or any similar tool and execute the following apis:
 used to find all the executable commands for a particular device (rsp-controller is the default name of the Intel open
 source RSP-controller)
 ```
-GET to http://localhost:48082/api/v1/device/name/rsp    -controller
+GET to http://localhost:48082/api/v1/device/name/rsp-controller
 ```
 - If the GET request is successful a json response is received from which all the executable commands can be found
 
