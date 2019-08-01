@@ -1,56 +1,84 @@
-GOOS:=linux
-GOARCH:=amd64
-GOPATH:=$$HOME/go
-SRC_PATH=github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service
+.PHONY: build test clean prepare update docker
 
-REPO:=saites/mqtt-device-service
-GIT_SHA:=$(shell git rev-parse HEAD)
+GO = CGO_ENABLED=0 GO111MODULE=on go
+
+MICROSERVICES=cmd/mqtt-device-service
+
+.PHONY: $(MICROSERVICES)
+
+DOCKERS=docker_mqtt-device-service_go
+
+.PHONY: $(DOCKERS)
+
 VERSION=$(shell cat ./VERSION)
+GIT_SHA=$(shell git rev-parse HEAD)
 
-GO=GOOS=linux GOARCH=amd64 CGO_ENABLED=0 GO111MODULE=off go
-GOFLAGS=-ldflags "-X github.com/edgexfoundry/device-mqtt-go.Version=$(VERSION)"
+GOFLAGS=-ldflags "-X github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service-go.Version=$(VERSION)"
 
-.PHONY: build image run down clean clean-image dev
+STACK_NAME ?= Inventory-Suite-Dev
+SERVICE_NAME ?= mqtt-device-service
+PROJECT_NAME ?= mqtt-device-service
 
-build: mqtt-device-service
-mqtt-device-service:
-	docker run \
-		--rm \
-		-it \
-		--name=gobuilder \
-		-v gobuildcache:/cache \
-		-v $(GOPATH)/src/$(SRC_PATH):/go/src/$(SRC_PATH) \
-		-w /go/src/$(SRC_PATH) \
-		-e GOCACHE=/cache \
-		golang:1.12 \
-		sh -c '$(GO) build -v -o $@ ./cmd'
+default: build
 
-image: mqtt-device-service.docker
-mqtt-device-service.docker: Dockerfile mqtt-device-service
+scale=docker service scale $(STACK_NAME)_$(SERVICE_NAME)=$1 $2
+
+wait_for_service=	@printf "Waiting for $(SERVICE_NAME) service to$1..."; \
+					while [  $2 -z `docker ps -qf name=$(STACK_NAME)_$(SERVICE_NAME).1` ]; \
+                 	do \
+                 		printf "."; \
+                 		sleep 0.3;\
+                 	done; \
+                 	printf "\n";
+
+log=docker logs $1$2 `docker ps -qf name=$(STACK_NAME)_$(SERVICE_NAME).1` 2>&1
+
+build: $(MICROSERVICES)
+	$(GO) build ./...
+
+cmd/mqtt-device-service:
+	$(GO) build $(GOFLAGS) -o $@ ./cmd
+
+test:
+	$(GO) test ./... -cover
+
+clean:
+	rm -f $(MICROSERVICES)
+
+run:
+	cd bin && ./edgex-launch.sh
+
+docker: $(DOCKERS)
+
+docker_mqtt-device-service_go:
 	docker build \
-		-t $(REPO):v$(GIT_SHA) \
+		--label "git_sha=$(GIT_SHA)" \
+		-t mqtt-device-service-go:$(GIT_SHA) \
+		-t mqtt-device-service-go:$(VERSION)-dev \
 		.
-	touch $@
 
-run: mqtt-device-service.docker
-	IMAGE=$(REPO):v$(GIT_SHA) docker-compose up -d
+build-dev:
+	$(MAKE) -C .. $(PROJECT_NAME)
 
-EDGEX_NETWORK:=$(shell docker network ls -qf name=edgex-network)
-override docker_args += --name mqtt-device-service \
-	-d -p "49982:49982" --net $(EDGEX_NETWORK) -v $(GOPATH)/src/$(SRC_PATH)/cmd/res:/res \
-	-e no_proxy="*" -e NO_PROXY="*" \
-	--add-host "mosquitto-server:192.168.99.100"
-override cmd_args += --profile=dev --confdir=/res
-dev: mqtt-device-service.docker
-	docker rm mqtt-device-service || true
-	docker run $(docker_args) $(REPO):v$(GIT_SHA) $(cmd_args)
+iterate:
+	$(call scale,0,-d)
+	$(MAKE) build-dev
+	$(call wait_for_service, stop, !)
+	$(call scale,1,-d)
+	$(call wait_for_service, start)
+	$(MAKE) tail
 
-down:
-	IMAGE=$(REPO):v$(GIT_SHA) docker-compose down
+restart:
+	$(call scale,0,-d)
+	$(call wait_for_service, stop, !)
+	$(call scale,1,-d)
+	$(call wait_for_service, start)
 
-clean-image:
-	rm -rf mqtt-device-service.docker
+tail:
+	$(call log,-f,$(args))
 
-clean: clean-image
-	rm -rf mqtt-device-service
+scale:
+	$(call scale,$(n),$(args))
 
+fmt:
+	go fmt ./...

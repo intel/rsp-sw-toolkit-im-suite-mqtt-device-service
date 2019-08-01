@@ -1,6 +1,6 @@
 // -*- Mode: Go; indent-tabs-mode: t -*-
 //
-// Copyright (C) 2018 IOTech Ltd
+// Copyright (C) 2019 IOTech Ltd
 //
 // SPDX-License-Identifier: Apache-2.0
 
@@ -29,16 +29,18 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"gopkg.in/mgo.v2/bson"
+	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	"net/url"
 	"strings"
 	"sync"
 	"time"
 
 	MQTT "github.com/eclipse/paho.mqtt.golang"
+	"github.com/edgexfoundry/device-sdk-go"
 	sdkModel "github.com/edgexfoundry/device-sdk-go/pkg/models"
-	"github.com/edgexfoundry/edgex-go/pkg/clients/logging"
-	"github.com/edgexfoundry/edgex-go/pkg/models"
+	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
+	"github.com/edgexfoundry/go-mod-core-contracts/models"
 	commandModel "github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/models"
 )
 
@@ -46,86 +48,96 @@ var once sync.Once
 var driver *Driver
 
 const (
-	jsonRpc  = "2.0"
-	qos      = byte(1)
-	retained = false
+	jsonRpcVersion = "2.0"
+	qos            = byte(1)
+	retained       = false
 )
 
 type Driver struct {
 	Logger           logger.LoggingClient
 	AsyncCh          chan<- *sdkModel.AsyncValues
-	CommandResponses map[string]string
+	CommandResponses sync.Map
 	Config           *configuration
+
+	done chan interface{}
 }
 
+// NewProtocolDriver returns the package-level driver instance.
 func NewProtocolDriver() sdkModel.ProtocolDriver {
 	once.Do(func() {
 		driver = new(Driver)
-		driver.CommandResponses = make(map[string]string)
 	})
 	return driver
 }
 
+// Initialize an MQTT driver.
+//
+// Once initialized, the driver listens on the configured MQTT topics. When a
+// message comes in on a data topic, the driver formats the message appropriately
+// and forwards it to EdgeX. When a message comes in on a command response topic,
+// the driver checks for a corresponding command it sent previously. Assuming it
+// finds one, it formats the response appropriately for EdgeX and forwards it on.
 func (d *Driver) Initialize(lc logger.LoggingClient, asyncCh chan<- *sdkModel.AsyncValues) error {
 	d.Logger = lc
 	d.AsyncCh = asyncCh
 
-	config, err := LoadConfigFromFile()
+	config, err := CreateDriverConfig(device.DriverConfigs())
 	if err != nil {
-		panic(fmt.Errorf("read MQTT driver configuration failed: %v", err))
+		panic(errors.Wrap(err, "read MQTT driver configuration failed"))
 	}
 	d.Config = config
 
+	done := make(chan interface{})
+	d.done = done
 	go func() {
-		err := startCommandResponseListening()
+		err := startCommandResponseListening(done)
 		if err != nil {
-			panic(fmt.Errorf("start command response Listener failed: %+v", err))
+			panic(errors.Wrap(err, "start command response Listener failed, please check MQTT broker settings are correct"))
 		}
 	}()
 
 	go func() {
-		err := startIncomingListening()
+		err := startIncomingListening(done)
 		if err != nil {
-			panic(fmt.Errorf("start incoming data Listener failed: %+v", err))
+			panic(errors.Wrap(err, "start incoming data Listener failed, please check MQTT broker settings are correct"))
 		}
 	}()
 
 	return nil
 }
 
-func (d *Driver) DisconnectDevice(address *models.Addressable) error {
-	panic("implement me")
-}
-
-// Modified by Intel to add better error handling
-func (d *Driver) HandleReadCommands(addr *models.Addressable, reqs []sdkModel.CommandRequest) ([]*sdkModel.CommandValue, error) {
+// HandleReadCommands handles CommandRequests to read data via MQTT.
+//
+// It satisfies them by creating a new MQTT client with the protocol, sending the
+// requests as JSON RPC messages on all configured topics, then waiting for a
+// response on any of the response topics; once a response comes in, it returns
+// that result.
+func (d *Driver) HandleReadCommands(deviceName string, protocols map[string]models.ProtocolProperties, reqs []sdkModel.CommandRequest) ([]*sdkModel.CommandValue, error) {
 	var responses = make([]*sdkModel.CommandValue, len(reqs))
 	var err error
 
 	// create device client and open connection
-	var brokerUrl = d.Config.Command.Host
-	var brokerPort = d.Config.Command.Port
-	var username = d.Config.Command.Username
-	var password = d.Config.Command.Password
-	var mqttClientId = d.Config.Command.MqttClientId
-	var topics = d.Config.Command.Topics
-
-	uri := &url.URL{
-		Scheme: strings.ToLower(d.Config.Command.Protocol),
-		Host:   fmt.Sprintf("%s:%d", brokerUrl, brokerPort),
-		User:   url.UserPassword(username, password),
+	connectionInfo, err := CreateConnectionInfo(protocols)
+	if err != nil {
+		return responses, err
 	}
 
-	client, err := createClient(mqttClientId, uri, 30)
+	uri := &url.URL{
+		Scheme: strings.ToLower(connectionInfo.Scheme),
+		Host:   fmt.Sprintf("%s:%s", connectionInfo.Host, connectionInfo.Port),
+		User:   url.UserPassword(connectionInfo.User, connectionInfo.Password),
+	}
+
+	client, err := createClient(connectionInfo.ClientId, uri, 30, nil)
 	if err != nil {
 		return responses, err
 	}
 	defer client.Disconnect(5000)
 
 	for i, req := range reqs {
-		res, err := d.handleReadCommandRequest(client, req, topics)
+		res, err := d.handleReadCommandRequest(client, req, connectionInfo.Topics)
 		if err != nil {
-			driver.Logger.Info(fmt.Sprintf("Handle read commands failed: %v", err))
+			driver.Logger.Warn("Handle read commands failed", "cause", err)
 			return responses, err
 		}
 
@@ -135,41 +147,44 @@ func (d *Driver) HandleReadCommands(addr *models.Addressable, reqs []sdkModel.Co
 	return responses, err
 }
 
-// Modified by Intel to handle command requests and responses related to Intel open source gateway
+// handleReadCommandRequest takes care of the JSON RPC command/response portion
+// of the HandleReadCommands.
+//
+// The command request is published on all of the incoming connection info topics.
 func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel.CommandRequest, topics []string) (*sdkModel.CommandValue, error) {
-	var result = &sdkModel.CommandValue{}
-	var err error
-
-	var request commandModel.JsonRequest
-	request.JsonRpc = jsonRpc
-	request.Method = req.DeviceObject.Name
-	// create a unique id to track every response
-	request.Id = bson.NewObjectId().Hex()
+	request := commandModel.JsonRequest{
+		Version: jsonRpcVersion,
+		Method:  req.DeviceResourceName,
+		Id:      uuid.New().String(),
+	}
 
 	jsonData, err := json.Marshal(request)
 	if err != nil {
-		return result, err
+		err = fmt.Errorf("marshalling of command request failed: error=%v", err)
+		return nil, err
 	}
 
 	for _, topic := range topics {
 		deviceClient.Publish(topic, qos, retained, jsonData)
 	}
 
-	driver.Logger.Info(fmt.Sprintf("Publish command: %v", string(jsonData)))
+	driver.Logger.Info("Publish command", "command", string(jsonData))
 
 	// fetch response from MQTT broker after publish command successful
-	cmdResponse, ok := fetchCommandResponse(d.CommandResponses, request.Id)
+	cmdResponse, ok := d.fetchCommandResponse(request.Id)
 	if !ok {
 		err = fmt.Errorf("can not fetch command response: method=%v", request.Method)
-		return result, err
+		return nil, err
 	}
+	driver.Logger.Info("Command response", "response", cmdResponse)
 
 	var responseMap map[string]json.RawMessage
 	if err := json.Unmarshal([]byte(cmdResponse), &responseMap); err != nil {
+		err = fmt.Errorf("unmarshalling of command response failed: error=%v", err)
 		return nil, err
 	}
 
-	// extract specific values from the response
+	// Parse response to extract result or error field
 	var reading string
 	_, ok = responseMap["result"]
 	if ok {
@@ -180,115 +195,37 @@ func (d *Driver) handleReadCommandRequest(deviceClient MQTT.Client, req sdkModel
 		if ok {
 			reading = string(responseMap["error"])
 		} else {
-			err = fmt.Errorf("incorrect command response from rsp-gateway: %v", cmdResponse)
-			return nil, err
-		}
-
-	}
-	if reading != "" {
-		result, err = newResult(req.DeviceObject, req.RO, reading)
-		if err != nil {
+			err = fmt.Errorf("invalid command response: %v", cmdResponse)
 			return nil, err
 		}
 	}
 
-	driver.Logger.Info(fmt.Sprintf("Get command finished: %v", result))
-	return result, err
+	origin := time.Now().UnixNano() / int64(time.Millisecond)
+	value := sdkModel.NewStringValue(req.DeviceResourceName, origin, reading)
+
+	driver.Logger.Info("Get command finished", "response", cmdResponse)
+
+	return value, err
 }
 
-// Modified by Intel as Intel is not handling command put requests, so this function is just used for implementing ProtocolDriver Interface
-func (d *Driver) HandleWriteCommands(addr *models.Addressable, reqs []sdkModel.CommandRequest, params []*sdkModel.CommandValue) error {
-	var err error
-
-	/*// create device client and open connection
-	var brokerUrl = addr.Address
-	var brokerPort = addr.Port
-	var username = addr.User
-	var password = addr.Password
-	var mqttClientId = addr.Publisher
-
-	uri := &url.URL{
-		Scheme: strings.ToLower(addr.Protocol),
-		Host:   fmt.Sprintf("%s:%d", brokerUrl, brokerPort),
-		User:   url.UserPassword(username, password),
-	}
-
-	client, err := createClient(mqttClientId, uri, 30)
-	if err != nil {
-		return err
-	}
-	defer client.Disconnect(5000)
-
-	for i, req := range reqs {
-		err = d.handleWriteCommandRequest(client, req, addr.Topic, params[i])
-		if err != nil {
-			driver.Logger.Info(fmt.Sprintf("Handle write commands failed: %v", err))
-			return err
-		}
-	}*/
-
-	return err
-}
-
-// Modified by Intel as Intel is not handling command put requests, so this function is just used for implementing ProtocolDriver Interface
-func (d *Driver) handleWriteCommandRequest(deviceClient MQTT.Client, req sdkModel.CommandRequest, topic string, param *sdkModel.CommandValue) error {
-	/*var err error
-	var qos = byte(0)
-	var retained = false
-
-	var method = "set"
-	var cmdUuid = bson.NewObjectId().Hex()
-	var cmd = req.DeviceObject.Name
-
-	data := make(map[string]interface{})
-	data["uuid"] = cmdUuid
-	data["method"] = method
-	data["cmd"] = cmd
-
-	commandValue, err := newCommandValue(req.DeviceObject, param)
-	if err != nil {
-		return err
-	}
-	data[cmd] = commandValue
-
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		return err
-	}
-
-	deviceClient.Publish(topic, qos, retained, jsonData)
-
-	driver.Logger.Info(fmt.Sprintf("Publish command: %v", string(jsonData)))
-
-	// wait and fetch response from CommandResponses map
-	var cmdResponse string
-	var ok bool
-	for i := 0; i < 5; i++ {
-		cmdResponse, ok = d.CommandResponses[cmdUuid]
-		if ok {
-			break
-		} else {
-			time.Sleep(time.Second * time.Duration(1))
-		}
-	}
-
-	if !ok {
-		err = fmt.Errorf("can not fetch command response: method=%v cmd=%v", method, cmd)
-		return err
-	}
-
-	driver.Logger.Info(fmt.Sprintf("Put command finished: %v", cmdResponse))*/
-
+// HandleWriteCommands ignores all requests; write commands (PUT requests) are not currently supported.
+func (d *Driver) HandleWriteCommands(deviceName string, protocols map[string]models.ProtocolProperties, reqs []sdkModel.CommandRequest, params []*sdkModel.CommandValue) error {
 	return nil
 }
 
-func (*Driver) Stop(force bool) error {
-	panic("implement me")
+// Stop instructs the protocol-specific DS code to shutdown gracefully, or
+// if the force parameter is 'true', immediately. The driver is responsible
+// for closing any in-use channels, including the channel used to send async
+// readings (if supported).
+func (d *Driver) Stop(force bool) error {
+	close(d.done)
+	close(d.AsyncCh)
+	return nil
 }
 
 // Create a MQTT client
-func createClient(clientID string, uri *url.URL, keepAlive int) (MQTT.Client, error) {
-	driver.Logger.Info(fmt.Sprintf("Create MQTT client and connection: uri=%v clientID=%v ", uri.String(), clientID))
+func createClient(clientID string, uri *url.URL, keepAlive int, onConn MQTT.OnConnectHandler) (MQTT.Client, error) {
+	driver.Logger.Info("Create MQTT client and connection", "uri", uri.String(), "clientId", clientID)
 	opts := MQTT.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("%s://%s", uri.Scheme, uri.Host))
 	opts.SetClientID(clientID)
@@ -296,17 +233,29 @@ func createClient(clientID string, uri *url.URL, keepAlive int) (MQTT.Client, er
 	password, _ := uri.User.Password()
 	opts.SetPassword(password)
 	opts.SetKeepAlive(time.Second * time.Duration(keepAlive))
+
+	if onConn != nil {
+		opts.SetOnConnectHandler(onConn)
+	}
+
 	opts.SetConnectionLostHandler(func(client MQTT.Client, e error) {
-		driver.Logger.Warn(fmt.Sprintf("Connection lost : %v", e))
+		driver.Logger.Warn("Connection lost", "cause", e)
 		token := client.Connect()
 		if token.Wait() && token.Error() != nil {
-			driver.Logger.Warn(fmt.Sprintf("Reconnection failed : %v", token.Error()))
+			// todo: the main incomingListener client should probably panic() if it can't re-connect after X tries
+			driver.Logger.Warn("Reconnection failed", "cause", token.Error())
+			// PANIC!!!
+			panic(errors.Wrap(token.Error(), "unable to re-connect to mqtt broker"))
 		} else {
-			driver.Logger.Warn(fmt.Sprintf("Reconnection sucessful"))
+			driver.Logger.Warn("Reconnection successful")
 		}
 	})
+
+	// todo: this should probably *not* be hardcoded
 	opts.SetTLSConfig(&tls.Config{InsecureSkipVerify: true})
 
+	// todo: this method could probably keep a cache of clients, hashed by their
+	//   incoming uri + clientID; if it's not a bottleneck, then it's probably not worth it.
 	client := MQTT.NewClient(opts)
 	token := client.Connect()
 	if token.Wait() && token.Error() != nil {
@@ -316,91 +265,19 @@ func createClient(clientID string, uri *url.URL, keepAlive int) (MQTT.Client, er
 	return client, nil
 }
 
-func newResult(deviceObject models.DeviceObject, ro models.ResourceOperation, reading interface{}) (*sdkModel.CommandValue, error) {
-	var result = &sdkModel.CommandValue{}
-	var err error
-	var resTime = time.Now().UnixNano() / int64(time.Millisecond)
-
-	switch deviceObject.Properties.Value.Type {
-	case "Bool":
-		result, err = sdkModel.NewBoolValue(&ro, resTime, reading.(bool))
-	case "String":
-		result = sdkModel.NewStringValue(&ro, resTime, reading.(string))
-	case "Uint8":
-		result, err = sdkModel.NewUint8Value(&ro, resTime, reading.(uint8))
-	case "Uint16":
-		result, err = sdkModel.NewUint16Value(&ro, resTime, reading.(uint16))
-	case "Uint32":
-		result, err = sdkModel.NewUint32Value(&ro, resTime, reading.(uint32))
-	case "Uint64":
-		result, err = sdkModel.NewUint64Value(&ro, resTime, reading.(uint64))
-	case "Int8":
-		result, err = sdkModel.NewInt8Value(&ro, resTime, reading.(int8))
-	case "Int16":
-		result, err = sdkModel.NewInt16Value(&ro, resTime, reading.(int16))
-	case "Int32":
-		result, err = sdkModel.NewInt32Value(&ro, resTime, reading.(int32))
-	case "Int64":
-		result, err = sdkModel.NewInt64Value(&ro, resTime, reading.(int64))
-	case "Float32":
-		result, err = sdkModel.NewFloat32Value(&ro, resTime, reading.(float32))
-	case "Float64":
-		result, err = sdkModel.NewFloat64Value(&ro, resTime, reading.(float64))
-	default:
-		err = fmt.Errorf("return result fail, none supported value type: %v", deviceObject.Properties.Value.Type)
-	}
-
-	return result, err
-}
-
-// Commented out as Intel is not handling command put requests
-/*func newCommandValue(deviceObject models.DeviceObject, param *sdkModel.CommandValue) (interface{}, error) {
-	var commandValue interface{}
-	var err error
-	switch deviceObject.Properties.Value.Type {
-	case "Bool":
-		commandValue, err = param.BoolValue()
-	case "String":
-		commandValue, err = param.StringValue()
-	case "Uint8":
-		commandValue, err = param.Uint8Value()
-	case "Uint16":
-		commandValue, err = param.Uint16Value()
-	case "Uint32":
-		commandValue, err = param.Uint32Value()
-	case "Uint64":
-		commandValue, err = param.Uint64Value()
-	case "Int8":
-		commandValue, err = param.Int8Value()
-	case "Int16":
-		commandValue, err = param.Int16Value()
-	case "Int32":
-		commandValue, err = param.Int32Value()
-	case "Int64":
-		commandValue, err = param.Int64Value()
-	case "Float32":
-		commandValue, err = param.Float32Value()
-	case "Float64":
-		commandValue, err = param.Float64Value()
-	default:
-		err = fmt.Errorf("return result fail, none supported value type: %v", deviceObject.Properties.Value.Type)
-	}
-
-	return commandValue, err
-}*/
-
 // fetchCommandResponse use to wait and fetch response from CommandResponses map
-func fetchCommandResponse(commandResponses map[string]string, id string) (string, bool) {
-	var cmdResponse string
+func (d *Driver) fetchCommandResponse(cmdUuid string) (string, bool) {
+	var cmdResponse interface{}
 	var ok bool
 	for i := 0; i < 5; i++ {
-		cmdResponse, ok = commandResponses[id]
+		cmdResponse, ok = d.CommandResponses.Load(cmdUuid)
 		if ok {
+			d.CommandResponses.Delete(cmdUuid)
 			break
 		} else {
 			time.Sleep(time.Second * time.Duration(1))
 		}
 	}
 
-	return cmdResponse, ok
+	return fmt.Sprintf("%v", cmdResponse), ok
 }

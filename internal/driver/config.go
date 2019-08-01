@@ -1,6 +1,6 @@
 // -*- Mode: Go; indent-tabs-mode: t -*-
 //
-// Copyright (C) 2018 IOTech Ltd
+// Copyright (C) 2019 IOTech Ltd
 //
 // SPDX-License-Identifier: Apache-2.0
 
@@ -26,56 +26,124 @@
 package driver
 
 import (
-	"flag"
 	"fmt"
-	"io/ioutil"
+	"reflect"
+	"strconv"
+	"strings"
 
-	"github.com/BurntSushi/toml"
+	"github.com/edgexfoundry/go-mod-core-contracts/models"
 )
 
-// Intel added Command field to the struct
+// ConnectionInfo holds the values for connecting to an MQTT device.
+type ConnectionInfo struct {
+	Scheme   string
+	Host     string
+	Port     string
+	User     string
+	Password string
+	ClientId string
+	Topics   []string
+}
+
+// configuration holds the values for the device configuration, including what
+// MQTT broker to connect to for incoming data and command responses.
 type configuration struct {
-	Incoming SubscribeInfo
-	Command  SubscribeInfo
-	Response SubscribeInfo
+	// DeviceName is used when sending messages that came in on the IncomingTopics
+	DeviceName              string
+	OnConnectPublishTopic   string
+	OnConnectPublishMessage string
+
+	// IncomingTopics provide reads to be sent to EdgeX.
+	IncomingTopics    []string
+	IncomingScheme    string
+	IncomingHost      string
+	IncomingPort      int
+	IncomingUser      string
+	IncomingPassword  string
+	IncomingQos       int
+	IncomingKeepAlive int
+	IncomingClientId  string
+
+	// ResponseTopics provide replies to commands.
+	ResponseTopics    []string
+	ResponseScheme    string
+	ResponseHost      string
+	ResponsePort      int
+	ResponseUser      string
+	ResponsePassword  string
+	ResponseQos       int
+	ResponseKeepAlive int
+	ResponseClientId  string
 }
 
-type SubscribeInfo struct {
-	Protocol     string
-	Host         string
-	Port         int
-	Username     string
-	Password     string
-	Qos          int
-	KeepAlive    int
-	MqttClientId string
-	Topics       []string
-	MetaDataPort int
-}
-
-// LoadConfigFromFile use to load toml configuration
-func LoadConfigFromFile() (*configuration, error) {
+// CreateDriverConfig use to load driver config for incoming listener and response listener
+func CreateDriverConfig(configMap map[string]string) (*configuration, error) {
 	config := new(configuration)
-
-	confDir := flag.Lookup("confdir").Value.(flag.Getter).Get().(string)
-	if confDir == "" {
-		confDir = flag.Lookup("c").Value.(flag.Getter).Get().(string)
-	}
-
-	if confDir == "" {
-		confDir = "./res"
-	}
-
-	filePath := fmt.Sprintf("%v/configuration-driver.toml", confDir)
-
-	file, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		return config, fmt.Errorf("could not load configuration file (%s): %v", filePath, err.Error())
-	}
-
-	err = toml.Unmarshal(file, config)
-	if err != nil {
-		return config, fmt.Errorf("unable to parse configuration file (%s): %v", filePath, err.Error())
-	}
+	err := load(configMap, config)
 	return config, err
+}
+
+// CreateConnectionInfo use to load MQTT connectionInfo for read and write command
+func CreateConnectionInfo(protocols map[string]models.ProtocolProperties) (*ConnectionInfo, error) {
+	info := new(ConnectionInfo)
+	protocol, ok := protocols[Protocol]
+	if !ok {
+		return info, fmt.Errorf("config is missing %s protocol", Protocol)
+	}
+
+	err := load(protocol, info)
+	if err != nil {
+		return info, err
+	}
+	return info, nil
+}
+
+// load by reflect to check map key and then fetch the value
+func load(config map[string]string, des interface{}) error {
+	val := reflect.ValueOf(des).Elem()
+	for i := 0; i < val.NumField(); i++ {
+		typeField := val.Type().Field(i)
+		valueField := val.Field(i)
+
+		val, ok := config[typeField.Name]
+		if !ok {
+			return fmt.Errorf("config is missing property '%s'", typeField.Name)
+		}
+		if !valueField.CanSet() {
+			return fmt.Errorf("cannot set field '%s'", typeField.Name)
+		}
+
+		switch valueField.Kind() {
+		case reflect.Int:
+			intVal, err := strconv.Atoi(val)
+			if err != nil {
+				return err
+			}
+			valueField.SetInt(int64(intVal))
+		case reflect.String:
+			valueField.SetString(val)
+		case reflect.Slice:
+			splitVals := strings.Split(val, ",")
+			var slice reflect.Value
+			switch typeField.Type.Elem().Kind() {
+			case reflect.String:
+				slice = reflect.ValueOf(splitVals)
+			case reflect.Int:
+				slice = reflect.MakeSlice(valueField.Elem().Type(), len(splitVals), len(splitVals))
+				for idx, toConvert := range splitVals {
+					intVal, err := strconv.Atoi(toConvert)
+					if err != nil {
+						return err
+					}
+					slice.Index(idx).SetInt(int64(intVal))
+				}
+			}
+			slice = reflect.AppendSlice(valueField, slice)
+			valueField.Set(slice)
+		default:
+			return fmt.Errorf("config uses unsupported property kind "+
+				"%v for field %v", valueField.Kind(), typeField.Name)
+		}
+	}
+	return nil
 }

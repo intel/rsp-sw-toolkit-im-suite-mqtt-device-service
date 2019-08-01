@@ -1,9 +1,3 @@
-// -*- Mode: Go; indent-tabs-mode: t -*-
-//
-// Copyright (C) 2018 IOTech Ltd
-//
-// SPDX-License-Identifier: Apache-2.0
-
 /*
  * INTEL CONFIDENTIAL
  * Copyright (2017) Intel Corporation.
@@ -23,9 +17,10 @@
  * notice embedded in Materials by Intel or Intel's suppliers or licensors in any way.
  */
 
+// Intel modified the project name from device-mqtt-go to mqtt-device-service
+
 package main
 
-// Intel modified mqtt-device-service imports to get the modified service from Intel repository
 import (
 	"github.com/edgexfoundry/device-sdk-go/pkg/startup"
 	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service"
@@ -33,11 +28,10 @@ import (
 )
 
 const (
-	version     string = device_mqtt.Version
 	serviceName string = "mqtt-device-service"
 )
 
 func main() {
 	sd := driver.NewProtocolDriver()
-	startup.Bootstrap(serviceName, version, sd)
+	startup.Bootstrap(serviceName, mqtt_device_service.Version, sd)
 }

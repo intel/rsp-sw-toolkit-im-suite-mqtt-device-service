@@ -1,5 +1,3 @@
-package models
-
 /*
  * INTEL CONFIDENTIAL
  * Copyright (2017) Intel Corporation.
@@ -19,17 +17,23 @@ package models
  * notice embedded in Materials by Intel or Intel's suppliers or licensors in any way.
  */
 
-// Json request from EdgeX to gateway
-type JsonRequest struct {
-	JsonRpc string `json:"jsonrpc"`
-	Id      string `json:"id"`
-	Method  string `json:"method"`
-}
+package models
+
+import (
+	"encoding/json"
+)
 
 // Json response from the gateway
 type JsonResponse struct {
-	JsonRpc string      `json:"jsonrpc"`
-	Id      string      `json:"id"`
-	Result  interface{} `json:"result"`
-	Error   interface{} `json:"error"`
+	Version string          `json:"jsonrpc"`
+	Id      string          `json:"id"`
+	Result  json.RawMessage `json:"result"`
+	Error   json.RawMessage `json:"error"`
+}
+
+type JsonRequest struct {
+	Version string          `json:"jsonrpc"`
+	Id      string          `json:"id"`
+	Method  string          `json:"method"`
+	Params  json.RawMessage `json:"params,omitempty"`
 }
