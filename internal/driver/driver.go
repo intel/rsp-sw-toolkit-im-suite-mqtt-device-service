@@ -48,9 +48,9 @@ var once sync.Once
 var driver *Driver
 
 const (
-	jsonRpcVersion = "2.0"
-	qos            = byte(1)
-	retained       = false
+	jsonRpcVersion    = "2.0"
+	qos               = byte(1)
+	retained          = false
 )
 
 type Driver struct {
@@ -135,7 +135,6 @@ func (d *Driver) HandleReadCommands(deviceName string, protocols map[string]mode
 	defer client.Disconnect(5000)
 
 	for i, req := range reqs {
-		driver.Logger.Info("Name of the device", deviceName)
 		res, err := d.handleReadCommandRequest(deviceName, client, req, connectionInfo.Topics)
 		if err != nil {
 			driver.Logger.Warn("Handle read commands failed", "cause", err)
@@ -160,6 +159,8 @@ func (d *Driver) handleReadCommandRequest(deviceName string, deviceClient MQTT.C
 		Id:      uuid.New().String(),
 	}
 
+	// Sensor devices start with "RSP", this will not be needed in near future as Edgex is going to support GET requests with query parameters
+	// If the device is sensor add the device_id as params to the command request
 	if strings.HasPrefix(deviceName, "RSP") {
 		deviceIdParam := commandModel.DeviceIdParam{deviceName}
 		request.Params, err = json.Marshal(deviceIdParam)
@@ -169,19 +170,19 @@ func (d *Driver) handleReadCommandRequest(deviceName string, deviceClient MQTT.C
 		}
 	}
 
-	jsonData, err := json.Marshal(request)
+	// marshal request to jsonrpc format
+	jsonRpcRequest, err := json.Marshal(request)
 	if err != nil {
 		err = fmt.Errorf("marshalling of command request failed: error=%v", err)
 		return nil, err
 	}
 
+	//Publish the command request
 	for _, topic := range topics {
-		deviceClient.Publish(topic, qos, retained, jsonData)
+		deviceClient.Publish(topic, qos, retained, jsonRpcRequest)
 	}
+	driver.Logger.Info("Publish command", "command", string(jsonRpcRequest))
 
-	driver.Logger.Info("Publish command", "command", string(jsonData))
-
-	// fetch response from MQTT broker after publish command successful
 	cmdResponse, ok := d.fetchCommandResponse(request.Id)
 	if !ok {
 		err = fmt.Errorf("no command response or getting response delayed for method=%v", request.Method)
@@ -195,14 +196,13 @@ func (d *Driver) handleReadCommandRequest(deviceName string, deviceClient MQTT.C
 		return nil, err
 	}
 
-	// Parse response to extract result or error field
+	// Parse response to extract result or error field from the jsonrpc response
 	var reading string
 	_, ok = responseMap["result"]
 	if ok {
 		reading = string(responseMap["result"])
 	} else {
 		_, ok = responseMap["error"]
-		// error response is handled as ok (200 http code) as EdgeX command service returns only 500 error code with no message
 		if ok {
 			reading = string(responseMap["error"])
 		} else {
@@ -280,7 +280,7 @@ func createClient(clientID string, uri *url.URL, keepAlive int, onConn MQTT.OnCo
 func (d *Driver) fetchCommandResponse(cmdUuid string) (string, bool) {
 	var cmdResponse interface{}
 	var ok bool
-	for i := 0; i < 10; i++ {
+	for i := 0; i < d.Config.MaxWaitTimeForReq; i++ {
 		cmdResponse, ok = d.CommandResponses.Load(cmdUuid)
 		if ok {
 			d.CommandResponses.Delete(cmdUuid)

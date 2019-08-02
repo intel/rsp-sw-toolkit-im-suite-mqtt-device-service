@@ -18,9 +18,12 @@ const (
 	Topics   = "Topics"
 
 	// Driver config
-	DeviceName              = "DeviceName"
+	ControllerName          = "ControllerName"
+	SensorClientId			= "SensorClientId"
+	MaxWaitTimeForReq 		= "MaxWaitTimeForReq"
 	OnConnectPublishTopic   = "OnConnectPublishTopic"
 	OnConnectPublishMessage = "OnConnectPublishMessage"
+
 
 	// Incoming connection info
 	IncomingScheme    = "IncomingScheme"

@@ -1,13 +1,13 @@
 name: "Sensor.Device.MQTT.Profile"
 manufacturer: "Intel"
-model: "MQTT-Sensor"
+model: "RSP RFID Reader"
 labels:
 - "RFID"
-description: "Sensor profile"
+description: "Sensor device profile"
 deviceResources:
 -
   name: sensor_get_basic_info
-  description: "information of a sensor"
+  description: "information of a sensor known to RSP-controller"
   attributes:
     { name: "sensor_get_basic_info" }
   properties:
@@ -114,7 +114,7 @@ coreCommands:
     responses:
       -
         code: "200"
-        description: "information of a sensor"
+        description: "information of a sensor known to RSP-controller"
         expectedValues: ["sensor_get_basic_info"]
       -
         code: "500"

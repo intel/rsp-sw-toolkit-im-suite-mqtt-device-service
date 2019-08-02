@@ -16,6 +16,7 @@ import (
 )
 
 const sensorHeartbeat = "heartbeat"
+const sensorDeviceProfile = "Sensor.Device.MQTT.Profile"
 
 func replaceMessagePlaceholders(message string) string {
 	id := uuid.New().String()
@@ -95,34 +96,38 @@ func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
 	}
 
 	if resourceName == sensorHeartbeat {
-
-		var responseMap map[string]interface{}
-		if err := json.Unmarshal(incomingData.Params, &responseMap); err != nil {
-			err = fmt.Errorf("unmarshalling of heartbeat params failed: error=%v", err)
+		var heartbeat map[string]interface{}
+		if err := json.Unmarshal(incomingData.Params, &heartbeat); err != nil {
+			driver.Logger.Error(fmt.Sprintf("Unmarshalling of sensor heartbeat params failed: %+v", err))
 			return
 		}
-		deviceId := responseMap["device_id"].(string)
-		driver.Logger.Info("Sensor device id", deviceId)
+		deviceId := heartbeat["device_id"].(string)
 
-		_, _ = sdk.RunningService().AddDevice(edgexModels.Device{
-			Name: deviceId,
-			AdminState: edgexModels.Unlocked,
+		// Registering sensor devices in Edgex
+		_, err := sdk.RunningService().AddDevice(edgexModels.Device{
+			Name:           deviceId,
+			AdminState:     edgexModels.Unlocked,
 			OperatingState: edgexModels.Enabled,
-			Protocols: map[string]edgexModels.ProtocolProperties {
+			Protocols: map[string]edgexModels.ProtocolProperties{
 				"mqtt": {
 					"Scheme":   conf.IncomingScheme,
 					"Host":     conf.IncomingHost,
 					"Port":     fmt.Sprintf("%d", conf.IncomingPort),
 					"User":     conf.IncomingUser,
 					"Password": conf.IncomingPassword,
-					"ClientId": conf.OnConnectPublishClientId,
+					"ClientId": conf.SensorClientId,
 					"Topics":   conf.OnConnectPublishTopic,
 				},
 			},
 			Profile: edgexModels.DeviceProfile{
-				Name: "Sensor.Device.MQTT.Profile",
+				Name: sensorDeviceProfile,
 			},
 		})
+		if err != nil {
+			driver.Logger.Error(fmt.Sprintf("Registering of sensor device %v failed: %v", deviceId, err))
+			return
+		}
+
 	}
 
 	origin := time.Now().UnixNano() / int64(time.Millisecond)
@@ -134,7 +139,9 @@ func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
 		"msgLen", len(message.Payload()))
 
 	driver.AsyncCh <- &sdkModel.AsyncValues{
-		DeviceName:    driver.Config.DeviceName,
+		DeviceName:    driver.Config.ControllerName,
 		CommandValues: []*sdkModel.CommandValue{value},
 	}
 }
+
+

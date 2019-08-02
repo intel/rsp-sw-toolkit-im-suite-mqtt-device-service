@@ -33,12 +33,13 @@ type JsonResponse struct {
 
 // Json request to the RSP-controller from Edgex
 type JsonRequest struct {
-	Version string        `json:"jsonrpc"`
-	Id      string        `json:"id"`
-	Method  string        `json:"method"`
+	Version string          `json:"jsonrpc"`
+	Id      string          `json:"id"`
+	Method  string          `json:"method"`
 	Params  json.RawMessage `json:"params,omitempty"`
 }
 
+// Device_id parameter used in some command requests to RSP-controller
 type DeviceIdParam struct {
 	DeviceId string `json:"device_id"`
 }

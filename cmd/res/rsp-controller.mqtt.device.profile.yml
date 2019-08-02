@@ -4,7 +4,7 @@ model: "RSP-controller"
 labels:
 - "RFID"
 - "MQTT"
-description: "RFID RSP-controller MQTT Device Service"
+description: "RSP-controller device profile"
 
 # there must be a DeviceResource and ResourceOperation with GET for any data the
 # MQTT device service will push, even if it's just event data, because the Device
@@ -34,7 +34,7 @@ deviceResources:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
   name: sensor_config_notification
-  description: "sensor_config_notification"
+  description: "Sensor config notification"
   attributes:
     { name: "sensor_config_notification" }
   properties:
@@ -44,7 +44,7 @@ deviceResources:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
   name: sensor_connection_state_notification
-  description: "sensor_connection_state_notification"
+  description: "Sensor connection state notification"
   attributes:
     { name: "sensor_connection_state_notification" }
   properties:
@@ -94,7 +94,7 @@ deviceResources:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
   name: rsp_status
-  description: "RSP Status"
+  description: "RSP/Sensor Status"
   attributes:
     { name: "rsp_status" }
   properties:
@@ -144,7 +144,7 @@ deviceResources:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
   name: upstream_get_mqtt_status
-  description: "info of MQTT broker connected to RSP-controller and EdgeX"
+  description: "info of MQTT broker connection to RSP-controller"
   attributes:
     { name: "upstream_get_mqtt_status" }
   properties:
@@ -154,7 +154,7 @@ deviceResources:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
   name: downstream_get_mqtt_status
-  description: "info of MQTT sensor connection"
+  description: "info of MQTT broker connection to Sensor"
   attributes:
     { name: "downstream_get_mqtt_status" }
   properties:
@@ -174,7 +174,7 @@ deviceResources:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
   name: scheduler_get_run_state
-  description: "run state of scheduler"
+  description: "run state of the scheduler"
   attributes:
     { name: "scheduler_get_run_state" }
   properties:
@@ -313,7 +313,7 @@ coreCommands:
     responses:
       -
         code: "200"
-        description: "info of MQTT broker connected to RSP-controller and EdgeX"
+        description: "info of MQTT broker connection to RSP-controller"
         expectedValues: ["upstream_get_mqtt_status"]
       -
         code: "500"
@@ -326,7 +326,7 @@ coreCommands:
     responses:
       -
         code: "200"
-        description: "info of MQTT sensor connection"
+        description: "info of MQTT connection to RSP/Sensor"
         expectedValues: ["downstream_get_mqtt_status"]
       -
         code: "500"
@@ -339,7 +339,7 @@ coreCommands:
     responses:
       -
         code: "200"
-        description: "info of MQTT sensor connection"
+        description: "clear gpio mappings"
         expectedValues: ["gpio_clear_mappings"]
       -
         code: "500"
@@ -352,7 +352,7 @@ coreCommands:
     responses:
       -
         code: "200"
-        description: "run state of scheduler"
+        description: "run state of the scheduler"
         expectedValues: ["scheduler_get_run_state"]
       -
         code: "500"
