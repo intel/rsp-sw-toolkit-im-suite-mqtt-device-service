@@ -111,7 +111,7 @@ func TestCreateDriverConfig(t *testing.T) {
 	}
 	if driverConfig.ControllerName != configs[ControllerName] ||
 		driverConfig.IncomingScheme != configs[IncomingScheme] || driverConfig.IncomingHost != configs[IncomingHost] ||
-		driverConfig.IncomingPort != 1883 || driverConfig.IncomingUser != configs[IncomingUser] ||
+		driverConfig.IncomingPort != configs[IncomingPort] || driverConfig.IncomingUser != configs[IncomingUser] ||
 		driverConfig.IncomingPassword != configs[IncomingPassword] || driverConfig.IncomingQos != 0 ||
 		driverConfig.IncomingKeepAlive != 3600 || driverConfig.IncomingClientId != configs[IncomingClientId] ||
 		driverConfig.IncomingTopics[0] != configs[IncomingTopics] ||

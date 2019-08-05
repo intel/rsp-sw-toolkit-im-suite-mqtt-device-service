@@ -47,7 +47,7 @@ func startIncomingListening(done <-chan interface{}) error {
 		conf.IncomingClientId,
 		&url.URL{
 			Scheme: strings.ToLower(conf.IncomingScheme),
-			Host:   fmt.Sprintf("%s:%d", conf.IncomingHost, conf.IncomingPort),
+			Host:   fmt.Sprintf("%s:%s", conf.IncomingHost, conf.IncomingPort),
 			User:   url.UserPassword(conf.IncomingUser, conf.IncomingPassword),
 		},
 		conf.IncomingKeepAlive, onMqttConnect)
@@ -72,8 +72,6 @@ func startIncomingListening(done <-chan interface{}) error {
 }
 
 func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
-	conf := *driver.Config
-
 	var incomingData models.JsonRequest
 	if err := json.Unmarshal(message.Payload(), &incomingData); err != nil {
 		driver.Logger.Error(fmt.Sprintf("Unmarshal failed: %+v", err))
@@ -95,39 +93,12 @@ func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
 		return
 	}
 
+	// register new sensor device in Edgex to be able to send GET command requests with params to rsp-controller
 	if resourceName == sensorHeartbeat {
-		var heartbeat map[string]interface{}
-		if err := json.Unmarshal(incomingData.Params, &heartbeat); err != nil {
-			driver.Logger.Error(fmt.Sprintf("Unmarshalling of sensor heartbeat params failed: %+v", err))
-			return
-		}
-		deviceId := heartbeat["device_id"].(string)
-
-		// Registering sensor devices in Edgex
-		_, err := sdk.RunningService().AddDevice(edgexModels.Device{
-			Name:           deviceId,
-			AdminState:     edgexModels.Unlocked,
-			OperatingState: edgexModels.Enabled,
-			Protocols: map[string]edgexModels.ProtocolProperties{
-				"mqtt": {
-					"Scheme":   conf.IncomingScheme,
-					"Host":     conf.IncomingHost,
-					"Port":     fmt.Sprintf("%d", conf.IncomingPort),
-					"User":     conf.IncomingUser,
-					"Password": conf.IncomingPassword,
-					"ClientId": conf.SensorClientId,
-					"Topics":   conf.OnConnectPublishTopic,
-				},
-			},
-			Profile: edgexModels.DeviceProfile{
-				Name: sensorDeviceProfile,
-			},
-		})
+		err := registerSensor(incomingData)
 		if err != nil {
-			driver.Logger.Error(fmt.Sprintf("Registering of sensor device %v failed: %v", deviceId, err))
 			return
 		}
-
 	}
 
 	origin := time.Now().UnixNano() / int64(time.Millisecond)
@@ -142,6 +113,45 @@ func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
 		DeviceName:    driver.Config.ControllerName,
 		CommandValues: []*sdkModel.CommandValue{value},
 	}
+}
+
+func registerSensor(incomingData models.JsonRequest) error {
+	var heartbeat map[string]interface{}
+	conf := *driver.Config
+
+	if err := json.Unmarshal(incomingData.Params, &heartbeat); err != nil {
+		driver.Logger.Error(fmt.Sprintf("Unmarshalling of sensor heartbeat params failed: %+v", err))
+		return err
+	}
+	deviceId := heartbeat["device_id"].(string)
+
+	// Registering sensor devices in Edgex
+	_, err := sdk.RunningService().AddDevice(edgexModels.Device{
+		Name:           deviceId,
+		AdminState:     edgexModels.Unlocked,
+		OperatingState: edgexModels.Enabled,
+		Protocols: map[string]edgexModels.ProtocolProperties{
+			"mqtt": {
+				"Scheme":   conf.IncomingScheme,
+				"Host":     conf.IncomingHost,
+				"Port":     conf.IncomingPort,
+				"User":     conf.IncomingUser,
+				"Password": conf.IncomingPassword,
+				"ClientId": conf.SensorClientId,
+				"Topics":   conf.OnConnectPublishTopic,
+			},
+		},
+		Profile: edgexModels.DeviceProfile{
+			Name: sensorDeviceProfile,
+		},
+	})
+	if err != nil {
+		driver.Logger.Error(fmt.Sprintf("Registering of sensor device %v failed: %v", deviceId, err))
+		return err
+	} else {
+		driver.Logger.Info("Sensor with device_id %v successfully registered", deviceId)
+	}
+	return nil
 }
 
 

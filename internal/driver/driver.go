@@ -188,7 +188,6 @@ func (d *Driver) handleReadCommandRequest(deviceName string, deviceClient MQTT.C
 		err = fmt.Errorf("no command response or getting response delayed for method=%v", request.Method)
 		return nil, err
 	}
-	driver.Logger.Info("Command response", "response", cmdResponse)
 
 	var responseMap map[string]json.RawMessage
 	if err := json.Unmarshal([]byte(cmdResponse), &responseMap); err != nil {

@@ -59,7 +59,7 @@ type configuration struct {
 	IncomingTopics    []string
 	IncomingScheme    string
 	IncomingHost      string
-	IncomingPort      int
+	IncomingPort      string
 	IncomingUser      string
 	IncomingPassword  string
 	IncomingQos       int
