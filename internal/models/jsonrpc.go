@@ -23,7 +23,7 @@ import (
 	"encoding/json"
 )
 
-// Json response from the RSP-controller
+// Json response from the RSP Controller
 type JsonResponse struct {
 	Version string          `json:"jsonrpc"`
 	Id      string          `json:"id"`
@@ -31,7 +31,7 @@ type JsonResponse struct {
 	Error   json.RawMessage `json:"error"`
 }
 
-// Json request to the RSP-controller from Edgex
+// Json request to the RSP Controller from Edgex
 type JsonRequest struct {
 	Version string          `json:"jsonrpc"`
 	Id      string          `json:"id"`
@@ -39,7 +39,7 @@ type JsonRequest struct {
 	Params  json.RawMessage `json:"params,omitempty"`
 }
 
-// Device_id parameter used in some command requests to RSP-controller
+// Device_id parameter used in some command requests to RSP Controller
 type DeviceIdParam struct {
 	DeviceId string `json:"device_id"`
 }
