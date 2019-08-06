@@ -49,7 +49,7 @@ type ConnectionInfo struct {
 // MQTT broker to connect to for incoming data and command responses.
 type configuration struct {
 	ControllerName string
-	SensorClientId string
+	RSPMqttClientId string
 	MaxWaitTimeForReq int
 
 	OnConnectPublishTopic   string

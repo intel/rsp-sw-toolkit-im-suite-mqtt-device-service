@@ -48,9 +48,9 @@ var once sync.Once
 var driver *Driver
 
 const (
-	jsonRpcVersion    = "2.0"
-	qos               = byte(1)
-	retained          = false
+	jsonRpcVersion = "2.0"
+	qos            = byte(1)
+	retained       = false
 )
 
 type Driver struct {
@@ -162,7 +162,7 @@ func (d *Driver) handleReadCommandRequest(deviceName string, deviceClient MQTT.C
 	// Sensor devices start with "RSP", this will not be needed in near future as Edgex is going to support GET requests with query parameters
 	// If the device is sensor add the device_id as params to the command request
 	if strings.HasPrefix(deviceName, "RSP") {
-		deviceIdParam := commandModel.DeviceIdParam{deviceName}
+		deviceIdParam := commandModel.DeviceIdParam{DeviceId: deviceName}
 		request.Params, err = json.Marshal(deviceIdParam)
 		if err != nil {
 			err = fmt.Errorf("marshalling of command parameters failed: error=%v", err)

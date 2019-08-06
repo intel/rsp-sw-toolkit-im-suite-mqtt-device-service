@@ -19,7 +19,7 @@ const (
 
 	// Driver config
 	ControllerName          = "ControllerName"
-	SensorClientId          = "SensorClientId"
+	RSPMqttClientId         = "RSPMqttClientId"
 	MaxWaitTimeForReq       = "MaxWaitTimeForReq"
 	OnConnectPublishTopic   = "OnConnectPublishTopic"
 	OnConnectPublishMessage = "OnConnectPublishMessage"

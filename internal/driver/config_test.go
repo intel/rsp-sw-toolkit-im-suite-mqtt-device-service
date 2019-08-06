@@ -90,7 +90,7 @@ func TestCreateConnectionInfo_fail(t *testing.T) {
 func TestCreateDriverConfig(t *testing.T) {
 	configs := map[string]string{
 		ControllerName: "test-device",
-		SensorClientId: "",
+		RSPMqttClientId: "",
 		MaxWaitTimeForReq: "10",
 
 		OnConnectPublishTopic: "", OnConnectPublishMessage: "",

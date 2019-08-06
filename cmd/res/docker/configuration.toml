@@ -75,7 +75,7 @@ LogLevel = "DEBUG"
 # device name used for sending data received on the IncomingTopics into Edgex
 ControllerName = "rsp-controller"
 # mqtt clientId required to register sensor devices
-SensorClientId = "CommandPublisher"
+RSPMqttClientId = "CommandPublisher"
 # topic and message to publish to mqtt when the client is connected
 OnConnectPublishTopic = "rfid/controller/command"
 # {{uuid}} will be replaced at runtime with a generated uuid value
@@ -100,7 +100,8 @@ IncomingPassword = ""
 IncomingQos = "1"
 IncomingKeepAlive = "3600"
 IncomingClientId = "IncomingDataSubscriber"
-IncomingTopics = "rfid/controller/events,rfid/controller/alerts,rfid/controller/heartbeat,rfid/controller/notification,rfid/rsp/data/+,rfid/rsp/rsp_status/+"
+#IncomingTopics = "rfid/controller/events,rfid/controller/alerts,rfid/controller/heartbeat,rfid/controller/notification,rfid/rsp/data/+,rfid/rsp/rsp_status/+"
+IncomingTopics = "rfid/rsp/rsp_status/+"
 
 ResponseScheme = "tcp"
 ResponseHost = "mosquitto-server"
