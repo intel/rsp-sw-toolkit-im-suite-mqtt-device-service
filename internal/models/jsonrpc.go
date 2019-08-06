@@ -23,7 +23,7 @@ import (
 	"encoding/json"
 )
 
-// Json response from the RSP-controller
+// Json response from the RSP Controller
 type JsonResponse struct {
 	Version string          `json:"jsonrpc"`
 	Id      string          `json:"id"`
@@ -31,7 +31,7 @@ type JsonResponse struct {
 	Error   json.RawMessage `json:"error"`
 }
 
-// Json request to the RSP-controller from Edgex
+// Json request to the RSP Controller from Edgex
 type JsonRequest struct {
 	Version string          `json:"jsonrpc"`
 	Id      string          `json:"id"`
