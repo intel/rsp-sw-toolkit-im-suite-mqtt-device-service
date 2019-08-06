@@ -64,7 +64,7 @@ func startCommandResponseListening(done <-chan interface{}) error {
 	return nil
 }
 
-// Modified by Intel to handle responses from Intel open source gateway
+// Modified by Intel to handle responses from Intel open source RSP Controller
 func onCommandResponseReceived(_ mqtt.Client, message mqtt.Message) {
 	var response models.JsonResponse
 

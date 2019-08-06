@@ -1,10 +1,12 @@
-name: "Gateway.Device.MQTT.Profile"
+name: "RSP.Controller.Device.MQTT.Profile"
 manufacturer: "Intel"
-model: "MQTT-Gateway"
+model: "RSP Controller"
 labels:
 - "RFID"
 - "MQTT"
-description: "RFID Gateway MQTT Device Service"
+- "RSP"
+- "RSP-Controller"
+description: "RFID RSP Controller MQTT Device Service"
 
 # there must be a DeviceResource and ResourceOperation with GET for any data the
 # MQTT device service will push, even if it's just event data, because the Device
@@ -14,7 +16,7 @@ description: "RFID Gateway MQTT Device Service"
 deviceResources:
 -
   name: inventory_event
-  description: "Gateway Event"
+  description: "RSP Controller Event"
   attributes:
     { name: "inventory_event" }
   properties:
@@ -54,7 +56,7 @@ deviceResources:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
   name: device_alert
-  description: "Gateway Alert"
+  description: "RSP Controller Alert"
   attributes:
     { name: "device_alert" }
   properties:
@@ -63,10 +65,10 @@ deviceResources:
     units:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
-  name: gateway_heartbeat
-  description: "Gateway Heartbeat"
+  name: controller_heartbeat
+  description: "RSP Controller Heartbeat"
   attributes:
-    { name: "gateway_heartbeat" }
+    { name: "controller_heartbeat" }
   properties:
     value:
       { type: "String", readWrite: "R", defaultValue: "" }
@@ -77,16 +79,6 @@ deviceResources:
   description: "Sensor Heartbeat"
   attributes:
     { name: "heartbeat" }
-  properties:
-    value:
-      { type: "String", readWrite: "R", defaultValue: "" }
-    units:
-      { type: "String", readWrite: "R", defaultValue: "" }
--
-  name: gw_notification
-  description: "Gateway Jsonrpc Notification"
-  attributes:
-    { name: "gw_notification" }
   properties:
     value:
       { type: "String", readWrite: "R", defaultValue: "" }
@@ -114,7 +106,7 @@ deviceResources:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
   name: sensor_get_device_ids
-  description: "list of sensors known to the gateway"
+  description: "list of sensors known to the RSP Controller"
   attributes:
     { name: "sensor_get_device_ids" }
   properties:
@@ -124,7 +116,7 @@ deviceResources:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
   name: behavior_get_all
-  description: "all the behaviors of the gateway"
+  description: "all the behaviors of the RSP Controller"
   attributes:
     { name: "behavior_get_all" }
   properties:
@@ -134,7 +126,7 @@ deviceResources:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
   name: cluster_get_config
-  description: "cluster configuration of the gateway"
+  description: "cluster configuration of the RSP Controller"
   attributes:
     { name: "cluster_get_config" }
   properties:
@@ -144,7 +136,7 @@ deviceResources:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
   name: inventory_unload
-  description: "unload inventory in the gateway"
+  description: "unload inventory in the RSP Controller"
   attributes:
     { name: "inventory_unload" }
   properties:
@@ -154,7 +146,7 @@ deviceResources:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
   name: upstream_get_mqtt_status
-  description: "info of MQTT broker connected to gateway and EdgeX"
+  description: "info of MQTT broker connected to RSP Controller and EdgeX"
   attributes:
     { name: "upstream_get_mqtt_status" }
   properties:
@@ -185,17 +177,13 @@ deviceCommands:
   get:
     - { index: "1", operation: "get", object: "device_alert", parameter: "device_alert", property: "value" }
 -
-  name: gateway_heartbeat
+  name: controller_heartbeat
   get:
-    - { index: "1", operation: "get", object: "gateway_heartbeat", parameter: "gateway_heartbeat", property: "value" }
+    - { index: "1", operation: "get", object: "controller_heartbeat", parameter: "controller_heartbeat", property: "value" }
 -
   name: heartbeat
   get:
     - { index: "1", operation: "get", object: "heartbeat", parameter: "heartbeat", property: "value" }
--
-  name: gw_notification
-  get:
-    - { index: "1", operation: "get", object: "gw_notification", parameter: "gw_notification", property: "value" }
 -
   name: inventory_data
   get:
@@ -233,7 +221,7 @@ coreCommands:
     responses:
       -
         code: "200"
-        description: "list of sensors known to the gateway"
+        description: "list of sensors known to the RSP Controller"
         expectedValues: ["sensor_get_device_ids"]
       -
         code: "500"
@@ -246,7 +234,7 @@ coreCommands:
     responses:
       -
         code: "200"
-        description: "all the behaviors of the gateway"
+        description: "all the behaviors of the RSP Controller"
         expectedValues: ["behavior_get_all"]
       -
         code: "500"
@@ -259,7 +247,7 @@ coreCommands:
     responses:
       -
         code: "200"
-        description: "cluster configuration of the gateway"
+        description: "cluster configuration of the RSP Controller"
         expectedValues: ["cluster_get_config"]
       -
         code: "500"
@@ -272,7 +260,7 @@ coreCommands:
     responses:
       -
         code: "200"
-        description: "unload inventory in the gateway"
+        description: "unload inventory in the RSP Controller"
         expectedValues: ["inventory_unload"]
       -
         code: "500"
@@ -285,7 +273,7 @@ coreCommands:
     responses:
       -
         code: "200"
-        description: "info of MQTT broker connected to gateway and EdgeX"
+        description: "info of MQTT broker connected to RSP Controller and EdgeX"
         expectedValues: ["upstream_get_mqtt_status"]
       -
         code: "500"
