@@ -1,9 +1,9 @@
-name: "Sensor.Device.MQTT.Profile"
+name: "RSP.Device.MQTT.Profile"
 manufacturer: "Intel"
 model: "RSP RFID Reader"
 labels:
 - "RFID"
-description: "Sensor device profile"
+description: "RFID Sensor device profile"
 deviceResources:
 -
   name: sensor_get_basic_info

@@ -16,7 +16,7 @@ import (
 )
 
 const sensorHeartbeat = "heartbeat"
-const sensorDeviceProfile = "Sensor.Device.MQTT.Profile"
+const sensorDeviceProfile = "RSP.Device.MQTT.Profile"
 
 func replaceMessagePlaceholders(message string) string {
 	id := uuid.New().String()
