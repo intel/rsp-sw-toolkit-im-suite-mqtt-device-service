@@ -93,7 +93,7 @@ func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
 		return
 	}
 
-	// register new sensor device in Edgex to be able to send GET command requests with params to rsp-controller
+	// register new sensor device in Edgex to be able to send GET command requests with params to RSP Controller
 	if resourceName == sensorHeartbeat {
 		err := registerSensor(incomingData)
 		if err != nil {

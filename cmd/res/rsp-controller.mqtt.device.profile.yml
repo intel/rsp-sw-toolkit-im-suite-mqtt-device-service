@@ -5,7 +5,7 @@ labels:
 - "RFID"
 - "MQTT"
 - "RSP"
-- "RSP-Controller"
+- "RSP Controller"
 description: "RSP Controller Device Profile"
 
 # there must be a DeviceResource and ResourceOperation with GET for any data the

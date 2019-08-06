@@ -59,7 +59,7 @@ LogLevel = "DEBUG"
   Name = "rsp-controller"
   Profile = "RSP.Controller.Device.MQTT.Profile"
   Description = "RSP Controller Device MQTT Broker Connection"
-  Labels = [ "MQTT", "RSP", "RSP-Controller", "RFID"]
+  Labels = [ "MQTT", "RSP", "RSP Controller", "RFID"]
   [DeviceList.Protocols]
     [DeviceList.Protocols.mqtt]
        Scheme = "tcp"
