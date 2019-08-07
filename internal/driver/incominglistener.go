@@ -18,8 +18,6 @@ import (
 const sensorHeartbeat = "heartbeat"
 const sensorDeviceProfile = "RSP.Device.MQTT.Profile"
 
-var sensorMap = make(map[string]int)
-
 func replaceMessagePlaceholders(message string) string {
 	id := uuid.New().String()
 	// replace {{uuid}} placeholder with generated id
@@ -104,8 +102,7 @@ func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
 		deviceId := heartbeat["device_id"].(string)
 
 		// registering the sensor only if it is already not registered
-		if _, ok := sensorMap[deviceId]; !ok {
-			sensorMap[deviceId] = 1
+		if _, notFound := sdk.RunningService().GetDeviceByName(deviceId); notFound != nil {
 			registerSensor(deviceId)
 		}
 	}
