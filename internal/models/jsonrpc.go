@@ -38,3 +38,8 @@ type JsonRequest struct {
 	Method  string          `json:"method"`
 	Params  json.RawMessage `json:"params,omitempty"`
 }
+
+// Device_id parameter used in some command requests to RSP Controller
+type DeviceIdParam struct {
+	DeviceId string `json:"device_id"`
+}

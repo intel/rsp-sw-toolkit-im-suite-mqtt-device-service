@@ -89,7 +89,9 @@ func TestCreateConnectionInfo_fail(t *testing.T) {
 
 func TestCreateDriverConfig(t *testing.T) {
 	configs := map[string]string{
-		DeviceName: "test-device",
+		ControllerName: "test-device",
+		RSPMqttClientId: "",
+		MaxWaitTimeForReq: "10",
 
 		OnConnectPublishTopic: "", OnConnectPublishMessage: "",
 
@@ -107,9 +109,9 @@ func TestCreateDriverConfig(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Fail to load config, %v", err)
 	}
-	if driverConfig.DeviceName != configs[DeviceName] ||
+	if driverConfig.ControllerName != configs[ControllerName] ||
 		driverConfig.IncomingScheme != configs[IncomingScheme] || driverConfig.IncomingHost != configs[IncomingHost] ||
-		driverConfig.IncomingPort != 1883 || driverConfig.IncomingUser != configs[IncomingUser] ||
+		driverConfig.IncomingPort != configs[IncomingPort] || driverConfig.IncomingUser != configs[IncomingUser] ||
 		driverConfig.IncomingPassword != configs[IncomingPassword] || driverConfig.IncomingQos != 0 ||
 		driverConfig.IncomingKeepAlive != 3600 || driverConfig.IncomingClientId != configs[IncomingClientId] ||
 		driverConfig.IncomingTopics[0] != configs[IncomingTopics] ||
