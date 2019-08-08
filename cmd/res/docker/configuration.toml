@@ -85,6 +85,7 @@ OnConnectPublishMessage = """\
   "method":"subscribe",\
   "id":"{{uuid}}",\
   "params":[\
+    "scheduler_run_state",\
     "sensor_config_notification",\
     "sensor_connection_state_notification"\
   ]\
