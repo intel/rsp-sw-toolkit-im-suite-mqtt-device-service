@@ -48,8 +48,10 @@ type ConnectionInfo struct {
 // configuration holds the values for the device configuration, including what
 // MQTT broker to connect to for incoming data and command responses.
 type configuration struct {
-	// DeviceName is used when sending messages that came in on the IncomingTopics
-	DeviceName              string
+	ControllerName string
+	RSPMqttClientId string
+	MaxWaitTimeForReq int
+
 	OnConnectPublishTopic   string
 	OnConnectPublishMessage string
 
@@ -57,7 +59,7 @@ type configuration struct {
 	IncomingTopics    []string
 	IncomingScheme    string
 	IncomingHost      string
-	IncomingPort      int
+	IncomingPort      string
 	IncomingUser      string
 	IncomingPassword  string
 	IncomingQos       int

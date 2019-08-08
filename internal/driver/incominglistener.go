@@ -10,8 +10,13 @@ import (
 	"time"
 
 	"github.com/eclipse/paho.mqtt.golang"
+	sdk "github.com/edgexfoundry/device-sdk-go"
 	sdkModel "github.com/edgexfoundry/device-sdk-go/pkg/models"
+	edgexModels "github.com/edgexfoundry/go-mod-core-contracts/models"
 )
+
+const sensorHeartbeat = "heartbeat"
+const sensorDeviceProfile = "RSP.Device.MQTT.Profile"
 
 func replaceMessagePlaceholders(message string) string {
 	id := uuid.New().String()
@@ -42,7 +47,7 @@ func startIncomingListening(done <-chan interface{}) error {
 		conf.IncomingClientId,
 		&url.URL{
 			Scheme: strings.ToLower(conf.IncomingScheme),
-			Host:   fmt.Sprintf("%s:%d", conf.IncomingHost, conf.IncomingPort),
+			Host:   fmt.Sprintf("%s:%s", conf.IncomingHost, conf.IncomingPort),
 			User:   url.UserPassword(conf.IncomingUser, conf.IncomingPassword),
 		},
 		conf.IncomingKeepAlive, onMqttConnect)
@@ -88,6 +93,20 @@ func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
 		return
 	}
 
+	// register new sensor device in Edgex to be able to send GET command requests with params to RSP Controller
+	if resourceName == sensorHeartbeat {
+		var heartbeat map[string]interface{}
+		if err := json.Unmarshal(incomingData.Params, &heartbeat); err != nil {
+			driver.Logger.Error(fmt.Sprintf("Unmarshalling of sensor heartbeat params failed: %+v", err))
+		}
+		deviceId := heartbeat["device_id"].(string)
+
+		// registering the sensor only if it is already not registered
+		if _, notFound := sdk.RunningService().GetDeviceByName(deviceId); notFound != nil {
+			registerSensor(deviceId)
+		}
+	}
+
 	origin := time.Now().UnixNano() / int64(time.Millisecond)
 	value := sdkModel.NewStringValue(resourceName, origin, string(message.Payload()))
 
@@ -97,7 +116,35 @@ func onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
 		"msgLen", len(message.Payload()))
 
 	driver.AsyncCh <- &sdkModel.AsyncValues{
-		DeviceName:    driver.Config.DeviceName,
+		DeviceName:    driver.Config.ControllerName,
 		CommandValues: []*sdkModel.CommandValue{value},
+	}
+}
+
+func registerSensor(deviceId string) {
+	conf := *driver.Config
+
+	// Registering sensor devices in Edgex
+	_, err := sdk.RunningService().AddDevice(edgexModels.Device{
+		Name:           deviceId,
+		AdminState:     edgexModels.Unlocked,
+		OperatingState: edgexModels.Enabled,
+		Protocols: map[string]edgexModels.ProtocolProperties{
+			"mqtt": {
+				"Scheme":   conf.IncomingScheme,
+				"Host":     conf.IncomingHost,
+				"Port":     conf.IncomingPort,
+				"User":     conf.IncomingUser,
+				"Password": conf.IncomingPassword,
+				"ClientId": conf.RSPMqttClientId,
+				"Topics":   conf.OnConnectPublishTopic,
+			},
+		},
+		Profile: edgexModels.DeviceProfile{
+			Name: sensorDeviceProfile,
+		},
+	})
+	if err != nil {
+		driver.Logger.Error(fmt.Sprintf("Registering of sensor device %v failed: %v", deviceId, err))
 	}
 }

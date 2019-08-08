@@ -1,0 +1,254 @@
+name: "RSP.Device.MQTT.Profile"
+manufacturer: "Intel"
+model: "RSP RFID Reader"
+labels:
+- "RFID"
+description: "RFID Sensor device profile"
+deviceResources:
+-
+  name: sensor_get_basic_info
+  description: "information of a sensor known to RSP Controller"
+  attributes:
+    { name: "sensor_get_basic_info" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: sensor_remove
+  description: "remove a sensor"
+  attributes:
+    { name: "sensor_remove" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: sensor_reboot
+  description: "reboot a sensor"
+  attributes:
+    { name: "sensor_reboot" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: sensor_reset
+  description: "reset sensor rfid module"
+  attributes:
+    { name: "sensor_reset" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: sensor_get_bist_results
+  description: "built-in-self-test(BIST) results"
+  attributes:
+    { name: "sensor_get_bist_results" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: sensor_get_geo_region
+  description: "geographic region of the device"
+  attributes:
+    { name: "sensor_get_geo_region" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: sensor_get_state
+  description: "state of the device"
+  attributes:
+    { name: "sensor_get_state" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: sensor_get_versions
+  description: "software versions of the device"
+  attributes:
+    { name: "sensor_get_versions" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: sensor_update_software
+  description: "update software of the device"
+  attributes:
+    { name: "sensor_update_software" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+
+deviceCommands:
+-
+  name: sensor_remove
+  get:
+    - { index: "1", operation: "get", object: "sensor_remove", parameter: "sensor_remove", property: "value" }
+-
+  name: sensor_reboot
+  get:
+    - { index: "1", operation: "get", object: "sensor_reboot", parameter: "sensor_reboot", property: "value" }
+-
+  name: sensor_reset
+  get:
+    - { index: "1", operation: "get", object: "sensor_reset", parameter: "sensor_reset", property: "value" }
+-
+  name: sensor_get_basic_info
+  get:
+    - { index: "1", operation: "get", object: "sensor_get_basic_info", parameter: "sensor_get_basic_info", property: "value" }
+-
+  name: sensor_get_bist_results
+  get:
+    - { index: "1", operation: "get", object: "sensor_get_bist_results", parameter: "sensor_get_bist_results", property: "value" }
+-
+  name: sensor_get_geo_region
+  get:
+    - { index: "1", operation: "get", object: "sensor_get_geo_region", parameter: "sensor_get_geo_region", property: "value" }
+-
+  name: sensor_get_state
+  get:
+    - { index: "1", operation: "get", object: "sensor_get_state", parameter: "sensor_get_state", property: "value" }
+-
+  name: sensor_get_versions
+  get:
+    - { index: "1", operation: "get", object: "sensor_get_versions", parameter: "sensor_get_versions", property: "value" }
+-
+  name: sensor_update_software
+  get:
+    - { index: "1", operation: "get", object: "sensor_update_software", parameter: "sensor_update_software", property: "value" }
+
+coreCommands:
+-
+  name: sensor_get_basic_info
+  get:
+    path: "/api/v1/device/{deviceId}/sensor_get_basic_info"
+    responses:
+      -
+        code: "200"
+        description: "information of a sensor known to RSP Controller"
+        expectedValues: ["sensor_get_basic_info"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
+-
+  name: sensor_remove
+  get:
+    path: "/api/v1/device/{deviceId}/sensor_remove"
+    responses:
+      -
+        code: "200"
+        description: "remove a sensor"
+        expectedValues: ["sensor_remove"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
+-
+  name: sensor_reboot
+  get:
+    path: "/api/v1/device/{deviceId}/sensor_reboot"
+    responses:
+      -
+        code: "200"
+        description: "reboot a sensor"
+        expectedValues: ["sensor_reboot"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
+-
+  name: sensor_reset
+  get:
+    path: "/api/v1/device/{deviceId}/sensor_reset"
+    responses:
+      -
+        code: "200"
+        description: "reset sensor rfid module"
+        expectedValues: ["sensor_reset"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
+-
+  name: sensor_get_bist_results
+  get:
+    path: "/api/v1/device/{deviceId}/sensor_get_bist_results"
+    responses:
+      -
+        code: "200"
+        description: "built-in-self-test(BIST) results"
+        expectedValues: ["sensor_get_bist_results"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
+-
+  name: sensor_get_geo_region
+  get:
+    path: "/api/v1/device/{deviceId}/sensor_get_geo_region"
+    responses:
+      -
+        code: "200"
+        description: "geographic region of the device"
+        expectedValues: ["sensor_get_geo_region"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
+-
+  name: sensor_get_state
+  get:
+    path: "/api/v1/device/{deviceId}/sensor_get_state"
+    responses:
+      -
+        code: "200"
+        description: " state of the device"
+        expectedValues: ["sensor_get_state"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
+-
+  name: sensor_get_versions
+  get:
+    path: "/api/v1/device/{deviceId}/sensor_get_versions"
+    responses:
+      -
+        code: "200"
+        description: "software versions of the device"
+        expectedValues: ["sensor_get_versions"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
+-
+  name: sensor_update_software
+  get:
+    path: "/api/v1/device/{deviceId}/sensor_update_software"
+    responses:
+      -
+        code: "200"
+        description: "update software of the device"
+        expectedValues: ["sensor_update_software"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []

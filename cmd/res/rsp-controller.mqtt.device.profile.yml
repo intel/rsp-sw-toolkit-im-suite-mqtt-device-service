@@ -5,8 +5,8 @@ labels:
 - "RFID"
 - "MQTT"
 - "RSP"
-- "RSP-Controller"
-description: "RFID RSP Controller MQTT Device Service"
+- "RSP Controller"
+description: "RSP Controller Device Profile"
 
 # there must be a DeviceResource and ResourceOperation with GET for any data the
 # MQTT device service will push, even if it's just event data, because the Device
@@ -36,7 +36,7 @@ deviceResources:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
   name: sensor_config_notification
-  description: "sensor_config_notification"
+  description: "Sensor config notification"
   attributes:
     { name: "sensor_config_notification" }
   properties:
@@ -46,7 +46,7 @@ deviceResources:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
   name: sensor_connection_state_notification
-  description: "sensor_connection_state_notification"
+  description: "Sensor connection state notification"
   attributes:
     { name: "sensor_connection_state_notification" }
   properties:
@@ -96,7 +96,7 @@ deviceResources:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
   name: rsp_status
-  description: "RSP Status"
+  description: "RSP/Sensor Status"
   attributes:
     { name: "rsp_status" }
   properties:
@@ -146,9 +146,39 @@ deviceResources:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
   name: upstream_get_mqtt_status
-  description: "info of MQTT broker connected to RSP Controller and EdgeX"
+  description: "info of MQTT broker connection to RSP Controller"
   attributes:
     { name: "upstream_get_mqtt_status" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: downstream_get_mqtt_status
+  description: "info of MQTT broker connection to Sensor"
+  attributes:
+    { name: "downstream_get_mqtt_status" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: gpio_clear_mappings
+  description: "clear gpio mappings"
+  attributes:
+    { name: "gpio_clear_mappings" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: scheduler_get_run_state
+  description: "run state of the scheduler"
+  attributes:
+    { name: "scheduler_get_run_state" }
   properties:
     value:
       { type: "String", readWrite: "R", defaultValue: "" }
@@ -212,6 +242,18 @@ deviceCommands:
   name: upstream_get_mqtt_status
   get:
     - { index: "1", operation: "get", object: "upstream_get_mqtt_status", parameter: "upstream_get_mqtt_status", property: "value" }
+-
+  name: downstream_get_mqtt_status
+  get:
+    - { index: "1", operation: "get", object: "downstream_get_mqtt_status", parameter: "downstream_get_mqtt_status", property: "value" }
+-
+  name: gpio_clear_mappings
+  get:
+    - { index: "1", operation: "get", object: "gpio_clear_mappings", parameter: "gpio_clear_mappings", property: "value" }
+-
+  name: scheduler_get_run_state
+  get:
+    - { index: "1", operation: "get", object: "scheduler_get_run_state", parameter: "scheduler_get_run_state", property: "value" }
 
 coreCommands:
 -
@@ -273,10 +315,48 @@ coreCommands:
     responses:
       -
         code: "200"
-        description: "info of MQTT broker connected to RSP Controller and EdgeX"
+        description: "info of MQTT broker connected to RSP Controller"
         expectedValues: ["upstream_get_mqtt_status"]
       -
         code: "500"
         description: "internal server error"
         expectedValues: []
-
+-
+  name: downstream_get_mqtt_status
+  get:
+    path: "/api/v1/device/{deviceId}/downstream_get_mqtt_status"
+    responses:
+      -
+        code: "200"
+        description: "info of MQTT connection to RSP/Sensor"
+        expectedValues: ["downstream_get_mqtt_status"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
+-
+  name: gpio_clear_mappings
+  get:
+    path: "/api/v1/device/{deviceId}/gpio_clear_mappings"
+    responses:
+      -
+        code: "200"
+        description: "clear gpio mappings"
+        expectedValues: ["gpio_clear_mappings"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []
+-
+  name: scheduler_get_run_state
+  get:
+    path: "/api/v1/device/{deviceId}/scheduler_get_run_state"
+    responses:
+      -
+        code: "200"
+        description: "run state of the scheduler"
+        expectedValues: ["scheduler_get_run_state"]
+      -
+        code: "500"
+        description: "internal server error"
+        expectedValues: []

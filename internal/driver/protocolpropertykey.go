@@ -18,7 +18,9 @@ const (
 	Topics   = "Topics"
 
 	// Driver config
-	DeviceName              = "DeviceName"
+	ControllerName          = "ControllerName"
+	RSPMqttClientId         = "RSPMqttClientId"
+	MaxWaitTimeForReq       = "MaxWaitTimeForReq"
 	OnConnectPublishTopic   = "OnConnectPublishTopic"
 	OnConnectPublishMessage = "OnConnectPublishMessage"
 

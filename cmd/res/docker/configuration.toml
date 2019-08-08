@@ -59,7 +59,7 @@ LogLevel = "DEBUG"
   Name = "rsp-controller"
   Profile = "RSP.Controller.Device.MQTT.Profile"
   Description = "RSP Controller Device MQTT Broker Connection"
-  Labels = [ "MQTT", "RSP", "RSP-Controller", "RFID"]
+  Labels = [ "MQTT", "RSP", "RSP Controller", "RFID"]
   [DeviceList.Protocols]
     [DeviceList.Protocols.mqtt]
        Scheme = "tcp"
@@ -72,8 +72,10 @@ LogLevel = "DEBUG"
 
 # Driver configs
 [Driver]
-DeviceName = "rsp-controller"
-
+# device name used for sending data received on the IncomingTopics into Edgex
+ControllerName = "rsp-controller"
+# mqtt clientId required to register sensor devices
+RSPMqttClientId = "CommandPublisher"
 # topic and message to publish to mqtt when the client is connected
 OnConnectPublishTopic = "rfid/controller/command"
 # {{uuid}} will be replaced at runtime with a generated uuid value
@@ -87,6 +89,8 @@ OnConnectPublishMessage = """\
     "sensor_connection_state_notification"\
   ]\
 }"""
+# maximum wait time in seconds for a command request to time out
+MaxWaitTimeForReq = "10"
 
 IncomingScheme = "tcp"
 IncomingHost = "mosquitto-server"

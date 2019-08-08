@@ -69,7 +69,7 @@ func onCommandResponseReceived(_ mqtt.Client, message mqtt.Message) {
 	var response models.JsonResponse
 
 	if err := json.Unmarshal(message.Payload(), &response); err != nil {
-		driver.Logger.Error("[Response listener] Unmarshal failed", "cause", err)
+		driver.Logger.Error("[Response listener] Unmarshalling of command response failed", "cause", err)
 		return
 	}
 
