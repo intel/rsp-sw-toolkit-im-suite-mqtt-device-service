@@ -128,7 +128,7 @@ func (d *Driver) HandleReadCommands(deviceName string, protocols map[string]mode
 		User:   url.UserPassword(connectionInfo.User, connectionInfo.Password),
 	}
 
-	client, err := createClient(connectionInfo.ClientId, uri, 30, nil)
+	client, err := createClient(uuid.New().String(), uri, 30, nil, false)
 	if err != nil {
 		return responses, err
 	}
@@ -234,7 +234,7 @@ func (d *Driver) Stop(force bool) error {
 }
 
 // Create a MQTT client
-func createClient(clientID string, uri *url.URL, keepAlive int, onConn MQTT.OnConnectHandler) (MQTT.Client, error) {
+func createClient(clientID string, uri *url.URL, keepAlive int, onConn MQTT.OnConnectHandler, shouldPanic bool) (MQTT.Client, error) {
 	driver.Logger.Info("Create MQTT client and connection", "uri", uri.String(), "clientId", clientID)
 	opts := MQTT.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("%s://%s", uri.Scheme, uri.Host))
@@ -254,8 +254,10 @@ func createClient(clientID string, uri *url.URL, keepAlive int, onConn MQTT.OnCo
 		if token.Wait() && token.Error() != nil {
 			// todo: the main incomingListener client should probably panic() if it can't re-connect after X tries
 			driver.Logger.Warn("Reconnection failed", "cause", token.Error())
-			// PANIC!!!
-			panic(errors.Wrap(token.Error(), "unable to re-connect to mqtt broker"))
+			if shouldPanic {
+				// PANIC!!!
+				panic(errors.Wrap(token.Error(), "unable to re-connect to mqtt broker"))
+			}
 		} else {
 			driver.Logger.Warn("Reconnection successful")
 		}

@@ -50,7 +50,7 @@ func startIncomingListening(done <-chan interface{}) error {
 			Host:   fmt.Sprintf("%s:%s", conf.IncomingHost, conf.IncomingPort),
 			User:   url.UserPassword(conf.IncomingUser, conf.IncomingPassword),
 		},
-		conf.IncomingKeepAlive, onMqttConnect)
+		conf.IncomingKeepAlive, onMqttConnect, true)
 	if err != nil {
 		return err
 	}
