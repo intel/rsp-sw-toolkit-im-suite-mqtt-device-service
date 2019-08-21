@@ -17,7 +17,7 @@
  * notice embedded in Materials by Intel or Intel's suppliers or licensors in any way.
  */
 
-package models
+package jsonrpc
 
 import (
 	"encoding/json"

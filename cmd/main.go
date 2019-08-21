@@ -32,6 +32,6 @@ const (
 )
 
 func main() {
-	sd := driver.NewProtocolDriver()
-	startup.Bootstrap(serviceName, mqtt_device_service.Version, sd)
+	mqttDriver := driver.NewProtocolDriver()
+	startup.Bootstrap(serviceName, mqtt_device_service.Version, mqttDriver)
 }

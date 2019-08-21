@@ -8,8 +8,8 @@ import (
 )
 
 func init() {
-	driver = new(Driver)
-	driver.Logger = logger.NewClient("test", false, "", "DEBUG")
+	instance = new(Driver)
+	instance.Logger = logger.NewClient("test", false, "", "DEBUG")
 }
 
 func TestReplaceMessagePlaceholders(t *testing.T) {

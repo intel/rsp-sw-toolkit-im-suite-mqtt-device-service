@@ -27,7 +27,6 @@ package driver
 
 import (
 	"crypto/tls"
-	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -36,21 +35,21 @@ import (
 	"sync"
 	"time"
 
-	MQTT "github.com/eclipse/paho.mqtt.golang"
+	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/edgexfoundry/device-sdk-go"
+	sdk "github.com/edgexfoundry/device-sdk-go"
 	sdkModel "github.com/edgexfoundry/device-sdk-go/pkg/models"
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
-	"github.com/edgexfoundry/go-mod-core-contracts/models"
-	commandModel "github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/models"
+	edgexModels "github.com/edgexfoundry/go-mod-core-contracts/models"
 )
 
 var once sync.Once
-var driver *Driver
+var instance *Driver
 
 const (
-	jsonRpcVersion = "2.0"
-	qos            = byte(1)
-	retained       = false
+	jsonRpcVersion   = "2.0"
+	retained         = false
+	rspDeviceProfile = "RSP.Device.MQTT.Profile"
 )
 
 type Driver struct {
@@ -58,6 +57,7 @@ type Driver struct {
 	AsyncCh          chan<- *sdkModel.AsyncValues
 	CommandResponses sync.Map
 	Config           *configuration
+	Client           mqtt.Client
 
 	done chan interface{}
 }
@@ -65,12 +65,12 @@ type Driver struct {
 // NewProtocolDriver returns the package-level driver instance.
 func NewProtocolDriver() sdkModel.ProtocolDriver {
 	once.Do(func() {
-		driver = new(Driver)
+		instance = new(Driver)
 	})
-	return driver
+	return instance
 }
 
-// Initialize an MQTT driver.
+// Initialize an MQTT d.
 //
 // Once initialized, the driver listens on the configured MQTT topics. When a
 // message comes in on a data topic, the driver formats the message appropriately
@@ -80,6 +80,7 @@ func NewProtocolDriver() sdkModel.ProtocolDriver {
 func (d *Driver) Initialize(lc logger.LoggingClient, asyncCh chan<- *sdkModel.AsyncValues) error {
 	d.Logger = lc
 	d.AsyncCh = asyncCh
+	d.done = make(chan interface{})
 
 	config, err := CreateDriverConfig(device.DriverConfigs())
 	if err != nil {
@@ -87,140 +88,22 @@ func (d *Driver) Initialize(lc logger.LoggingClient, asyncCh chan<- *sdkModel.As
 	}
 	d.Config = config
 
-	done := make(chan interface{})
-	d.done = done
-	go func() {
-		err := startCommandResponseListening(done)
-		if err != nil {
-			panic(errors.Wrap(err, "start command response Listener failed, please check MQTT broker settings are correct"))
-		}
-	}()
-
-	go func() {
-		err := startIncomingListening(done)
-		if err != nil {
-			panic(errors.Wrap(err, "start incoming data Listener failed, please check MQTT broker settings are correct"))
-		}
-	}()
+	go d.Run()
 
 	return nil
 }
 
-// HandleReadCommands handles CommandRequests to read data via MQTT.
-//
-// It satisfies them by creating a new MQTT client with the protocol, sending the
-// requests as JSON RPC messages on all configured topics, then waiting for a
-// response on any of the response topics; once a response comes in, it returns
-// that result.
-func (d *Driver) HandleReadCommands(deviceName string, protocols map[string]models.ProtocolProperties, reqs []sdkModel.CommandRequest) ([]*sdkModel.CommandValue, error) {
-	var responses = make([]*sdkModel.CommandValue, len(reqs))
-	var err error
+func (d *Driver) Run() {
+	d.createClient()
+	d.connect()
+	d.Logger.Info("Mqtt client connected. Listening for data.")
 
-	// create device client and open connection
-	connectionInfo, err := CreateConnectionInfo(protocols)
-	if err != nil {
-		return responses, err
-	}
+	defer d.Client.Disconnect(5000)
 
-	uri := &url.URL{
-		Scheme: strings.ToLower(connectionInfo.Scheme),
-		Host:   fmt.Sprintf("%s:%s", connectionInfo.Host, connectionInfo.Port),
-		User:   url.UserPassword(connectionInfo.User, connectionInfo.Password),
-	}
+	// Block forever until done is signaled
+	<-d.done
 
-	client, err := createClient(uuid.New().String(), uri, 30, nil, false)
-	if err != nil {
-		return responses, err
-	}
-	defer client.Disconnect(5000)
-
-	for i, req := range reqs {
-		res, err := d.handleReadCommandRequest(deviceName, client, req, connectionInfo.Topics)
-		if err != nil {
-			driver.Logger.Warn("Handle read commands failed", "cause", err)
-			return responses, err
-		}
-
-		responses[i] = res
-	}
-
-	return responses, err
-}
-
-// handleReadCommandRequest takes care of the JSON RPC command/response portion
-// of the HandleReadCommands.
-//
-// The command request is published on all of the incoming connection info topics.
-func (d *Driver) handleReadCommandRequest(deviceName string, deviceClient MQTT.Client, req sdkModel.CommandRequest, topics []string) (*sdkModel.CommandValue, error) {
-	var err error
-	request := commandModel.JsonRequest{
-		Version: jsonRpcVersion,
-		Method:  req.DeviceResourceName,
-		Id:      uuid.New().String(),
-	}
-
-	// Sensor devices start with "RSP", this will not be needed in near future as Edgex is going to support GET requests with query parameters
-	// If the device is sensor add the device_id as params to the command request
-	if strings.HasPrefix(deviceName, "RSP") {
-		deviceIdParam := commandModel.DeviceIdParam{DeviceId: deviceName}
-		request.Params, err = json.Marshal(deviceIdParam)
-		if err != nil {
-			err = fmt.Errorf("marshalling of command parameters failed: error=%v", err)
-			return nil, err
-		}
-	}
-
-	// marshal request to jsonrpc format
-	jsonRpcRequest, err := json.Marshal(request)
-	if err != nil {
-		err = fmt.Errorf("marshalling of command request failed: error=%v", err)
-		return nil, err
-	}
-
-	//Publish the command request
-	for _, topic := range topics {
-		deviceClient.Publish(topic, qos, retained, jsonRpcRequest)
-	}
-	driver.Logger.Info("Publish command", "command", string(jsonRpcRequest))
-
-	cmdResponse, ok := d.fetchCommandResponse(request.Id)
-	if !ok {
-		err = fmt.Errorf("no command response or getting response delayed for method=%v", request.Method)
-		return nil, err
-	}
-
-	var responseMap map[string]json.RawMessage
-	if err := json.Unmarshal([]byte(cmdResponse), &responseMap); err != nil {
-		err = fmt.Errorf("unmarshalling of command response failed: error=%v", err)
-		return nil, err
-	}
-
-	// Parse response to extract result or error field from the jsonrpc response
-	var reading string
-	_, ok = responseMap["result"]
-	if ok {
-		reading = string(responseMap["result"])
-	} else {
-		_, ok = responseMap["error"]
-		if ok {
-			reading = string(responseMap["error"])
-		} else {
-			err = fmt.Errorf("invalid command response: %v", cmdResponse)
-			return nil, err
-		}
-	}
-
-	origin := time.Now().UnixNano() / int64(time.Millisecond)
-	value := sdkModel.NewStringValue(req.DeviceResourceName, origin, reading)
-
-	driver.Logger.Info("Get command finished", "response", cmdResponse)
-
-	return value, err
-}
-
-// HandleWriteCommands ignores all requests; write commands (PUT requests) are not currently supported.
-func (d *Driver) HandleWriteCommands(deviceName string, protocols map[string]models.ProtocolProperties, reqs []sdkModel.CommandRequest, params []*sdkModel.CommandValue) error {
-	return nil
+	d.Logger.Info("Stopping mqtt client connection")
 }
 
 // Stop instructs the protocol-specific DS code to shutdown gracefully, or
@@ -233,63 +116,143 @@ func (d *Driver) Stop(force bool) error {
 	return nil
 }
 
-// Create a MQTT client
-func createClient(clientID string, uri *url.URL, keepAlive int, onConn MQTT.OnConnectHandler, shouldPanic bool) (MQTT.Client, error) {
-	driver.Logger.Info("Create MQTT client and connection", "uri", uri.String(), "clientId", clientID)
-	opts := MQTT.NewClientOptions()
-	opts.AddBroker(fmt.Sprintf("%s://%s", uri.Scheme, uri.Host))
-	opts.SetClientID(clientID)
-	opts.SetUsername(uri.User.Username())
-	password, _ := uri.User.Password()
-	opts.SetPassword(password)
-	opts.SetKeepAlive(time.Second * time.Duration(keepAlive))
+func (d *Driver) onMqttConnectionLost(client mqtt.Client, e error) {
+	d.Logger.Warn("Connection lost", "cause", e)
+	if client.IsConnected() {
+		// todo: we can keep track of a timer/watchdog that will call panic() if it takes too long to re-connect
+		// todo: 	the timer will be reset inside of the onConnect callback
+		d.Logger.Warn("Attempting to auto reconnect to MQTT broker...")
+	} else {
+		panic(errors.Wrap(e, "Connection to MQTT broker has been lost, and does not appear to be auto reconnecting"))
+	}
+}
 
-	if onConn != nil {
-		opts.SetOnConnectHandler(onConn)
+func (d *Driver) onMqttConnect(client mqtt.Client) {
+	d.Logger.Info("mqtt incoming listener client connected")
+
+	topic := d.Config.OnConnectPublishTopic
+	if topic != "" {
+		msg := replaceMessagePlaceholders(d.Config.OnConnectPublishMessage)
+		d.Logger.Debug("publish onconnect", "topic", topic, "message", msg)
+		client.Publish(topic, d.Config.CommandQos, retained, msg)
 	}
 
-	opts.SetConnectionLostHandler(func(client MQTT.Client, e error) {
-		driver.Logger.Warn("Connection lost", "cause", e)
-		token := client.Connect()
-		if token.Wait() && token.Error() != nil {
-			// todo: the main incomingListener client should probably panic() if it can't re-connect after X tries
-			driver.Logger.Warn("Reconnection failed", "cause", token.Error())
-			if shouldPanic {
-				// PANIC!!!
-				panic(errors.Wrap(token.Error(), "unable to re-connect to mqtt broker"))
+	d.subscribeAll()
+}
+
+func (d *Driver) subscribe(topic string, qos byte, callback mqtt.MessageHandler) {
+	// todo: should this have a max amount of retries??
+	// todo: should this panic() after the max retries?
+	for {
+		// keep trying to subscribe forever unless done is signaled
+		select {
+		case <-d.done:
+			d.Logger.Info("done signaled. stopping subscription attempt", "topic", topic)
+			return
+
+		default:
+			token := d.Client.Subscribe(topic, qos, callback)
+			if token.Wait() && token.Error() != nil {
+				d.Logger.Warn("subscription error", "cause", token.Error(), "topic", topic, "qos", qos)
+			} else {
+				d.Logger.Info("subscription successful", "topic", topic, "qos", qos)
+				return
 			}
-		} else {
-			driver.Logger.Warn("Reconnection successful")
 		}
-	})
+
+		time.Sleep(5 * time.Second)
+	}
+}
+
+func (d *Driver) subscribeAll() {
+	// response subscription
+	go d.subscribe(d.Config.ResponseTopic, d.Config.ResponseQos, d.onCommandResponseReceived)
+
+	// incoming subscriptions
+	for _, topic := range d.Config.IncomingTopics {
+		go d.subscribe(topic, d.Config.IncomingQos, d.onIncomingDataReceived)
+	}
+}
+
+// Create an MQTT client
+func (d *Driver) createClient() {
+	opts := mqtt.NewClientOptions()
+	clientId := replaceMessagePlaceholders(d.Config.MqttClientId)
+
+	d.Logger.Info("create client")
+
+	uri := &url.URL{
+		Scheme: strings.ToLower(d.Config.MqttScheme),
+		Host:   fmt.Sprintf("%s:%s", d.Config.MqttHost, d.Config.MqttPort),
+	}
+
+	// use `append()` because `opts.AddBroker()` does superfluous url parsing
+	opts.Servers = append(opts.Servers, uri)
+
+	opts.SetClientID(clientId)
+	opts.SetUsername(d.Config.MqttUser)
+	opts.SetPassword(d.Config.MqttPassword)
+	opts.SetKeepAlive(time.Second * time.Duration(d.Config.MqttKeepAlive))
+	opts.SetAutoReconnect(true)
+
+	opts.SetConnectionLostHandler(d.onMqttConnectionLost)
+	opts.SetOnConnectHandler(d.onMqttConnect)
 
 	// todo: this should probably *not* be hardcoded
 	opts.SetTLSConfig(&tls.Config{InsecureSkipVerify: true})
 
-	// todo: this method could probably keep a cache of clients, hashed by their
-	//   incoming uri + clientID; if it's not a bottleneck, then it's probably not worth it.
-	client := MQTT.NewClient(opts)
-	token := client.Connect()
-	if token.Wait() && token.Error() != nil {
-		return client, token.Error()
-	}
+	d.Logger.Info("Create MQTT client and connection", "uri", uri.String(), "clientId", clientId)
 
-	return client, nil
+	d.Client = mqtt.NewClient(opts)
 }
 
-// fetchCommandResponse use to wait and fetch response from CommandResponses map
-func (d *Driver) fetchCommandResponse(cmdUuid string) (string, bool) {
-	var cmdResponse interface{}
-	var ok bool
-	for i := 0; i < d.Config.MaxWaitTimeForReq; i++ {
-		cmdResponse, ok = d.CommandResponses.Load(cmdUuid)
-		if ok {
-			d.CommandResponses.Delete(cmdUuid)
-			break
+func (d *Driver) connect() {
+	retries := d.Config.InitialConnectionTries
+	for {
+		token := d.Client.Connect()
+		if token.Wait() && token.Error() != nil {
+			d.Logger.Error("unable to connect to mqtt broker", "cause", token.Error())
+			retries -= 1
 		} else {
-			time.Sleep(time.Second * time.Duration(1))
+			d.Logger.Info("mqtt connection successful")
+			return
 		}
-	}
 
-	return fmt.Sprintf("%v", cmdResponse), ok
+		if retries == 0 {
+			panic(errors.Wrap(token.Error(), fmt.Sprintf("unable to connect to mqtt broker after %d tries!", d.Config.InitialConnectionTries)))
+		}
+		d.Logger.Info(fmt.Sprintf("attempting to connect to mqtt broker again in 5 seconds... %d retries left", retries))
+		time.Sleep(5 * time.Second)
+	}
+}
+
+func (d *Driver) registerRSP(deviceId string) {
+	// Registering sensor devices in Edgex
+	_, err := sdk.RunningService().AddDevice(edgexModels.Device{
+		Name:           deviceId,
+		AdminState:     edgexModels.Unlocked,
+		OperatingState: edgexModels.Enabled,
+		Protocols: map[string]edgexModels.ProtocolProperties{
+			"mqtt": {
+				"Scheme": d.Config.MqttScheme,
+			},
+		},
+		Profile: edgexModels.DeviceProfile{
+			Name: rspDeviceProfile,
+		},
+	})
+	if err != nil {
+		d.Logger.Error(fmt.Sprintf("Registering of sensor device %v failed: %v", deviceId, err))
+	}
+}
+
+func replaceMessagePlaceholders(message string) string {
+	res := message
+	uuid := uuid.New().String()
+	tokens := strings.Split(uuid, "-")
+	shortUuid := tokens[len(tokens)-1]
+	// replace {{uuid}} placeholder with generated id
+	res = strings.Replace(res, "{{uuid}}", uuid, -1)
+	res = strings.Replace(res, "{{short_uuid}}", shortUuid, -1)
+	return res
 }
