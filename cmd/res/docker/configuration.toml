@@ -72,6 +72,8 @@ ControllerName = "rsp-controller"
 MaxWaitTimeForReq = "10"
 # maximum amount of tries to connect to mqtt broker on startup before we panic()
 InitialConnectionTries = "10"
+# when set to "true", this will diable certificate checking of TLS connections to the MQTT broker
+TlsInsecureSkipVerify = "true"
 # topic to send commands on
 CommandTopic = "rfid/controller/command"
 # topic to listen for responses on
@@ -104,4 +106,4 @@ MqttKeepAlive = "120"
 IncomingQos = "1"
 ResponseQos = "1"
 CommandQos = "1"
-MqttClientId = "MqttDeviceService/{{short_uuid}}"
+MqttClientId = "MqttDeviceService"

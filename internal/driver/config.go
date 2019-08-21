@@ -6,7 +6,7 @@
 
 /*
  * INTEL CONFIDENTIAL
- * Copyright (2017) Intel Corporation.
+ * Copyright (2019) Intel Corporation.
  *
  * The source code contained or described herein and all documents related to the source code ("Material")
  * are owned by Intel Corporation or its suppliers or licensors. Title to the Material remains with
@@ -38,12 +38,12 @@ type configuration struct {
 	ControllerName         string
 	MaxWaitTimeForReq      int
 	InitialConnectionTries int
+	TlsInsecureSkipVerify  bool
 
-	CommandTopic  string
-	ResponseTopic string
 	// IncomingTopics provide reads to be sent to EdgeX.
-	IncomingTopics []string
-
+	IncomingTopics          []string
+	CommandTopic            string
+	ResponseTopic           string
 	OnConnectPublishTopic   string
 	OnConnectPublishMessage string
 
@@ -52,11 +52,12 @@ type configuration struct {
 	MqttPort      string
 	MqttUser      string
 	MqttPassword  string
-	CommandQos    byte
-	ResponseQos   byte
-	IncomingQos   byte
 	MqttKeepAlive int
 	MqttClientId  string
+
+	CommandQos  byte
+	ResponseQos byte
+	IncomingQos byte
 }
 
 // CreateDriverConfig use to load driver config for incoming listener and response listener
@@ -95,6 +96,12 @@ func load(configMap map[string]string, config *configuration) error {
 				return err
 			}
 			valueField.SetUint(uint64(byteVal))
+		case reflect.Bool:
+			boolVal, err := strconv.ParseBool(val)
+			if err != nil {
+				return err
+			}
+			valueField.SetBool(boolVal)
 		case reflect.String:
 			valueField.SetString(val)
 		case reflect.Slice:

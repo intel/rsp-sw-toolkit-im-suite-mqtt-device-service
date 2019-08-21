@@ -1,9 +1,27 @@
+/*
+ * INTEL CONFIDENTIAL
+ * Copyright (2019) Intel Corporation.
+ *
+ * The source code contained or described herein and all documents related to the source code ("Material")
+ * are owned by Intel Corporation or its suppliers or licensors. Title to the Material remains with
+ * Intel Corporation or its suppliers and licensors. The Material may contain trade secrets and proprietary
+ * and confidential information of Intel Corporation and its suppliers and licensors, and is protected by
+ * worldwide copyright and trade secret laws and treaty provisions. No part of the Material may be used,
+ * copied, reproduced, modified, published, uploaded, posted, transmitted, distributed, or disclosed in
+ * any way without Intel/'s prior express written permission.
+ * No license under any patent, copyright, trade secret or other intellectual property right is granted
+ * to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication,
+ * inducement, estoppel or otherwise. Any license under such intellectual property rights must be express
+ * and approved by Intel in writing.
+ * Unless otherwise agreed by Intel in writing, you may not remove or alter this notice or any other
+ * notice embedded in Materials by Intel or Intel's suppliers or licensors in any way.
+ */
+
 package driver
 
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/google/uuid"
 	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/jsonrpc"
 	"strings"
@@ -19,14 +37,14 @@ import (
 // requests as JSON RPC messages on all configured topics, then waiting for a
 // response on any of the response topics; once a response comes in, it returns
 // that result.
-func (d *Driver) HandleReadCommands(deviceName string, protocols map[string]models.ProtocolProperties, reqs []sdkModel.CommandRequest) ([]*sdkModel.CommandValue, error) {
+func (driver *Driver) HandleReadCommands(deviceName string, protocols map[string]models.ProtocolProperties, reqs []sdkModel.CommandRequest) ([]*sdkModel.CommandValue, error) {
 	var responses = make([]*sdkModel.CommandValue, len(reqs))
 	var err error
 
 	for i, req := range reqs {
-		res, err := d.handleReadCommandRequest(deviceName, req)
+		res, err := driver.handleReadCommandRequest(deviceName, req)
 		if err != nil {
-			d.Logger.Warn("Handle read commands failed", "cause", err)
+			driver.Logger.Warn("Handle read commands failed", "cause", err)
 			return responses, err
 		}
 
@@ -40,7 +58,7 @@ func (d *Driver) HandleReadCommands(deviceName string, protocols map[string]mode
 // of the HandleReadCommands.
 //
 // The command request is published on all of the incoming connection info topics.
-func (d *Driver) handleReadCommandRequest(deviceName string, req sdkModel.CommandRequest) (*sdkModel.CommandValue, error) {
+func (driver *Driver) handleReadCommandRequest(deviceName string, req sdkModel.CommandRequest) (*sdkModel.CommandValue, error) {
 	var err error
 	request := jsonrpc.JsonRequest{
 		Version: jsonRpcVersion,
@@ -67,17 +85,17 @@ func (d *Driver) handleReadCommandRequest(deviceName string, req sdkModel.Comman
 	}
 
 	// Publish the command request
-	d.Logger.Info("Publish command", "command", string(jsonRpcRequest))
-	d.Client.Publish(d.Config.CommandTopic, d.Config.CommandQos, retained, jsonRpcRequest)
+	driver.Logger.Info("Publish command", "command", string(jsonRpcRequest))
+	driver.Client.Publish(driver.Config.CommandTopic, driver.Config.CommandQos, retained, jsonRpcRequest)
 
-	cmdResponse, ok := d.fetchCommandResponse(request.Id)
+	response, ok := driver.fetchCommandResponse(request.Id)
 	if !ok {
 		err = fmt.Errorf("no command response or getting response delayed for method=%v", request.Method)
 		return nil, err
 	}
 
 	var responseMap map[string]json.RawMessage
-	if err := json.Unmarshal([]byte(cmdResponse), &responseMap); err != nil {
+	if err := json.Unmarshal([]byte(response), &responseMap); err != nil {
 		err = fmt.Errorf("unmarshalling of command response failed: error=%v", err)
 		return nil, err
 	}
@@ -92,7 +110,7 @@ func (d *Driver) handleReadCommandRequest(deviceName string, req sdkModel.Comman
 		if ok {
 			reading = string(responseMap["error"])
 		} else {
-			err = fmt.Errorf("invalid command response: %v", cmdResponse)
+			err = fmt.Errorf("invalid command response: %v", response)
 			return nil, err
 		}
 	}
@@ -100,49 +118,12 @@ func (d *Driver) handleReadCommandRequest(deviceName string, req sdkModel.Comman
 	origin := time.Now().UnixNano() / int64(time.Millisecond)
 	value := sdkModel.NewStringValue(req.DeviceResourceName, origin, reading)
 
-	d.Logger.Info("Get command finished", "response", cmdResponse)
+	driver.Logger.Info("Get command finished", "response", response)
 
 	return value, err
 }
 
 // HandleWriteCommands ignores all requests; write commands (PUT requests) are not currently supported.
-func (d *Driver) HandleWriteCommands(deviceName string, protocols map[string]models.ProtocolProperties, reqs []sdkModel.CommandRequest, params []*sdkModel.CommandValue) error {
+func (driver *Driver) HandleWriteCommands(deviceName string, protocols map[string]models.ProtocolProperties, reqs []sdkModel.CommandRequest, params []*sdkModel.CommandValue) error {
 	return nil
-}
-
-// onCommandResponseReceived handles messages on the response topic and parses them as jsonrpc 2.0 Response messages
-func (d *Driver) onCommandResponseReceived(_ mqtt.Client, message mqtt.Message) {
-	go func(message mqtt.Message) {
-		var response jsonrpc.JsonResponse
-
-		if err := json.Unmarshal(message.Payload(), &response); err != nil {
-			d.Logger.Error("[Response listener] Unmarshalling of command response failed", "cause", err)
-			return
-		}
-
-		if response.Id != "" {
-			d.CommandResponses.Store(response.Id, string(message.Payload()))
-			d.Logger.Info("[Response listener] Command response received", "topic", message.Topic(), "msg", string(message.Payload()))
-		} else {
-			d.Logger.Debug("[Response listener] Command response ignored. No ID found in the message",
-				"topic", message.Topic(), "msg", string(message.Payload()))
-		}
-	}(message)
-}
-
-// fetchCommandResponse use to wait and fetch response from CommandResponses map
-func (d *Driver) fetchCommandResponse(cmdUuid string) (string, bool) {
-	var cmdResponse interface{}
-	var ok bool
-	for i := 0; i < d.Config.MaxWaitTimeForReq; i++ {
-		cmdResponse, ok = d.CommandResponses.Load(cmdUuid)
-		if ok {
-			d.CommandResponses.Delete(cmdUuid)
-			break
-		} else {
-			time.Sleep(time.Second * time.Duration(1))
-		}
-	}
-
-	return fmt.Sprintf("%v", cmdResponse), ok
 }
