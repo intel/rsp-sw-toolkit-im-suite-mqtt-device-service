@@ -29,6 +29,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/jsonrpc"
 	"net/url"
 	"strings"
 	"sync"
@@ -49,7 +50,7 @@ const (
 )
 
 var (
-	once sync.Once
+	once     sync.Once
 	instance *Driver
 )
 
@@ -131,14 +132,14 @@ func (driver *Driver) onMqttConnectionLost(client mqtt.Client, e error) {
 func (driver *Driver) onMqttConnect(client mqtt.Client) {
 	driver.Logger.Info("mqtt incoming listener client connected")
 
-	topic := driver.Config.OnConnectPublishTopic
-	if topic != "" {
-		msg := driver.Config.OnConnectPublishMessage
-		driver.Logger.Debug("publish onconnect", "topic", topic, "message", msg)
-		client.Publish(topic, driver.Config.CommandQos, retained, msg)
-	}
-
 	driver.subscribeAll()
+
+	// tell the RSP Controller what notifications we would like to receive
+	if driver.Config.RspControllerNotifications != nil && len(driver.Config.RspControllerNotifications) > 0 {
+		if err := driver.publishCommand(jsonrpc.NewRSPControllerSubscribeRequest(driver.Config.RspControllerNotifications)); err != nil {
+			driver.Logger.Warn("unable to subscribe to rsp controller notifications", "cause", err)
+		}
+	}
 }
 
 // subscribe attempts to subscribe to a specific mqtt topic with a given qos and handler

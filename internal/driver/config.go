@@ -41,11 +41,12 @@ type configuration struct {
 	TlsInsecureSkipVerify  bool
 
 	// IncomingTopics provide reads to be sent to EdgeX.
-	IncomingTopics          []string
-	CommandTopic            string
-	ResponseTopic           string
-	OnConnectPublishTopic   string
-	OnConnectPublishMessage string
+	IncomingTopics []string
+	CommandTopic   string
+	ResponseTopic  string
+
+	// RspControllerNotifications a slice of the notification types we want to receive from the rsp controller
+	RspControllerNotifications []string
 
 	MqttScheme    string
 	MqttHost      string

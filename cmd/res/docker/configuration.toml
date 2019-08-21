@@ -78,22 +78,20 @@ TlsInsecureSkipVerify = "true"
 CommandTopic = "rfid/controller/command"
 # topic to listen for responses on
 ResponseTopic = "rfid/controller/response"
+
 # Incoming topics containing data to be ingested
-IncomingTopics = "rfid/controller/alerts,rfid/controller/heartbeat,rfid/controller/notification,rfid/rsp/data/+,rfid/rsp/rsp_status/+"
-# topic and message to publish to mqtt when the client is connected
-OnConnectPublishTopic = "rfid/controller/command"
-# {{uuid}} will be replaced at runtime with a generated uuid value
-OnConnectPublishMessage = """\
-{\
-  "jsonrpc":"2.0",\
-  "method":"subscribe",\
-  "id":"{{uuid}}",\
-  "params":[\
-    "scheduler_run_state",\
-    "sensor_config_notification",\
-    "sensor_connection_state_notification"\
-  ]\
-}"""
+IncomingTopics = "\
+  rfid/controller/alerts,\
+  rfid/controller/heartbeat,\
+  rfid/controller/notification,\
+  rfid/rsp/data/+,\
+  rfid/rsp/rsp_status/+"
+
+# RspControllerNotifications is the types of notifications we want to receive from the RSP Controller
+RspControllerNotifications = "\
+  scheduler_run_state,\
+  sensor_config_notification,\
+  sensor_connection_state_notification"
 
 # Mqtt Connection Info
 MqttScheme = "tcp"

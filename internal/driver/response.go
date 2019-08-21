@@ -29,7 +29,7 @@ import (
 
 // onCommandResponseReceived handles messages on the response topic and parses them as jsonrpc 2.0 Response messages
 func (driver *Driver) onCommandResponseReceived(_ mqtt.Client, message mqtt.Message) {
-	var response jsonrpc.JsonResponse
+	var response jsonrpc.Response
 
 	if err := json.Unmarshal(message.Payload(), &response); err != nil {
 		driver.Logger.Error("[Response listener] Unmarshalling of command response failed", "cause", err)

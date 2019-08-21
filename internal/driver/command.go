@@ -22,13 +22,17 @@ package driver
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/jsonrpc"
 	"strings"
 	"time"
 
 	sdkModel "github.com/edgexfoundry/device-sdk-go/pkg/models"
 	"github.com/edgexfoundry/go-mod-core-contracts/models"
+)
+
+const (
+	RSPPrefix = "RSP"
 )
 
 // HandleReadCommands handles CommandRequests to read data via MQTT.
@@ -60,44 +64,29 @@ func (driver *Driver) HandleReadCommands(deviceName string, protocols map[string
 // The command request is published on all of the incoming connection info topics.
 func (driver *Driver) handleReadCommandRequest(deviceName string, req sdkModel.CommandRequest) (*sdkModel.CommandValue, error) {
 	var err error
-	request := jsonrpc.JsonRequest{
-		Version: jsonRpcVersion,
-		Method:  req.DeviceResourceName,
-		Id:      uuid.New().String(),
-	}
+	method := req.DeviceResourceName
+	var request jsonrpc.Message
 
 	// Sensor devices start with "RSP", this will not be needed in near future as Edgex is going to support GET requests with query parameters
 	// If the device is sensor add the device_id as params to the command request
-	if strings.HasPrefix(deviceName, "RSP") {
-		deviceIdParam := jsonrpc.DeviceIdParam{DeviceId: deviceName}
-		request.Params, err = json.Marshal(deviceIdParam)
-		if err != nil {
-			err = fmt.Errorf("marshalling of command parameters failed: error=%v", err)
-			return nil, err
-		}
+	if strings.HasPrefix(deviceName, RSPPrefix) {
+		request = jsonrpc.NewRSPCommandRequest(method, deviceName)
+	} else {
+		request = jsonrpc.NewRequest(method)
 	}
 
-	// marshal request to jsonrpc format
-	jsonRpcRequest, err := json.Marshal(request)
-	if err != nil {
-		err = fmt.Errorf("marshalling of command request failed: error=%v", err)
+	if err := driver.publishCommand(request); err != nil {
 		return nil, err
 	}
 
-	// Publish the command request
-	driver.Logger.Info("Publish command", "command", string(jsonRpcRequest))
-	driver.Client.Publish(driver.Config.CommandTopic, driver.Config.CommandQos, retained, jsonRpcRequest)
-
-	response, ok := driver.fetchCommandResponse(request.Id)
+	response, ok := driver.fetchCommandResponse(request.(jsonrpc.Request).Id)
 	if !ok {
-		err = fmt.Errorf("no command response or getting response delayed for method=%v", request.Method)
-		return nil, err
+		return nil, errors.New("timed out waiting for command response for method " + request.(jsonrpc.Request).Method)
 	}
 
 	var responseMap map[string]json.RawMessage
 	if err := json.Unmarshal([]byte(response), &responseMap); err != nil {
-		err = fmt.Errorf("unmarshalling of command response failed: error=%v", err)
-		return nil, err
+		return nil, errors.Wrap(err, "unmarshalling of command response failed")
 	}
 
 	// Parse response to extract result or error field from the jsonrpc response
@@ -121,6 +110,19 @@ func (driver *Driver) handleReadCommandRequest(deviceName string, req sdkModel.C
 	driver.Logger.Info("Get command finished", "response", response)
 
 	return value, err
+}
+
+func (driver *Driver) publishCommand(request jsonrpc.Message) error {
+	// marshal request to jsonrpc format
+	requestBytes, err := json.Marshal(request)
+	if err != nil {
+		return errors.Wrap(err, "marshalling of command request failed")
+	}
+
+	// Publish the command request
+	driver.Logger.Info("Publish command", "command", string(requestBytes))
+	driver.Client.Publish(driver.Config.CommandTopic, driver.Config.CommandQos, retained, requestBytes)
+	return nil
 }
 
 // HandleWriteCommands ignores all requests; write commands (PUT requests) are not currently supported.

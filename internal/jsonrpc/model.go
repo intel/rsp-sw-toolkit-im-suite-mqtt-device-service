@@ -21,25 +21,74 @@ package jsonrpc
 
 import (
 	"encoding/json"
+	"github.com/google/uuid"
 )
 
-// Json response from the RSP Controller
-type JsonResponse struct {
+const (
+	Version                      = "2.0"
+	RSPControllerSubscribeMethod = "subscribe"
+)
+
+type Message interface{}
+
+// Response represents a JsonRPC 2.0 Response
+type Response struct {
 	Version string          `json:"jsonrpc"`
 	Id      string          `json:"id"`
 	Result  json.RawMessage `json:"result"`
 	Error   json.RawMessage `json:"error"`
 }
 
-// Json request to the RSP Controller from Edgex
-type JsonRequest struct {
+// Notification represents a JsonRPC 2.0 Notification
+type Notification struct {
 	Version string          `json:"jsonrpc"`
-	Id      string          `json:"id"`
 	Method  string          `json:"method"`
 	Params  json.RawMessage `json:"params,omitempty"`
 }
 
+// Request represents a JsonRPC 2.0 Request
+type Request struct {
+	Version string          `json:"jsonrpc"`
+	Id      string          `json:"id"`
+	Method  string          `json:"method"`
+	Params  json.RawMessage `json:"params"`
+}
+
+type RSPCommandRequest struct {
+	Request                // embed
+	Params  DeviceIdParams `json:"params"`
+}
+
+type RSPControllerSubscribeRequest struct {
+	Request          // embed
+	Params  []string `json:"params"`
+}
+
 // Device_id parameter used in some command requests to RSP Controller
-type DeviceIdParam struct {
+type DeviceIdParams struct {
 	DeviceId string `json:"device_id"`
+}
+
+func NewRequest(method string) Request {
+	return Request{
+		Version: Version,
+		Id:      uuid.New().String(),
+		Method:  method,
+	}
+}
+
+func NewRSPCommandRequest(method string, deviceId string) RSPCommandRequest {
+	return RSPCommandRequest{
+		Request: NewRequest(method),
+		Params: DeviceIdParams{
+			DeviceId: deviceId,
+		},
+	}
+}
+
+func NewRSPControllerSubscribeRequest(topics []string) RSPControllerSubscribeRequest {
+	return RSPControllerSubscribeRequest{
+		Request: NewRequest(RSPControllerSubscribeMethod),
+		Params:  topics,
+	}
 }
