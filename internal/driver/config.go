@@ -35,10 +35,10 @@ import (
 // configuration holds the values for the device configuration, including what
 // MQTT broker to connect to for incoming data and command responses.
 type configuration struct {
-	ControllerName         string
-	MaxWaitTimeForReq      int
-	InitialConnectionTries int
-	TlsInsecureSkipVerify  bool
+	ControllerName          string
+	MaxWaitTimeForReq       int
+	MaxReconnectWaitSeconds int
+	TlsInsecureSkipVerify   bool
 
 	// IncomingTopics provide reads to be sent to EdgeX.
 	IncomingTopics []string

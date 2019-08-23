@@ -121,7 +121,7 @@ func (driver *Driver) publishCommand(request jsonrpc.Message) error {
 
 	// Publish the command request
 	driver.Logger.Info("Publish command", "command", string(requestBytes))
-	driver.Client.Publish(driver.Config.CommandTopic, driver.Config.CommandQos, retained, requestBytes)
+	driver.Client.Publish(driver.Config.CommandTopic, driver.Config.CommandQos, notRetained, requestBytes)
 	return nil
 }
 

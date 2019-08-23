@@ -24,6 +24,6 @@ import (
 )
 
 func init() {
-	instance = new(Driver)
-	instance.Logger = logger.NewClient("test", false, "", "DEBUG")
+	driverInstance = new(Driver)
+	driverInstance.Logger = logger.NewClient("test", false, "", "DEBUG")
 }

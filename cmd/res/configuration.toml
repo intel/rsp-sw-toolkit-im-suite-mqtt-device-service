@@ -70,8 +70,8 @@ LogLevel = "DEBUG"
 ControllerName = "rsp-controller"
 # maximum wait time in seconds for a command request to time out
 MaxWaitTimeForReq = "10"
-# maximum amount of tries to connect to mqtt broker on startup before we panic()
-InitialConnectionTries = "10"
+# maximum amount of time to wait for connection/re-connection to mqtt broker before we panic()
+MaxReconnectWaitSeconds = "600"
 # when set to "true", this will diable certificate checking of TLS connections to the MQTT broker
 TlsInsecureSkipVerify = "true"
 # topic to send commands on
@@ -99,7 +99,7 @@ MqttHost = "mosquitto-server"
 MqttPort = "1883"
 MqttUser = ""
 MqttPassword = ""
-# 120 seconds (2 minutes)
+# keepalive in seconds
 MqttKeepAlive = "120"
 IncomingQos = "1"
 ResponseQos = "1"

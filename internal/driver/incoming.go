@@ -38,7 +38,7 @@ const (
 func (driver *Driver) onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
 	var incomingData jsonrpc.Notification
 	if err := json.Unmarshal(message.Payload(), &incomingData); err != nil {
-		driver.Logger.Error(fmt.Sprintf("Unmarshal failed: %+v", err))
+		driver.Logger.Error(fmt.Sprintf("Unmarshal failed. cause=%+v messageObject=%+v", err, message))
 		return
 	}
 
