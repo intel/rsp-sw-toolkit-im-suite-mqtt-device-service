@@ -66,7 +66,7 @@ type Driver struct {
 
 	watchdogTimer  *time.Timer
 	watchdogStatus *time.Ticker
-	started           chan bool
+	started        chan bool
 	done           chan interface{}
 }
 
@@ -126,6 +126,7 @@ func (driver *Driver) runUntilCancelled() {
 	for {
 		select {
 		case <-driver.done:
+			driver.Logger.Info("done signaled. stopping service.")
 			return
 		case <-driver.watchdogTimer.C:
 			panic(errors.New("Timed out waiting for mqtt client to connect/re-connect. Exiting..."))
@@ -197,7 +198,7 @@ func (driver *Driver) onMqttConnect(client mqtt.Client) {
 		}
 	}
 
-	driver.started<-true
+	driver.started <- true
 }
 
 // subscribe attempts to subscribe to a specific mqtt topic with a given qos and handler
