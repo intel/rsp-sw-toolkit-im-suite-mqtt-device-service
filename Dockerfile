@@ -22,7 +22,7 @@
 
 # Intel modified the project name from device-mqtt-go to mqtt-device-service
 
-ARG ALPINE=golang:1.11-alpine
+ARG ALPINE=golang:1.12-alpine
 FROM ${ALPINE} AS builder
 ARG ALPINE_PKG_BASE="build-base git openssh-client"
 ARG ALPINE_PKG_EXTRA=""
