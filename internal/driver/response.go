@@ -25,6 +25,8 @@ import (
 	"github.com/eclipse/paho.mqtt.golang"
 	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/jsonrpc"
 	"time"
+
+	sdkModel "github.com/edgexfoundry/device-sdk-go/pkg/models"
 )
 
 // onCommandResponseReceived handles messages on the response topic and parses them as jsonrpc 2.0 Response messages
@@ -37,27 +39,29 @@ func (driver *Driver) onCommandResponseReceived(_ mqtt.Client, message mqtt.Mess
 	}
 
 	if response.Id != "" {
-		driver.CommandResponses.Store(response.Id, string(message.Payload()))
 		driver.Logger.Info("[Response listener] Command response received", "topic", message.Topic(), "msg", string(message.Payload()))
+		if responseChan, ok := driver.responseMap.Load(response.Id); ok {
+			responseChan.(chan *jsonrpc.Response) <- &response
+		}
 	} else {
 		driver.Logger.Debug("[Response listener] Command response ignored. No ID found in the message",
 			"topic", message.Topic(), "msg", string(message.Payload()))
 	}
 }
 
-// fetchCommandResponse use to wait and fetch response from CommandResponses map
-func (driver *Driver) fetchCommandResponse(requestId string) (string, bool) {
-	var response interface{}
-	var ok bool
-	for i := 0; i < driver.Config.MaxWaitTimeForReq; i++ {
-		response, ok = driver.CommandResponses.Load(requestId)
-		if ok {
-			driver.CommandResponses.Delete(requestId)
-			break
-		} else {
-			time.Sleep(time.Second * time.Duration(1))
-		}
+func (driver *Driver) createEdgeXResponse(deviceResourceName string, response *jsonrpc.Response) (*sdkModel.CommandValue, error) {
+	// Return just the result or error field from the jsonrpc response
+
+	origin := time.Now().UnixNano() / int64(time.Millisecond)
+
+	if response.Result != nil && len(response.Result) > 0 {
+		driver.Logger.Info("Get command finished successfully", "response.result", string(response.Result))
+		return sdkModel.NewStringValue(deviceResourceName, origin, string(response.Result)), nil
+
+	} else if response.Error != nil && len(response.Error) > 0 {
+		driver.Logger.Info("Get command finished with an error", "response.error", string(response.Error))
+		return nil, fmt.Errorf(string(response.Error))
 	}
 
-	return fmt.Sprintf("%v", response), ok
+	return nil, fmt.Errorf("response message missing both result and error field, unable to process. response: %+v", response)
 }

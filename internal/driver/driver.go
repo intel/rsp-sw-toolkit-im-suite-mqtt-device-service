@@ -50,6 +50,7 @@ const (
 	rspDeviceProfile        = "RSP.Device.MQTT.Profile"
 	disconnectQuiesceMillis = 5000
 	connectFailureSleep     = 5 * time.Second
+	subscribeFailureSleep   = 5 * time.Second
 )
 
 var (
@@ -58,16 +59,17 @@ var (
 )
 
 type Driver struct {
-	Logger           logger.LoggingClient
-	AsyncCh          chan<- *sdkModel.AsyncValues
-	CommandResponses sync.Map
-	Config           *configuration
-	Client           mqtt.Client
+	Logger  logger.LoggingClient
+	AsyncCh chan<- *sdkModel.AsyncValues
+	Config  *configuration
+	Client  mqtt.Client
 
 	watchdogTimer  *time.Timer
 	watchdogStatus *time.Ticker
-	started        chan bool
-	done           chan interface{}
+
+	responseMap sync.Map // [string]chan *jsonrpc.Response
+	started     chan bool
+	done        chan interface{}
 }
 
 // NewProtocolDriver returns the package-level driver instance.
@@ -89,6 +91,7 @@ func (driver *Driver) Initialize(lc logger.LoggingClient, asyncCh chan<- *sdkMod
 	driver.Logger = lc
 	driver.AsyncCh = asyncCh
 
+	//driver.responseChan = make(chan *jsonrpc.Response)
 	driver.started = make(chan bool)
 	driver.done = make(chan interface{})
 
@@ -226,7 +229,7 @@ func (driver *Driver) subscribe(topic string, qos byte, handler mqtt.MessageHand
 			}
 		}
 
-		time.Sleep(5 * time.Second)
+		time.Sleep(subscribeFailureSleep)
 	}
 }
 
