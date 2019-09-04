@@ -35,7 +35,7 @@ const (
 	deviceIdField   = "device_id"
 )
 
-func (driver *Driver) onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
+func (driver *Driver) onIncomingDataReceived(message mqtt.Message) {
 	var incomingData jsonrpc.Notification
 	if err := json.Unmarshal(message.Payload(), &incomingData); err != nil {
 		driver.Logger.Error(fmt.Sprintf("Unmarshal failed. cause=%+v payload=%s messageObject=%+v", err, string(message.Payload()), message))

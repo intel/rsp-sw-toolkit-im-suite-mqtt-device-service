@@ -79,6 +79,7 @@ func (driver *Driver) handleReadCommandRequest(deviceName string, req sdkModel.C
 
 	responseChan := make(chan *jsonrpc.Response)
 	driver.responseMap.Store(requestId, responseChan)
+	// cleanup
 	defer func() {
 		driver.responseMap.Delete(requestId)
 		close(responseChan)
@@ -94,15 +95,14 @@ func (driver *Driver) handleReadCommandRequest(deviceName string, req sdkModel.C
 	for {
 		select {
 		case response := <-responseChan:
-			driver.Logger.Info(fmt.Sprintf("received on response channel: %+v", response))
 			if response.Id == requestId {
-				driver.Logger.Info(fmt.Sprintf("response id matches!  %+v", response))
 				// if these are the droids we are looking for, format a response object for sending back to EdgeX
 				return driver.createEdgeXResponse(req.DeviceResourceName, response)
 			}
-			driver.Logger.Info(fmt.Sprintf("not the droids we are looking for :( %+v", response))
 		case <-timeout.C:
 			return nil, fmt.Errorf("timed out waiting for command response for request: %+v", request)
+		case <-driver.done:
+			return nil, errors.New("done signaled. ignoring response")
 		}
 	}
 }

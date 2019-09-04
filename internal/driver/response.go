@@ -1,3 +1,9 @@
+// -*- Mode: Go; indent-tabs-mode: t -*-
+//
+// Copyright (C) 2018-2019 IOTech Ltd
+//
+// SPDX-License-Identifier: Apache-2.0
+
 /*
  * INTEL CONFIDENTIAL
  * Copyright (2019) Intel Corporation.
@@ -30,7 +36,7 @@ import (
 )
 
 // onCommandResponseReceived handles messages on the response topic and parses them as jsonrpc 2.0 Response messages
-func (driver *Driver) onCommandResponseReceived(_ mqtt.Client, message mqtt.Message) {
+func (driver *Driver) onCommandResponseReceived(message mqtt.Message) {
 	var response jsonrpc.Response
 
 	if err := json.Unmarshal(message.Payload(), &response); err != nil {

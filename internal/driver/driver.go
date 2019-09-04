@@ -45,12 +45,16 @@ import (
 )
 
 const (
-	jsonRpcVersion          = "2.0"
-	notRetained             = false
-	rspDeviceProfile        = "RSP.Device.MQTT.Profile"
-	disconnectQuiesceMillis = 5000
-	connectFailureSleep     = 5 * time.Second
-	subscribeFailureSleep   = 5 * time.Second
+	jsonRpcVersion                = "2.0"
+	notRetained                   = false
+	rspDeviceProfile              = "RSP.Device.MQTT.Profile"
+	disconnectQuiesceMillis       = 5000
+	connectFailureSleep           = 5 * time.Second
+	subscribeFailureSleep         = 5 * time.Second
+	// maximum amount of incoming data mqtt messages to handle at one time
+	incomingDataMessageBuffer     = 100
+	// maximujm amount of incoming mqtt responses to handle at one time
+	incomingResponseMessageBuffer = 10
 )
 
 var (
@@ -68,14 +72,22 @@ type Driver struct {
 	watchdogStatus *time.Ticker
 
 	responseMap sync.Map // [string]chan *jsonrpc.Response
-	started     chan bool
-	done        chan interface{}
+
+	// mqttDataChan is a channel to send incoming mqtt messages from any of the incoming topics
+	mqttDataChan chan mqtt.Message
+	// mqttResponseChan is a channel to only send incoming mqtt messages from the command response topic
+	mqttResponseChan chan mqtt.Message
+
+	started chan bool
+	done    chan interface{}
 }
 
 // NewProtocolDriver returns the package-level driver instance.
 func NewProtocolDriver() sdkModel.ProtocolDriver {
 	once.Do(func() {
 		driverInstance = new(Driver)
+		driverInstance.mqttDataChan = make(chan mqtt.Message, incomingDataMessageBuffer)
+		driverInstance.mqttResponseChan = make(chan mqtt.Message, incomingResponseMessageBuffer)
 	})
 	return driverInstance
 }
@@ -128,9 +140,16 @@ func (driver *Driver) Start() {
 func (driver *Driver) runUntilCancelled() {
 	for {
 		select {
+		case msg := <-driver.mqttResponseChan:
+			driver.onCommandResponseReceived(msg)
+
+		case msg := <-driver.mqttDataChan:
+			driver.onIncomingDataReceived(msg)
+
 		case <-driver.done:
 			driver.Logger.Info("done signaled. stopping service.")
 			return
+
 		case <-driver.watchdogTimer.C:
 			panic(errors.New("Timed out waiting for mqtt client to connect/re-connect. Exiting..."))
 		}
@@ -207,9 +226,6 @@ func (driver *Driver) onMqttConnect(client mqtt.Client) {
 // subscribe attempts to subscribe to a specific mqtt topic with a given qos and handler
 // it will try forever until it succeeds or is cancelled. should be called in a goroutine
 func (driver *Driver) subscribe(topic string, qos byte, handler mqtt.MessageHandler) {
-	// Wrap the message handler in a goroutine to prevent the handler from blocking the receiving of new mqtt messages
-	asyncHandler := createAsyncMessageHandler(handler)
-
 	for {
 		// keep trying to subscribe forever unless done is signaled
 		select {
@@ -219,7 +235,7 @@ func (driver *Driver) subscribe(topic string, qos byte, handler mqtt.MessageHand
 			return
 
 		default:
-			token := driver.Client.Subscribe(topic, qos, asyncHandler)
+			token := driver.Client.Subscribe(topic, qos, handler)
 			if token.Wait() && token.Error() != nil {
 				driver.Logger.Warn("subscription error", "cause", token.Error(), "topic", topic, "qos", qos)
 			} else {
@@ -241,11 +257,15 @@ func (driver *Driver) subscribeAll() {
 	// without interrupting the flow of the program
 
 	// response subscription
-	go driver.subscribe(driver.Config.ResponseTopic, driver.Config.ResponseQos, driver.onCommandResponseReceived)
+	go driver.subscribe(driver.Config.ResponseTopic, driver.Config.ResponseQos, func(_ mqtt.Client, message mqtt.Message) {
+		driver.mqttResponseChan <- message
+	})
 
 	// incoming subscriptions
 	for _, topic := range driver.Config.IncomingTopics {
-		go driver.subscribe(topic, driver.Config.IncomingQos, driver.onIncomingDataReceived)
+		go driver.subscribe(topic, driver.Config.IncomingQos, func(_ mqtt.Client, message mqtt.Message) {
+			driver.mqttDataChan <- message
+		})
 	}
 }
 
@@ -315,16 +335,5 @@ func (driver *Driver) registerRSP(deviceId string) {
 	})
 	if err != nil {
 		driver.Logger.Error(fmt.Sprintf("Registering of sensor device %v failed: %v", deviceId, err))
-	}
-}
-
-// createAsyncMessageHandler wrap an mqtt.MessageHandler in a goroutine to prevent that handler
-// from blocking the receiving/handling of new mqtt messages
-func createAsyncMessageHandler(handler mqtt.MessageHandler) mqtt.MessageHandler {
-	// It is safe to share client, handler, and message in the goroutine closure as we do not expect them to be modified
-	return func(client mqtt.Client, message mqtt.Message) {
-		go func() {
-			handler(client, message)
-		}()
 	}
 }
