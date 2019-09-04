@@ -35,12 +35,9 @@ const (
 	RSPPrefix = "RSP"
 )
 
-// HandleReadCommands handles CommandRequests to read data via MQTT.
-//
-// It satisfies them by creating a new MQTT client with the protocol, sending the
-// requests as JSON RPC messages on all configured topics, then waiting for a
-// response on any of the response topics; once a response comes in, it returns
-// that result.
+// HandleReadCommands is the entrypoint for a command from EdgeX command service
+// The commands will be sent via mqtt to the rsp controller and response will be given
+// back to EdgeX for returning to the caller
 func (driver *Driver) HandleReadCommands(deviceName string, protocols map[string]models.ProtocolProperties, reqs []sdkModel.CommandRequest) ([]*sdkModel.CommandValue, error) {
 	var responses = make([]*sdkModel.CommandValue, len(reqs))
 	var err error
@@ -58,10 +55,8 @@ func (driver *Driver) HandleReadCommands(deviceName string, protocols map[string
 	return responses, err
 }
 
-// handleReadCommandRequest takes care of the JSON RPC command/response portion
-// of the HandleReadCommands.
-//
-// The command request is published on all of the incoming connection info topics.
+// handleReadCommandRequest is the internal code to send commands over mqtt to
+// the rsp controller
 func (driver *Driver) handleReadCommandRequest(deviceName string, req sdkModel.CommandRequest) (*sdkModel.CommandValue, error) {
 	method := req.DeviceResourceName
 	var request jsonrpc.Message
