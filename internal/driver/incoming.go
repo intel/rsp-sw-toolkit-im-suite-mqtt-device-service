@@ -21,7 +21,6 @@ package driver
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/jsonrpc"
 	"time"
 
@@ -32,18 +31,22 @@ import (
 
 const (
 	sensorHeartbeat = "heartbeat"
-	deviceIdField   = "device_id"
+	deviceIdKey     = "device_id"
+	inventoryEvent  = "inventory_event"
+	tagDataKey      = "epc"
+	uriDataKey      = "uri"
 )
 
 func (driver *Driver) onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
+	outgoing := message.Payload()
 	var incomingData jsonrpc.Notification
-	if err := json.Unmarshal(message.Payload(), &incomingData); err != nil {
-		driver.Logger.Error(fmt.Sprintf("Unmarshal failed. cause=%+v messageObject=%+v", err, message))
+	if err := json.Unmarshal(outgoing, &incomingData); err != nil {
+		driver.Logger.Error("Unmarshal failed. cause=%+v messageObject=%+v", err, message)
 		return
 	}
 
 	if incomingData.Version != jsonRpcVersion {
-		driver.Logger.Error(fmt.Sprintf("Invalid version: %s", incomingData.Version))
+		driver.Logger.Error("Invalid version: %s", incomingData.Version)
 		return
 	}
 
@@ -53,26 +56,40 @@ func (driver *Driver) onIncomingDataReceived(_ mqtt.Client, message mqtt.Message
 		driver.Logger.Warn("[Incoming listener] "+
 			"Incoming reading ignored. "+
 			"No method field in message.",
-			"msg", string(message.Payload()))
+			"msg", string(outgoing))
 		return
 	}
 
-	// register new sensor device in Edgex to be able to send GET command requests with params to RSP Controller
-	if resourceName == sensorHeartbeat {
-		var heartbeat map[string]interface{}
-		if err := json.Unmarshal(incomingData.Params, &heartbeat); err != nil {
-			driver.Logger.Error(fmt.Sprintf("Unmarshalling of sensor heartbeat params failed: %+v", err))
-		}
-		deviceId := heartbeat[deviceIdField].(string)
+	var err error
+	switch resourceName {
+	case sensorHeartbeat:
+		// Register new (i.e., currently unregistered) sensors with EdgeX
+		var deviceID string
+		deviceID, err = incomingData.GetParamStr(deviceIdKey)
 
-		// registering the sensor only if it is already not registered
-		if _, notFound := sdk.RunningService().GetDeviceByName(deviceId); notFound != nil {
-			driver.registerRSP(deviceId)
+		if _, notFound := sdk.RunningService().GetDeviceByName(deviceID); notFound != nil {
+			driver.registerRSP(deviceID)
 		}
+	case inventoryEvent:
+		var tagData, URI string
+		tagData, err = incomingData.GetParamStr(tagDataKey)
+		if err == nil {
+			URI, err = driver.DecoderRing.TagDataToURI(tagData)
+		}
+		if err == nil {
+			err = incomingData.SetParam(uriDataKey, URI)
+		}
+		if err == nil {
+			outgoing, err = json.Marshal(outgoing) // update the outgoing payload
+		}
+	}
+	if err != nil {
+		driver.Logger.Error("Failed to handle %s: %+v", resourceName, err)
+		return
 	}
 
 	origin := time.Now().UnixNano() / int64(time.Millisecond)
-	value := sdkModel.NewStringValue(resourceName, origin, string(message.Payload()))
+	value := sdkModel.NewStringValue(resourceName, origin, string(outgoing))
 
 	driver.Logger.Info("[Incoming listener] Incoming reading received",
 		"topic", message.Topic(),

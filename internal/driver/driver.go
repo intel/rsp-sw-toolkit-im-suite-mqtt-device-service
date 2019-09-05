@@ -63,6 +63,7 @@ type Driver struct {
 	CommandResponses sync.Map
 	Config           *configuration
 	Client           mqtt.Client
+	DecoderRing      *DecoderRing
 
 	watchdogTimer  *time.Timer
 	watchdogStatus *time.Ticker
@@ -97,6 +98,10 @@ func (driver *Driver) Initialize(lc logger.LoggingClient, asyncCh chan<- *sdkMod
 		panic(errors.Wrap(err, "read MQTT driver configuration failed"))
 	}
 	driver.Config = config
+
+	if err := driver.setupDecoderRing(); err != nil {
+		return err
+	}
 
 	driver.setupWatchdog()
 
@@ -313,6 +318,30 @@ func (driver *Driver) registerRSP(deviceId string) {
 	if err != nil {
 		driver.Logger.Error(fmt.Sprintf("Registering of sensor device %v failed: %v", deviceId, err))
 	}
+}
+func (driver *Driver) setupDecoderRing() error {
+	driver.DecoderRing = &DecoderRing{}
+	for idx, f := range driver.Config.TagFormats {
+		switch f {
+		case "BitTag":
+			if err := driver.DecoderRing.AddBitTagDecoder(
+				driver.Config.TagURIAuthorityName, driver.Config.TagURIAuthorityDate,
+				driver.Config.TagBitBoundary, driver.Config.TagProductField); err != nil {
+				return err
+			}
+		case "SGTIN":
+			driver.DecoderRing.AddSGTINDecoder(driver.Config.SGTINStrictDecoding)
+		default:
+			return errors.Errorf("unknown tag format: %s", f)
+		}
+		driver.Logger.Info("added decoder %+v", driver.DecoderRing.Decoders[idx])
+	}
+	return nil
+}
+
+// tagDataToURI converts incoming tag data to a URI based on driver encoding rules.
+func (driver *Driver) tagDataToURI(tagData string) (string, error) {
+	return driver.DecoderRing.TagDataToURI(tagData)
 }
 
 // createAsyncMessageHandler wrap an mqtt.MessageHandler in a goroutine to prevent that handler
