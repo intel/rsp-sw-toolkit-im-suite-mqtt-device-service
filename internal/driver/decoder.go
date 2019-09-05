@@ -33,7 +33,7 @@ type DecoderRing struct {
 	Decoders []TagDecoder
 }
 
-func (dr *DecoderRing) AddBitTagDecoder(authority, date string, widths []int, productIdx int) error {
+func (dr *DecoderRing) AddBitTagDecoder(authority, date string, widths []int) error {
 	btd, err := tagcode.NewBitTagDecoder(authority, date, widths)
 	if err != nil {
 		return err

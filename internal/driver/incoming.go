@@ -21,6 +21,7 @@ package driver
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/jsonrpc"
 	"time"
 

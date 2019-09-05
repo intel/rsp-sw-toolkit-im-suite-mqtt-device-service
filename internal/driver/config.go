@@ -74,7 +74,6 @@ type configuration struct {
 	// Tag decoding
 	TagFormats          []string
 	TagBitBoundary      []int
-	TagProductField     int
 	TagURIAuthorityName string
 	TagURIAuthorityDate string
 	SGTINStrictDecoding bool
