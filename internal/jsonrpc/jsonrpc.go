@@ -67,7 +67,7 @@ type RSPControllerSubscribeRequest struct {
 	Params []string `json:"params"`
 }
 
-// Device_id parameter used in some command requests to RSP Controller
+// DeviceIdParams holds the device id parameter used in command requests to RSP Controller
 type DeviceIdParams struct {
 	DeviceId string `json:"device_id"`
 }

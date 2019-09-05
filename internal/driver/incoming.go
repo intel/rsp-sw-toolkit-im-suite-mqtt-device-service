@@ -37,16 +37,17 @@ const (
 	uriDataKey      = "uri"
 )
 
-func (driver *Driver) onIncomingDataReceived(_ mqtt.Client, message mqtt.Message) {
+func (driver *Driver) onIncomingDataReceived(message mqtt.Message) {
 	outgoing := message.Payload()
 	var incomingData jsonrpc.Notification
-	if err := json.Unmarshal(outgoing, &incomingData); err != nil {
-		driver.Logger.Error("Unmarshal failed. cause=%+v messageObject=%+v", err, message)
+	if err := json.Unmarshal(message.Payload(), &incomingData); err != nil {
+		driver.Logger.Error(fmt.Sprintf("Unmarshal failed. cause=%+v payload=%s messageObject=%+v",
+			err, string(outgoing), message))
 		return
 	}
 
 	if incomingData.Version != jsonRpcVersion {
-		driver.Logger.Error("Invalid version: %s", incomingData.Version)
+		driver.Logger.Error(fmt.Sprintf("Invalid version: %s", incomingData.Version))
 		return
 	}
 
