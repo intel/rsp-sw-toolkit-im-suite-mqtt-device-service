@@ -27,6 +27,5 @@
 
 package mqtt_device_service
 
-// Global version for device-sdk-go
-// todo: this is never actually replaced
-var Version string = "to be replaced by makefile"
+// Global version for mqtt-device-service
+var Version string = "1.0.0"
