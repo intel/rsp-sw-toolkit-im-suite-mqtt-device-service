@@ -4,125 +4,110 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+/*
+ * INTEL CONFIDENTIAL
+ * Copyright (2019) Intel Corporation.
+ *
+ * The source code contained or described herein and all documents related to the source code ("Material")
+ * are owned by Intel Corporation or its suppliers or licensors. Title to the Material remains with
+ * Intel Corporation or its suppliers and licensors. The Material may contain trade secrets and proprietary
+ * and confidential information of Intel Corporation and its suppliers and licensors, and is protected by
+ * worldwide copyright and trade secret laws and treaty provisions. No part of the Material may be used,
+ * copied, reproduced, modified, published, uploaded, posted, transmitted, distributed, or disclosed in
+ * any way without Intel/'s prior express written permission.
+ * No license under any patent, copyright, trade secret or other intellectual property right is granted
+ * to or conferred upon you by disclosure or delivery of the Materials, either expressly, by implication,
+ * inducement, estoppel or otherwise. Any license under such intellectual property rights must be express
+ * and approved by Intel in writing.
+ * Unless otherwise agreed by Intel in writing, you may not remove or alter this notice or any other
+ * notice embedded in Materials by Intel or Intel's suppliers or licensors in any way.
+ */
+
 package driver
 
 import (
-	"reflect"
+	"fmt"
+	"strconv"
 	"strings"
 	"testing"
-
-	"github.com/edgexfoundry/go-mod-core-contracts/models"
 )
-
-func TestCreateConnectionInfo(t *testing.T) {
-	expected := &ConnectionInfo{
-		Scheme:   "tcp",
-		Host:     "0.0.0.0",
-		Port:     "1883",
-		User:     "admin",
-		Password: "password",
-		ClientId: "CommandPublisher",
-		Topics:   []string{"CommandTopic1"},
-	}
-	protocols := map[string]models.ProtocolProperties{
-		Protocol: {
-			Scheme:   expected.Scheme,
-			Host:     expected.Host,
-			Port:     expected.Port,
-			User:     expected.User,
-			Password: expected.Password,
-			ClientId: expected.ClientId,
-			Topics:   strings.Join(expected.Topics, ","),
-		},
-	}
-
-	connectionInfo, err := CreateConnectionInfo(protocols)
-	if err != nil {
-		t.Fatalf("%+v", err)
-	}
-	if !reflect.DeepEqual(connectionInfo, expected) {
-		t.Fatalf("connectionInfo: %+v\nexpected: %+v", connectionInfo, expected)
-	}
-}
-
-func TestLoadConfig_multipleTopics(t *testing.T) {
-	expected := &ConnectionInfo{
-		Scheme:   "tcp",
-		Host:     "0.0.0.0",
-		Port:     "1883",
-		User:     "admin",
-		Password: "password",
-		ClientId: "CommandPublisher",
-		Topics:   []string{"CommandTopic1", "CommandTopic2"},
-	}
-	protocols := map[string]models.ProtocolProperties{
-		Protocol: {
-			Scheme:   expected.Scheme,
-			Host:     expected.Host,
-			Port:     expected.Port,
-			User:     expected.User,
-			Password: expected.Password,
-			ClientId: expected.ClientId,
-			Topics:   strings.Join(expected.Topics, ","),
-		},
-	}
-
-	connectionInfo, err := CreateConnectionInfo(protocols)
-	if err != nil {
-		t.Fatalf("%+v", err)
-	}
-	if !reflect.DeepEqual(connectionInfo, expected) {
-		t.Fatalf("connectionInfo: %+v\nexpected: %+v", connectionInfo, expected)
-	}
-}
-
-func TestCreateConnectionInfo_fail(t *testing.T) {
-	protocols := map[string]models.ProtocolProperties{
-		Protocol: {},
-	}
-
-	_, err := CreateConnectionInfo(protocols)
-	if err == nil {
-		t.Fatal("Unexpected test result; err should not be nil")
-	}
-}
 
 func TestCreateDriverConfig(t *testing.T) {
 	configs := map[string]string{
-		ControllerName: "test-device",
-		RSPMqttClientId: "",
-		MaxWaitTimeForReq: "10",
-
-		OnConnectPublishTopic: "", OnConnectPublishMessage: "",
-
-		IncomingScheme: "tcp", IncomingHost: "0.0.0.0", IncomingPort: "1883",
-		IncomingUser: "admin", IncomingPassword: "public", IncomingQos: "0",
-		IncomingKeepAlive: "3600", IncomingClientId: "IncomingDataSubscriber",
-		IncomingTopics: "DataTopic",
-
-		ResponseScheme: "tcp", ResponseHost: "0.0.0.0", ResponsePort: "1883",
-		ResponseUser: "admin", ResponsePassword: "public", ResponseQos: "0",
-		ResponseKeepAlive: "3600", ResponseClientId: "CommandResponseSubscriber",
-		ResponseTopics: "ResponseTopic",
+		ControllerName:             "rsp-controller",
+		MaxWaitTimeForReq:          "10",
+		MaxReconnectWaitSeconds:    "600",
+		TlsInsecureSkipVerify:      "true",
+		CommandTopic:               "rfid/controller/command",
+		ResponseTopic:              "rfid/controller/response",
+		IncomingTopics:             "rfid/controller/alerts,rfid/controller/heartbeat,rfid/controller/notification,rfid/rsp/data/+,rfid/rsp/rsp_status/+",
+		RspControllerNotifications: "scheduler_run_state,sensor_config_notification,sensor_connection_state_notification",
+		MqttScheme:                 "tcp",
+		MqttHost:                   "mosquitto-server",
+		MqttPort:                   "1883",
+		MqttUser:                   "",
+		MqttPassword:               "",
+		MqttKeepAlive:              "120",
+		IncomingQos:                "1",
+		ResponseQos:                "1",
+		CommandQos:                 "1",
+		MqttClientId:               "MqttDeviceService",
 	}
-	driverConfig, err := CreateDriverConfig(configs)
+
+	cfg, err := CreateDriverConfig(configs)
 	if err != nil {
 		t.Fatalf("Fail to load config, %v", err)
 	}
-	if driverConfig.ControllerName != configs[ControllerName] ||
-		driverConfig.IncomingScheme != configs[IncomingScheme] || driverConfig.IncomingHost != configs[IncomingHost] ||
-		driverConfig.IncomingPort != configs[IncomingPort] || driverConfig.IncomingUser != configs[IncomingUser] ||
-		driverConfig.IncomingPassword != configs[IncomingPassword] || driverConfig.IncomingQos != 0 ||
-		driverConfig.IncomingKeepAlive != 3600 || driverConfig.IncomingClientId != configs[IncomingClientId] ||
-		driverConfig.IncomingTopics[0] != configs[IncomingTopics] ||
-		driverConfig.ResponseScheme != configs[ResponseScheme] || driverConfig.ResponseHost != configs[ResponseHost] ||
-		driverConfig.ResponsePort != 1883 || driverConfig.ResponseUser != configs[ResponseUser] ||
-		driverConfig.ResponsePassword != configs[ResponsePassword] || driverConfig.ResponseQos != 0 ||
-		driverConfig.ResponseKeepAlive != 3600 || driverConfig.ResponseClientId != configs[ResponseClientId] ||
-		driverConfig.ResponseTopics[0] != configs[ResponseTopics] {
+
+	if cfg.ControllerName != configs[ControllerName] ||
+		cfg.MaxWaitTimeForReq != convertInt(configs[MaxWaitTimeForReq]) ||
+		cfg.MaxReconnectWaitSeconds != convertInt(configs[MaxReconnectWaitSeconds]) ||
+		cfg.TlsInsecureSkipVerify != convertBool(configs[TlsInsecureSkipVerify]) ||
+		convertSlice(cfg.IncomingTopics) != configs[IncomingTopics] ||
+		cfg.CommandTopic != configs[CommandTopic] ||
+		cfg.ResponseTopic != configs[ResponseTopic] ||
+		convertSlice(cfg.RspControllerNotifications) != configs[RspControllerNotifications] ||
+		cfg.MqttScheme != configs[MqttScheme] ||
+		cfg.MqttHost != configs[MqttHost] ||
+		cfg.MqttPort != configs[MqttPort] ||
+		cfg.MqttUser != configs[MqttUser] ||
+		cfg.MqttPassword != configs[MqttPassword] ||
+		cfg.MqttKeepAlive != convertInt(configs[MqttKeepAlive]) ||
+		cfg.MqttClientId != configs[MqttClientId] ||
+		cfg.CommandQos != convertByte(configs[CommandQos]) ||
+		cfg.ResponseQos != convertByte(configs[ResponseQos]) ||
+		cfg.IncomingQos != convertByte(configs[IncomingQos]) {
 
 		t.Fatalf("Unexpected test result; driver config doesn't load correctly")
 	}
+}
+
+func convertBool(str string) bool {
+	val, err := strconv.ParseBool(str)
+	if err != nil {
+		panic(fmt.Sprintf("cannot convert %s to bool", str))
+	}
+	return val
+}
+
+func convertInt(str string) int {
+	val, err := strconv.Atoi(str)
+	if err != nil {
+		panic(fmt.Sprintf("cannot convert %s to int", str))
+	}
+	return val
+}
+
+func convertByte(str string) byte {
+	val, err := strconv.ParseUint(str, 10, 8)
+	if err != nil {
+		panic(fmt.Sprintf("cannot convert %s to int", str))
+	}
+	return byte(val)
+}
+
+func convertSlice(strSlice []string) string {
+	return strings.Join(strSlice, ",")
 }
 
 func TestCreateDriverConfig_fail(t *testing.T) {

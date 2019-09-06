@@ -23,15 +23,15 @@ default: build
 
 scale=docker service scale $(STACK_NAME)_$(SERVICE_NAME)=$1 $2
 
-wait_for_service=	@printf "Waiting for $(SERVICE_NAME) service to$1..."; \
-					while [  $2 -z `docker ps -qf name=$(STACK_NAME)_$(SERVICE_NAME).1` ]; \
+wait_for_service=	@printf "Waiting for $(SERVICE_NAME) service to $1..."; \
+					while [ $2 -z `docker ps -qf name=$(STACK_NAME)_$(SERVICE_NAME).1` ]; \
                  	do \
                  		printf "."; \
                  		sleep 0.3;\
                  	done; \
                  	printf "\n";
 
-log=docker logs $1$2 `docker ps -qf name=$(STACK_NAME)_$(SERVICE_NAME).1` 2>&1
+log=docker logs $1 $2 `docker ps -qf name=$(STACK_NAME)_$(SERVICE_NAME).1` 2>&1
 
 build: $(MICROSERVICES)
 	$(GO) build ./...
@@ -75,7 +75,7 @@ restart:
 	$(call wait_for_service, start)
 
 tail:
-	$(call log,-f,$(args))
+	$(call log,-f --tail 30,$(args))
 
 scale:
 	$(call scale,$(n),$(args))

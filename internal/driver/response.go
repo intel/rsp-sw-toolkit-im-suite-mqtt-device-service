@@ -6,7 +6,7 @@
 
 /*
  * INTEL CONFIDENTIAL
- * Copyright (2017) Intel Corporation.
+ * Copyright (2019) Intel Corporation.
  *
  * The source code contained or described herein and all documents related to the source code ("Material")
  * are owned by Intel Corporation or its suppliers or licensors. Title to the Material remains with
@@ -28,45 +28,16 @@ package driver
 import (
 	"encoding/json"
 	"fmt"
-	"net/url"
-	"strings"
-
 	"github.com/eclipse/paho.mqtt.golang"
-	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/models"
+	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/jsonrpc"
+	"time"
+
+	sdkModel "github.com/edgexfoundry/device-sdk-go/pkg/models"
 )
 
-// startCommandResponseListening begins listening for messages on the command
-// response channel.
-func startCommandResponseListening(done <-chan interface{}) error {
-	conf := driver.Config
-	client, err := createClient(conf.ResponseClientId, &url.URL{
-		Scheme: strings.ToLower(conf.ResponseScheme),
-		Host:   fmt.Sprintf("%s:%d", conf.ResponseHost, conf.ResponsePort),
-		User:   url.UserPassword(conf.ResponseUser, conf.ResponsePassword),
-	}, conf.ResponseKeepAlive, nil)
-	if err != nil {
-		return err
-	}
-
-	defer client.Disconnect(5000)
-
-	for _, topic := range conf.ResponseTopics {
-		token := client.Subscribe(topic, byte(conf.ResponseQos), onCommandResponseReceived)
-		if token.Wait() && token.Error() != nil {
-			driver.Logger.Info("[Response listener] Stop command response listening.", "cause", token.Error())
-			return token.Error()
-		}
-	}
-
-	driver.Logger.Info("[Response listener] Start command response listener. ")
-	<-done
-	driver.Logger.Info("[Response listener] Stopping command response listener. ")
-	return nil
-}
-
-// Modified by Intel to handle responses from Intel open source RSP Controller
-func onCommandResponseReceived(_ mqtt.Client, message mqtt.Message) {
-	var response models.JsonResponse
+// onCommandResponseReceived handles messages on the response topic and parses them as jsonrpc 2.0 Response messages
+func (driver *Driver) onCommandResponseReceived(message mqtt.Message) {
+	var response jsonrpc.Response
 
 	if err := json.Unmarshal(message.Payload(), &response); err != nil {
 		driver.Logger.Error("[Response listener] Unmarshalling of command response failed", "cause", err)
@@ -74,10 +45,29 @@ func onCommandResponseReceived(_ mqtt.Client, message mqtt.Message) {
 	}
 
 	if response.Id != "" {
-		driver.CommandResponses.Store(response.Id, string(message.Payload()))
 		driver.Logger.Info("[Response listener] Command response received", "topic", message.Topic(), "msg", string(message.Payload()))
+		if responseChan, ok := driver.responseMap.Load(response.Id); ok {
+			responseChan.(chan *jsonrpc.Response) <- &response
+		}
 	} else {
 		driver.Logger.Debug("[Response listener] Command response ignored. No ID found in the message",
 			"topic", message.Topic(), "msg", string(message.Payload()))
 	}
+}
+
+func (driver *Driver) createEdgeXResponse(deviceResourceName string, response *jsonrpc.Response) (*sdkModel.CommandValue, error) {
+	// Return just the result or error field from the jsonrpc response
+
+	origin := time.Now().UnixNano() / int64(time.Millisecond)
+
+	if response.Result != nil && len(response.Result) > 0 {
+		driver.Logger.Info("Get command finished successfully", "response.result", string(response.Result))
+		return sdkModel.NewStringValue(deviceResourceName, origin, string(response.Result)), nil
+
+	} else if response.Error != nil && len(response.Error) > 0 {
+		driver.Logger.Info("Get command finished with an error", "response.error", string(response.Error))
+		return nil, fmt.Errorf(string(response.Error))
+	}
+
+	return nil, fmt.Errorf("response message missing both result and error field, unable to process. response: %+v", response)
 }

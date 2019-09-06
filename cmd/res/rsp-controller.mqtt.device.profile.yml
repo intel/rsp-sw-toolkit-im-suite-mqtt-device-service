@@ -45,6 +45,26 @@ deviceResources:
     units:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
+  name: scheduler_run_state
+  description: "Scheduler run state configuration"
+  attributes:
+    { name: "scheduler_run_state" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
+  name: rsp_controller_status_update
+  description: "RSP Controller status update"
+  attributes:
+    { name: "rsp_controller_status_update" }
+  properties:
+    value:
+      { type: "String", readWrite: "R", defaultValue: "" }
+    units:
+      { type: "String", readWrite: "R", defaultValue: "" }
+-
   name: sensor_connection_state_notification
   description: "Sensor connection state notification"
   attributes:
@@ -198,6 +218,14 @@ deviceCommands:
   name: sensor_config_notification
   get:
     - { index: "1", operation: "get", object: "sensor_config_notification", parameter: "sensor_config_notification", property: "value" }
+-
+  name: scheduler_run_state
+  get:
+    - { index: "1", operation: "get", object: "scheduler_run_state", parameter: "scheduler_run_state", property: "value" }
+-
+  name: rsp_controller_status_update
+  get:
+    - { index: "1", operation: "get", object: "rsp_controller_status_update", parameter: "rsp_controller_status_update", property: "value" }
 -
   name: sensor_connection_state_notification
   get:

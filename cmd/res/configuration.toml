@@ -63,54 +63,45 @@ LogLevel = "DEBUG"
   [DeviceList.Protocols]
     [DeviceList.Protocols.mqtt]
        Scheme = "tcp"
-       Host = "mosquitto-server"
-       Port = "1883"
-       User = ""
-       Password = ""
-       ClientId = "CommandPublisher"
-       Topics = "rfid/controller/command"
 
 # Driver configs
 [Driver]
 # device name used for sending data received on the IncomingTopics into Edgex
 ControllerName = "rsp-controller"
-# mqtt clientId required to register sensor devices
-SensorClientId = "CommandPublisher"
-
-
-# topic and message to publish to mqtt when the client is connected
-OnConnectPublishTopic = "rfid/controller/command"
-# {{uuid}} will be replaced at runtime with a generated uuid value
-OnConnectPublishMessage = """\
-{\
-  "jsonrpc":"2.0",\
-  "method":"subscribe",\
-  "id":"{{uuid}}",\
-  "params":[\
-    "sensor_config_notification",\
-    "sensor_connection_state_notification"\
-  ]\
-}"""
 # maximum wait time in seconds for a command request to time out
 MaxWaitTimeForReq = "10"
+# maximum amount of time to wait for connection/re-connection to mqtt broker before we panic()
+MaxReconnectWaitSeconds = "600"
+# when set to "true", this will diable certificate checking of TLS connections to the MQTT broker
+TlsInsecureSkipVerify = "true"
+# topic to send commands on
+CommandTopic = "rfid/controller/command"
+# topic to listen for responses on
+ResponseTopic = "rfid/controller/response"
 
-IncomingScheme = "tcp"
-IncomingHost = "mosquitto-server"
-IncomingPort = "1883"
-IncomingUser = ""
-IncomingPassword = ""
+# Incoming topics containing data to be ingested
+IncomingTopics = "\
+  rfid/controller/alerts,\
+  rfid/controller/heartbeat,\
+  rfid/controller/notification,\
+  rfid/rsp/data/+,\
+  rfid/rsp/rsp_status/+"
+
+# RspControllerNotifications is the types of notifications we want to receive from the RSP Controller
+RspControllerNotifications = "\
+  scheduler_run_state,\
+  sensor_config_notification,\
+  sensor_connection_state_notification"
+
+# Mqtt Connection Info
+MqttScheme = "tcp"
+MqttHost = "mosquitto-server"
+MqttPort = "1883"
+MqttUser = ""
+MqttPassword = ""
+# keepalive in seconds
+MqttKeepAlive = "120"
 IncomingQos = "1"
-IncomingKeepAlive = "3600"
-IncomingClientId = "IncomingDataSubscriber"
-IncomingTopics = "rfid/controller/events,rfid/controller/alerts,rfid/controller/heartbeat,rfid/controller/notification,rfid/rsp/data/+,rfid/rsp/rsp_status/+"
-
-ResponseScheme = "tcp"
-ResponseHost = "mosquitto-server"
-ResponsePort = "1883"
-ResponseUser = ""
-ResponsePassword = ""
 ResponseQos = "1"
-ResponseKeepAlive = "3600"
-ResponseClientId = "CommandResponseSubscriber"
-ResponseTopics = "rfid/controller/response"
-
+CommandQos = "1"
+MqttClientId = "MqttDeviceService"

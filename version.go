@@ -6,7 +6,7 @@
 
 /*
  * INTEL CONFIDENTIAL
- * Copyright (2017) Intel Corporation.
+ * Copyright (2019) Intel Corporation.
  *
  * The source code contained or described herein and all documents related to the source code ("Material")
  * are owned by Intel Corporation or its suppliers or licensors. Title to the Material remains with
@@ -28,4 +28,5 @@
 package mqtt_device_service
 
 // Global version for device-sdk-go
+// todo: this is never actually replaced
 var Version string = "to be replaced by makefile"

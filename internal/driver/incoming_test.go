@@ -1,6 +1,6 @@
 /*
  * INTEL CONFIDENTIAL
- * Copyright (2017) Intel Corporation.
+ * Copyright (2019) Intel Corporation.
  *
  * The source code contained or described herein and all documents related to the source code ("Material")
  * are owned by Intel Corporation or its suppliers or licensors. Title to the Material remains with
@@ -17,29 +17,13 @@
  * notice embedded in Materials by Intel or Intel's suppliers or licensors in any way.
  */
 
-package models
+package driver
 
 import (
-	"encoding/json"
+	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 )
 
-// Json response from the RSP Controller
-type JsonResponse struct {
-	Version string          `json:"jsonrpc"`
-	Id      string          `json:"id"`
-	Result  json.RawMessage `json:"result"`
-	Error   json.RawMessage `json:"error"`
-}
-
-// Json request to the RSP Controller from Edgex
-type JsonRequest struct {
-	Version string          `json:"jsonrpc"`
-	Id      string          `json:"id"`
-	Method  string          `json:"method"`
-	Params  json.RawMessage `json:"params,omitempty"`
-}
-
-// Device_id parameter used in some command requests to RSP Controller
-type DeviceIdParam struct {
-	DeviceId string `json:"device_id"`
+func init() {
+	driverInstance = new(Driver)
+	driverInstance.Logger = logger.NewClient("test", false, "", "DEBUG")
 }
