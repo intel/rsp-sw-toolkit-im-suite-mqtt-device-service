@@ -56,4 +56,4 @@ EXPOSE $APP_PORT
 
 COPY --from=builder /go/src/github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/cmd /
 
-ENTRYPOINT ["/mqtt-device-service","--profile=docker","--confdir=/res"]
+ENTRYPOINT ["/mqtt-device-service","--registry=consul://edgex-core-consul:8500","--profile=docker","--confdir=/res"]
