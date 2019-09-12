@@ -21,20 +21,26 @@ package driver
 
 import (
 	"encoding/hex"
+	"fmt"
 	"github.com/pkg/errors"
-	"github.impcloud.net/RSP-Inventory-Suite/tagcode"
+	"github.impcloud.net/RSP-Inventory-Suite/tagcode/bittag"
 	"github.impcloud.net/RSP-Inventory-Suite/tagcode/epc"
 	"strings"
 )
 
 type TagDecoder func(tagData []byte) (URI string, err error)
 
+type NamedDecoder struct {
+	Name string
+	TagDecoder
+}
+
 type DecoderRing struct {
-	Decoders []TagDecoder
+	Decoders []NamedDecoder
 }
 
 func (dr *DecoderRing) AddBitTagDecoder(authority, date string, widths []int) error {
-	btd, err := tagcode.NewBitTagDecoder(authority, date, widths)
+	btd, err := bittag.NewDecoder(authority, date, widths)
 	if err != nil {
 		return err
 	}
@@ -47,7 +53,7 @@ func (dr *DecoderRing) AddBitTagDecoder(authority, date string, widths []int) er
 		return bitTag.URI(), nil
 	}
 
-	dr.Decoders = append(dr.Decoders, decoder)
+	dr.Decoders = append(dr.Decoders, NamedDecoder{Name:btd.Prefix(), TagDecoder: decoder})
 	return nil
 }
 
@@ -64,7 +70,7 @@ func (dr *DecoderRing) AddSGTINDecoder(strict bool) {
 		return
 	}
 
-	dr.Decoders = append(dr.Decoders, decoder)
+	dr.Decoders = append(dr.Decoders, NamedDecoder{Name:"SGTIN", TagDecoder: decoder})
 }
 
 func (dr *DecoderRing) TagDataToURI(tagData string) (string, error) {
@@ -74,12 +80,13 @@ func (dr *DecoderRing) TagDataToURI(tagData string) (string, error) {
 	}
 
 	var decodingErrors []string
-	for _, decode := range dr.Decoders {
-		tagUri, err := decode(tagDataBytes)
+	for _, decoder := range dr.Decoders {
+		tagUri, err := decoder.TagDecoder(tagDataBytes)
 		if err == nil {
 			return tagUri, nil
 		}
-		decodingErrors = append(decodingErrors, err.Error())
+		decodingErrors = append(decodingErrors, fmt.Sprintf("%s: %v",
+			decoder.Name, err))
 	}
 
 	return "", errors.Errorf("no decoder successfully decoded the tag "+
