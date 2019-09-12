@@ -20,10 +20,45 @@
 package driver
 
 import (
+	"encoding/json"
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
+	"github.impcloud.net/RSP-Inventory-Suite/expect"
+	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/jsonrpc"
+	"testing"
 )
 
 func init() {
 	driverInstance = new(Driver)
 	driverInstance.Logger = logger.NewClient("test", false, "", "DEBUG")
+
+	driverInstance.Config = &configuration{
+		TagFormats: []string{"sgtin"},
+	}
+	err := driverInstance.setupDecoderRing()
+	if err != nil {
+		panic(err)
+	}
+}
+
+func TestProcessTagData(t *testing.T) {
+	w := expect.WrapT(t).StopOnMismatch()
+
+	n := jsonrpc.Notification{
+		Version: jsonrpc.Version,
+		Method:  inventoryEvent,
+		Params: map[string]json.RawMessage{
+			tagDataKey: []byte(`"30143639F84191AD22901607"`),
+		},
+	}
+
+	modified := w.ShouldHaveResult(driverInstance.processResource(n)).([]byte)
+	w.ShouldNotBeNil(modified)
+
+	var n2 jsonrpc.Notification
+	w.ShouldSucceed(json.Unmarshal(modified, &n2))
+	w.ShouldContain(n2.Params, []string{tagDataKey, uriDataKey})
+	w.ShouldBeEqual(n2.Params[uriDataKey],
+		json.RawMessage(`"urn:epc:id:sgtin:0888446.067142.193853396487"`))
+	w.ShouldBeEqual(n2.Params[tagDataKey],
+		json.RawMessage(`"30143639F84191AD22901607"`))
 }

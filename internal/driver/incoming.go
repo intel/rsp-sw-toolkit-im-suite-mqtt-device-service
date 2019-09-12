@@ -52,7 +52,8 @@ func (driver *Driver) onIncomingDataReceived(message mqtt.Message) {
 		return
 	}
 
-	// JsonRpc Responses do not contain a method field. We also do not want to send these to core-data
+	// JsonRpc Responses do not contain a method field.
+	// We also do not want to send these to core-data
 	resourceName := incomingData.Method
 	if resourceName == "" {
 		driver.Logger.Warn("[Incoming listener] "+
@@ -62,32 +63,13 @@ func (driver *Driver) onIncomingDataReceived(message mqtt.Message) {
 		return
 	}
 
-	var err error
-	switch resourceName {
-	case sensorHeartbeat:
-		// Register new (i.e., currently unregistered) sensors with EdgeX
-		var deviceID string
-		deviceID, err = incomingData.GetParamStr(deviceIdKey)
-
-		if _, notFound := sdk.RunningService().GetDeviceByName(deviceID); notFound != nil {
-			driver.registerRSP(deviceID)
-		}
-	case inventoryEvent:
-		var tagData, URI string
-		tagData, err = incomingData.GetParamStr(tagDataKey)
-		if err == nil {
-			URI, err = driver.DecoderRing.TagDataToURI(tagData)
-		}
-		if err == nil {
-			err = incomingData.SetParam(uriDataKey, URI)
-		}
-		if err == nil {
-			outgoing, err = json.Marshal(outgoing) // update the outgoing payload
-		}
-	}
+	modified, err := driver.processResource(incomingData)
 	if err != nil {
-		driver.Logger.Error("Failed to handle %s: %+v", resourceName, err)
+		driver.Logger.Error("Failed to handle %q: %+v", resourceName, err)
 		return
+	}
+	if modified != nil {
+		outgoing = modified
 	}
 
 	origin := time.Now().UnixNano() / int64(time.Millisecond)
@@ -102,4 +84,35 @@ func (driver *Driver) onIncomingDataReceived(message mqtt.Message) {
 		DeviceName:    driver.Config.ControllerName,
 		CommandValues: []*sdkModel.CommandValue{value},
 	}
+}
+
+func (driver *Driver) processResource(data jsonrpc.Notification) (modified []byte, err error) {
+	switch data.Method {
+	case sensorHeartbeat:
+		// Register new (i.e., currently unregistered) sensors with EdgeX
+		var deviceID string
+		deviceID, err = data.GetParamStr(deviceIdKey)
+		if err != nil {
+			return
+		}
+
+		if _, notFound := sdk.RunningService().GetDeviceByName(deviceID); notFound != nil {
+			driver.registerRSP(deviceID)
+		}
+
+	case inventoryEvent:
+		var tagData, URI string
+		tagData, err = data.GetParamStr(tagDataKey)
+		if err == nil {
+			URI, err = driver.DecoderRing.TagDataToURI(tagData)
+		}
+		if err == nil {
+			err = data.SetParam(uriDataKey, URI)
+		}
+		if err == nil {
+			modified, err = json.Marshal(data) // update the outgoing payload
+		}
+	}
+
+	return
 }
