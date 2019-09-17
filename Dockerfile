@@ -20,10 +20,10 @@
 # Unless otherwise agreed by Intel in writing, you may not remove or alter this notice or any other
 # notice embedded in Materials by Intel or Intel's suppliers or licensors in any way.
 
-ENV APP_PORT=49982
-
+ARG APP_PORT=49982
 FROM scratch
 ADD cmd /
+ENV APP_PORT=$APP_PORT
 EXPOSE $APP_PORT
 
 ENTRYPOINT ["/mqtt-device-service","--registry=consul://edgex-core-consul:8500","--profile=docker","--confdir=/res"]
