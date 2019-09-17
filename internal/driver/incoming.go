@@ -91,7 +91,7 @@ func (driver *Driver) processResource(data jsonrpc.Notification) (modified []byt
 	case sensorHeartbeat:
 		// Register new (i.e., currently unregistered) sensors with EdgeX
 		var deviceID string
-		deviceID, err = data.GetParamStr(deviceIdKey)
+		err = data.GetParam(deviceIdKey, &deviceID)
 		if err != nil {
 			return
 		}
@@ -102,7 +102,7 @@ func (driver *Driver) processResource(data jsonrpc.Notification) (modified []byt
 
 	case inventoryEvent:
 		var tagData, URI string
-		tagData, err = data.GetParamStr(tagDataKey)
+		err = data.GetParam(tagDataKey, &tagData)
 		if err == nil {
 			URI, err = driver.DecoderRing.TagDataToURI(tagData)
 		}

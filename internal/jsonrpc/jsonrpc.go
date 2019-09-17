@@ -96,21 +96,18 @@ func NewRSPControllerSubscribeRequest(topics []string) RSPControllerSubscribeReq
 	}
 }
 
-// GetParamStr returns the parameter 'key', unmarshaled to a string, or an error
-// if the key is not in the parameters or fails to unmarshal as a string.
-func (n Notification) GetParamStr(key string) (string, error) {
+// GetParam looks for the parameter 'key' and unmarshals it into `out`. If the
+// key is not in the parameters or fails to unmarshal, it returns an error.
+func (n Notification) GetParam(key string, out interface{}) error {
 	if n.Params == nil || len(n.Params) == 0 {
-		return "", errors.New("notification has no parameters")
+		return errors.New("notification has no parameters")
 	}
-	b, ok := n.Params[key]
+	paramVal, ok := n.Params[key]
 	if !ok {
-		return "", errors.Errorf("no such parameter key '%s'", key)
+		return errors.Errorf("no such parameter %q", key)
 	}
-	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
-		return "", errors.Wrapf(err, "failed to unmarshal '%s' as string", key)
-	}
-	return s, nil
+	return errors.Wrapf(json.Unmarshal(paramVal, out),
+		"failed to unmarshal %q", key)
 }
 
 // SetParam inserts or replaces the parameter 'key' with a JSON marshal value.
