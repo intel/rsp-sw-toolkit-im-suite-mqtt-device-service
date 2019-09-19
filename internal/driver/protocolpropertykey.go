@@ -53,7 +53,6 @@ const (
 
 	TagFormats          = "TagFormats"
 	TagBitBoundary      = "TagBitBoundary"
-	TagProductField     = "TagProductField"
 	TagURIAuthorityName = "TagURIAuthorityName"
 	TagURIAuthorityDate = "TagURIAuthorityDate"
 	SGTINStrictDecoding = "SGTINStrictDecoding"
