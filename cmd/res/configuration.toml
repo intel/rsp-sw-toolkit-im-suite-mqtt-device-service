@@ -105,3 +105,15 @@ IncomingQos = "1"
 ResponseQos = "1"
 CommandQos = "1"
 MqttClientId = "MqttDeviceService"
+
+# Tag data decoder settings
+# sgtin decoder converts tag data into GS1 EPC Pure Identity URIs:
+#     `urn:epc:id:sgtin:{company prefix}.{indicator digit}{item ref}.{serial}`
+# bittag decoder settings decode tag data into URIs compliant with RFC-4151:
+#     `tag:{authorityName},{authorityDate}:{field1}.[...].{fieldN}`
+# where {field1} through {fieldN} are decimal representations of the tag's data.
+TagFormats = "sgtin,bittag"      # which conversions to attempt, in order
+TagBitBoundary = "8,44,44"          # bit lengths of tag data fields
+TagURIAuthorityName = "example.com" # fully-qualified domain name
+TagURIAuthorityDate = "2019-01-31"  # YYYY-MM-dd during which domain was owned
+SGTINStrictDecoding = "true"        # if true, tags with SGTIN headers must conform to GS1 standards

@@ -52,6 +52,11 @@ func TestCreateDriverConfig(t *testing.T) {
 		ResponseQos:                "1",
 		CommandQos:                 "1",
 		MqttClientId:               "MqttDeviceService",
+		TagFormats:                 "sgtin,bittag",
+		TagBitBoundary:             "8,44,44",
+		TagURIAuthorityName:        "example.com",
+		TagURIAuthorityDate:        "2019-01-31",
+		SGTINStrictDecoding:        "true",
 	}
 
 	cfg, err := CreateDriverConfig(configs)

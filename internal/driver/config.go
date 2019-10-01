@@ -70,6 +70,13 @@ type configuration struct {
 	ResponseQos byte
 	// IncomingQos is the MQTT Quality of Service 0, 1, or 2 for subscribing to incoming data
 	IncomingQos byte
+
+	// Tag decoding
+	TagFormats          []string
+	TagBitBoundary      []int
+	TagURIAuthorityName string
+	TagURIAuthorityDate string
+	SGTINStrictDecoding bool
 }
 
 // CreateDriverConfig use to load driver config for incoming listener and response listener
@@ -123,7 +130,7 @@ func load(configMap map[string]string, config *configuration) error {
 			case reflect.String:
 				slice = reflect.ValueOf(splitVals)
 			case reflect.Int:
-				slice = reflect.MakeSlice(valueField.Elem().Type(), len(splitVals), len(splitVals))
+				slice = reflect.MakeSlice(typeField.Type, len(splitVals), len(splitVals))
 				for idx, toConvert := range splitVals {
 					intVal, err := strconv.Atoi(toConvert)
 					if err != nil {

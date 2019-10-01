@@ -32,13 +32,18 @@ import (
 
 const (
 	sensorHeartbeat = "heartbeat"
-	deviceIdField   = "device_id"
+	deviceIdKey     = "device_id"
+	inventoryEvent  = "inventory_event"
+	tagDataKey      = "epc"
+	uriDataKey      = "uri"
 )
 
 func (driver *Driver) onIncomingDataReceived(message mqtt.Message) {
+	outgoing := message.Payload()
 	var incomingData jsonrpc.Notification
 	if err := json.Unmarshal(message.Payload(), &incomingData); err != nil {
-		driver.Logger.Error(fmt.Sprintf("Unmarshal failed. cause=%+v payload=%s messageObject=%+v", err, string(message.Payload()), message))
+		driver.Logger.Error(fmt.Sprintf("Unmarshal failed. cause=%+v payload=%s messageObject=%+v",
+			err, string(outgoing), message))
 		return
 	}
 
@@ -47,32 +52,28 @@ func (driver *Driver) onIncomingDataReceived(message mqtt.Message) {
 		return
 	}
 
-	// JsonRpc Responses do not contain a method field. We also do not want to send these to core-data
+	// JsonRpc Responses do not contain a method field.
+	// We also do not want to send these to core-data
 	resourceName := incomingData.Method
 	if resourceName == "" {
 		driver.Logger.Warn("[Incoming listener] "+
 			"Incoming reading ignored. "+
 			"No method field in message.",
-			"msg", string(message.Payload()))
+			"msg", string(outgoing))
 		return
 	}
 
-	// register new sensor device in Edgex to be able to send GET command requests with params to RSP Controller
-	if resourceName == sensorHeartbeat {
-		var heartbeat map[string]interface{}
-		if err := json.Unmarshal(incomingData.Params, &heartbeat); err != nil {
-			driver.Logger.Error(fmt.Sprintf("Unmarshalling of sensor heartbeat params failed: %+v", err))
-		}
-		deviceId := heartbeat[deviceIdField].(string)
-
-		// registering the sensor only if it is already not registered
-		if _, notFound := sdk.RunningService().GetDeviceByName(deviceId); notFound != nil {
-			driver.registerRSP(deviceId)
-		}
+	modified, err := driver.processResource(incomingData)
+	if err != nil {
+		driver.Logger.Error("Failed to handle %q: %+v", resourceName, err)
+		return
+	}
+	if modified != nil {
+		outgoing = modified
 	}
 
 	origin := time.Now().UnixNano() / int64(time.Millisecond)
-	value := sdkModel.NewStringValue(resourceName, origin, string(message.Payload()))
+	value := sdkModel.NewStringValue(resourceName, origin, string(outgoing))
 
 	driver.Logger.Info("[Incoming listener] Incoming reading received",
 		"topic", message.Topic(),
@@ -83,4 +84,35 @@ func (driver *Driver) onIncomingDataReceived(message mqtt.Message) {
 		DeviceName:    driver.Config.ControllerName,
 		CommandValues: []*sdkModel.CommandValue{value},
 	}
+}
+
+func (driver *Driver) processResource(data jsonrpc.Notification) (modified []byte, err error) {
+	switch data.Method {
+	case sensorHeartbeat:
+		// Register new (i.e., currently unregistered) sensors with EdgeX
+		var deviceID string
+		err = data.GetParam(deviceIdKey, &deviceID)
+		if err != nil {
+			return
+		}
+
+		if _, notFound := sdk.RunningService().GetDeviceByName(deviceID); notFound != nil {
+			driver.registerRSP(deviceID)
+		}
+
+	case inventoryEvent:
+		var tagData, URI string
+		err = data.GetParam(tagDataKey, &tagData)
+		if err == nil {
+			URI, err = driver.DecoderRing.TagDataToURI(tagData)
+		}
+		if err == nil {
+			err = data.SetParam(uriDataKey, URI)
+		}
+		if err == nil {
+			modified, err = json.Marshal(data) // update the outgoing payload
+		}
+	}
+
+	return
 }

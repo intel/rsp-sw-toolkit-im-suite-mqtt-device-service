@@ -22,6 +22,7 @@ package jsonrpc
 import (
 	"encoding/json"
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -39,11 +40,13 @@ type Response struct {
 	Error   json.RawMessage `json:"error"`
 }
 
+type Parameters map[string]json.RawMessage
+
 // Notification represents a JsonRPC 2.0 Notification
 type Notification struct {
-	Version string          `json:"jsonrpc"`
-	Method  string          `json:"method"`
-	Params  json.RawMessage `json:"params,omitempty"`
+	Version string     `json:"jsonrpc"`
+	Method  string     `json:"method"`
+	Params  Parameters `json:"params,omitempty"`
 }
 
 // Request represents a JsonRPC 2.0 Request
@@ -55,13 +58,13 @@ type Request struct {
 }
 
 type RSPCommandRequest struct {
-	Request                // embed
-	Params  DeviceIdParams `json:"params"`
+	Request // embed
+	Params DeviceIdParams `json:"params"`
 }
 
 type RSPControllerSubscribeRequest struct {
-	Request          // embed
-	Params  []string `json:"params"`
+	Request // embed
+	Params []string `json:"params"`
 }
 
 // DeviceIdParams holds the device id parameter used in command requests to RSP Controller
@@ -91,4 +94,35 @@ func NewRSPControllerSubscribeRequest(topics []string) RSPControllerSubscribeReq
 		Request: NewRequest(RSPControllerSubscribeMethod),
 		Params:  topics,
 	}
+}
+
+// GetParam looks for the parameter 'key' and unmarshals it into `out`. If the
+// key is not in the parameters or fails to unmarshal, it returns an error.
+func (n Notification) GetParam(key string, out interface{}) error {
+	if n.Params == nil || len(n.Params) == 0 {
+		return errors.New("notification has no parameters")
+	}
+	paramVal, ok := n.Params[key]
+	if !ok {
+		return errors.Errorf("no such parameter %q", key)
+	}
+	return errors.Wrapf(json.Unmarshal(paramVal, out),
+		"failed to unmarshal %q", key)
+}
+
+// SetParam inserts or replaces the parameter 'key' with a JSON marshal value.
+//
+// If the notification had no parameters, a new parameter map is created.
+// If marshaling the value fails, this returns the marshaling error.
+func (n *Notification) SetParam(key string, v interface{}) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal parameter value")
+	}
+	if n.Params == nil {
+		n.Params = map[string]json.RawMessage{key: b}
+	} else {
+		n.Params[key] = b
+	}
+	return nil
 }

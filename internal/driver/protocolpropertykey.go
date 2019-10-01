@@ -50,4 +50,10 @@ const (
 	CommandQos  = "CommandQos"
 	ResponseQos = "ResponseQos"
 	IncomingQos = "IncomingQos"
+
+	TagFormats          = "TagFormats"
+	TagBitBoundary      = "TagBitBoundary"
+	TagURIAuthorityName = "TagURIAuthorityName"
+	TagURIAuthorityDate = "TagURIAuthorityDate"
+	SGTINStrictDecoding = "SGTINStrictDecoding"
 )
