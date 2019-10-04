@@ -55,7 +55,7 @@ deviceResources:
     units:
       { type: "String", readWrite: "R", defaultValue: "" }
 -
-  name: sensor_config_notification
+  name: status_update
   description: "Sensor status update"
   attributes:
     { name: "status_update" }
