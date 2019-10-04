@@ -31,11 +31,16 @@ import (
 )
 
 const (
-	sensorHeartbeat = "heartbeat"
-	deviceIdKey     = "device_id"
-	inventoryEvent  = "inventory_event"
-	tagDataKey      = "epc"
-	uriDataKey      = "uri"
+	sensorHeartbeat        = "heartbeat"
+	inventoryEvent         = "inventory_event"
+	controllerStatusUpdate = "rsp_controller_status_update"
+
+	deviceIdKey = "device_id"
+	tagDataKey  = "epc"
+	uriDataKey  = "uri"
+	statusKey   = "status"
+
+	controllerReady = "controller_ready"
 )
 
 func (driver *Driver) onIncomingDataReceived(message mqtt.Message) {
@@ -112,6 +117,19 @@ func (driver *Driver) processResource(data jsonrpc.Notification) (modified []byt
 		if err == nil {
 			modified, err = json.Marshal(data) // update the outgoing payload
 		}
+
+	case controllerStatusUpdate:
+		var status string
+		err = data.GetParam(statusKey, &status)
+		if err != nil {
+			return
+		}
+
+		if status == controllerReady {
+			// tell the RSP controller which notifications we want to subscribe to
+			go driver.configureControllerNotifications()
+		}
+
 	}
 
 	return

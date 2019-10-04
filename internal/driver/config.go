@@ -36,36 +36,36 @@ import (
 // MQTT broker to connect to for incoming data and command responses.
 type configuration struct {
 	// ControllerName is the device name used for sending data received on the IncomingTopics into Edgex
-	ControllerName          string
+	ControllerName string
 	// MaxWaitTimeForReq is the maximum wait time in seconds for a command request to time out
-	MaxWaitTimeForReq       int
+	MaxWaitTimeForReq int
 	// MaxReconnectWaitSeconds is the maximum amount of time to wait for connection/re-connection to mqtt broker before we panic()
 	MaxReconnectWaitSeconds int
 	// TlsInsecureSkipVerify when set to "true", this will disable certificate checking of TLS connections to the MQTT broker
-	TlsInsecureSkipVerify   bool
+	TlsInsecureSkipVerify bool
 
 	// IncomingTopics is a list of all topics containing data to be ingested
 	IncomingTopics []string
 	// CommandTopic is the topic to send commands on
-	CommandTopic   string
+	CommandTopic string
 	// ResponseTopic is the topic to listen for responses on
-	ResponseTopic  string
+	ResponseTopic string
 
 	// RspControllerNotifications a slice of the notification types we want to receive from the rsp controller
 	RspControllerNotifications []string
 
 	// Mqtt connection info
-	MqttScheme    string
-	MqttHost      string
-	MqttPort      string
-	MqttUser      string
-	MqttPassword  string
+	MqttScheme   string
+	MqttHost     string
+	MqttPort     string
+	MqttUser     string
+	MqttPassword string
 	// MqttKeepAlive is the keep alive in seconds
 	MqttKeepAlive int
 	MqttClientId  string
 
 	// CommandQos is the MQTT Quality of Service 0, 1, or 2 for sending commands
-	CommandQos  byte
+	CommandQos byte
 	// ResponseQos is the MQTT Quality of Service 0, 1, or 2 for subscribing to responses
 	ResponseQos byte
 	// IncomingQos is the MQTT Quality of Service 0, 1, or 2 for subscribing to incoming data
