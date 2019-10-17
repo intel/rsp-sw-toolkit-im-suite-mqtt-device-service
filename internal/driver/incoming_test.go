@@ -47,18 +47,91 @@ func TestProcessTagData(t *testing.T) {
 		Version: jsonrpc.Version,
 		Method:  inventoryEvent,
 		Params: map[string]json.RawMessage{
-			tagDataKey: []byte(`"30143639F84191AD22901607"`),
+			paramDataKey: []byte(`[{"epc":"30143639F84191AD22901607"},{"epc":"30143639F84191AD23901607"}]`),
 		},
 	}
 
 	modified := w.ShouldHaveResult(driverInstance.processResource(n)).([]byte)
 	w.ShouldNotBeNil(modified)
 
-	var n2 jsonrpc.Notification
-	w.ShouldSucceed(json.Unmarshal(modified, &n2))
-	w.ShouldContain(n2.Params, []string{tagDataKey, uriDataKey})
-	w.ShouldBeEqual(n2.Params[uriDataKey],
+	var result jsonrpc.Notification
+	var data []jsonrpc.Parameters
+	w.ShouldSucceed(json.Unmarshal(modified, &result))
+	w.ShouldContain(result.Params, []string{paramDataKey})
+	w.ShouldSucceed(json.Unmarshal(result.Params[paramDataKey], &data))
+	w.ShouldHaveLength(data, 2)
+	w.ShouldContain(data[0], []string{tagDataKey, uriDataKey})
+	w.ShouldContain(data[1], []string{tagDataKey, uriDataKey})
+	w.ShouldBeEqual(data[0][uriDataKey],
 		json.RawMessage(`"urn:epc:id:sgtin:0888446.067142.193853396487"`))
-	w.ShouldBeEqual(n2.Params[tagDataKey],
+	w.ShouldBeEqual(data[0][tagDataKey],
 		json.RawMessage(`"30143639F84191AD22901607"`))
+	w.ShouldBeEqual(data[1][uriDataKey],
+		json.RawMessage(`"urn:epc:id:sgtin:0888446.067142.193870173703"`))
+	w.ShouldBeEqual(data[1][tagDataKey],
+		json.RawMessage(`"30143639F84191AD23901607"`))
+}
+
+func TestProcessTagData_fullMessage(t *testing.T) {
+	w := expect.WrapT(t).StopOnMismatch()
+
+	jsonData := []byte(`{
+    "jsonrpc" : "2.0",
+    "method" : "inventory_data",
+    "params" : {
+        "sent_on" : 1570840098444.0,
+        "period" : 500.0,
+        "device_id" : "RSP-15077a",
+        "location" : {
+            "latitude" : 0.0,
+            "longitude" : 0.0,
+            "altitude" : 0.0
+        },
+        "facility_id" : "DEFAULT_FACILITY",
+        "motion_detected" : false,
+        "data" : [ 
+            {
+                "epc" : "30143639F84191AD22901607",
+                "tid" : null,
+                "antenna_id" : 0.0,
+                "last_read_on" : 1570840098434.0,
+                "rssi" : -608.0,
+                "phase" : -32.0,
+                "frequency" : 903250.0
+            },
+            {
+                "epc" : "30143639F84191AD23901607",
+                "tid" : null,
+                "antenna_id" : 0.0,
+                "last_read_on" : 1570840098434.0,
+                "rssi" : -608.0,
+                "phase" : -32.0,
+                "frequency" : 903250.0
+            }
+        ]
+    }
+}`)
+
+	var n jsonrpc.Notification
+	w.ShouldSucceed(json.Unmarshal(jsonData, &n))
+
+	modified := w.ShouldHaveResult(driverInstance.processResource(n)).([]byte)
+	w.ShouldNotBeNil(modified)
+
+	var result jsonrpc.Notification
+	var data []jsonrpc.Parameters
+	w.ShouldSucceed(json.Unmarshal(modified, &result))
+	w.ShouldContain(result.Params, []string{paramDataKey})
+	w.ShouldSucceed(json.Unmarshal(result.Params[paramDataKey], &data))
+	w.ShouldHaveLength(data, 2)
+	w.ShouldContain(data[0], []string{tagDataKey, uriDataKey})
+	w.ShouldContain(data[1], []string{tagDataKey, uriDataKey})
+	w.ShouldBeEqual(data[0][uriDataKey],
+		json.RawMessage(`"urn:epc:id:sgtin:0888446.067142.193853396487"`))
+	w.ShouldBeEqual(data[0][tagDataKey],
+		json.RawMessage(`"30143639F84191AD22901607"`))
+	w.ShouldBeEqual(data[1][uriDataKey],
+		json.RawMessage(`"urn:epc:id:sgtin:0888446.067142.193870173703"`))
+	w.ShouldBeEqual(data[1][tagDataKey],
+		json.RawMessage(`"30143639F84191AD23901607"`))
 }

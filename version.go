@@ -27,5 +27,7 @@
 
 package mqtt_device_service
 
-// Global version for mqtt-device-service
-var Version string = "1.0.0"
+// Global version for mqtt-device-service; overwritten during build process via
+// -ldflags="-X 'importpath.Version=value'".
+// See https://github.com/golang/go/wiki/GcToolchainTricks#including-build-information-in-the-executable
+var Version = "1.0.0"

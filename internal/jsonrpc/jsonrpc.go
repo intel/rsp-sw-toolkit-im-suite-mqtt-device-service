@@ -97,12 +97,29 @@ func NewRSPControllerSubscribeRequest(topics []string) RSPControllerSubscribeReq
 }
 
 // GetParam looks for the parameter 'key' and unmarshals it into `out`. If the
-// key is not in the parameters or fails to unmarshal, it returns an error.
-func (n Notification) GetParam(key string, out interface{}) error {
+// key is not in the parameters, the Notification has no parameters, or the
+// value cannot be unmarshaled into out, this returns an error.
+func (n *Notification) GetParam(key string, out interface{}) error {
 	if n.Params == nil || len(n.Params) == 0 {
 		return errors.New("notification has no parameters")
 	}
-	paramVal, ok := n.Params[key]
+	return n.Params.Get(key, out)
+}
+
+// SetParam sets the value of the parameter 'key' to the marshaled result of v.
+// If 'key' already exists, it's overwritten. If the Notification doesn't have
+// parameters, a new set is created for it.
+func (n *Notification) SetParam(key string, v interface{}) error {
+	if n.Params == nil {
+		n.Params = make(map[string]json.RawMessage)
+	}
+	return n.Params.Set(key, v)
+}
+
+// Get unmarshals the parameter 'key' into out.
+// Returns an error if the key doesn't exist or fails to unmarshal into out.
+func (p Parameters) Get(key string, out interface{}) error {
+	paramVal, ok := p[key]
 	if !ok {
 		return errors.Errorf("no such parameter %q", key)
 	}
@@ -110,19 +127,13 @@ func (n Notification) GetParam(key string, out interface{}) error {
 		"failed to unmarshal %q", key)
 }
 
-// SetParam inserts or replaces the parameter 'key' with a JSON marshal value.
-//
-// If the notification had no parameters, a new parameter map is created.
-// If marshaling the value fails, this returns the marshaling error.
-func (n *Notification) SetParam(key string, v interface{}) error {
+// Sets the value of the parameter 'key' to the marshaled value of v. If the key
+// exists, it's overwritten. If it fails to marshal, this returns an error.
+func (p Parameters) Set(key string, v interface{}) error {
 	b, err := json.Marshal(v)
 	if err != nil {
-		return errors.Wrap(err, "failed to marshal parameter value")
+		return errors.Wrap(err, "failed to marshal value for parameter %q")
 	}
-	if n.Params == nil {
-		n.Params = map[string]json.RawMessage{key: b}
-	} else {
-		n.Params[key] = b
-	}
+	p[key] = b
 	return nil
 }

@@ -32,13 +32,14 @@ import (
 
 const (
 	sensorHeartbeat        = "heartbeat"
-	inventoryEvent         = "inventory_event"
+	inventoryEvent         = "inventory_data"
 	controllerStatusUpdate = "rsp_controller_status_update"
 
-	deviceIdKey = "device_id"
-	tagDataKey  = "epc"
-	uriDataKey  = "uri"
-	statusKey   = "status"
+	deviceIdKey  = "device_id"
+	tagDataKey   = "epc"
+	uriDataKey   = "uri"
+	statusKey    = "status"
+	paramDataKey = "data"
 
 	controllerReady = "controller_ready"
 )
@@ -106,17 +107,33 @@ func (driver *Driver) processResource(data jsonrpc.Notification) (modified []byt
 		}
 
 	case inventoryEvent:
-		var tagData, URI string
-		err = data.GetParam(tagDataKey, &tagData)
-		if err == nil {
+		var inventoryData []jsonrpc.Parameters
+		err = data.GetParam(paramDataKey, &inventoryData)
+		if err != nil {
+			return
+		}
+
+		for i := 0; i < len(inventoryData); i++ {
+			var tagData, URI string
+			err = inventoryData[i].Get(tagDataKey, &tagData)
+			if err != nil {
+				return
+			}
 			URI, err = driver.DecoderRing.TagDataToURI(tagData)
+			if err != nil {
+				return
+			}
+			err = inventoryData[i].Set(uriDataKey, URI)
+			if err != nil {
+				return
+			}
 		}
-		if err == nil {
-			err = data.SetParam(uriDataKey, URI)
+
+		err = data.SetParam(paramDataKey, inventoryData)
+		if err != nil {
+			return
 		}
-		if err == nil {
-			modified, err = json.Marshal(data) // update the outgoing payload
-		}
+		modified, err = json.Marshal(data) // update the outgoing payload
 
 	case controllerStatusUpdate:
 		var status string
@@ -129,7 +146,6 @@ func (driver *Driver) processResource(data jsonrpc.Notification) (modified []byt
 			// tell the RSP controller which notifications we want to subscribe to
 			go driver.configureControllerNotifications()
 		}
-
 	}
 
 	return

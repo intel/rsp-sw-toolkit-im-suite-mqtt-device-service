@@ -13,7 +13,7 @@ DOCKERS=docker_mqtt-device-service_go
 VERSION=$(shell cat ./VERSION)
 GIT_SHA=$(shell git rev-parse HEAD)
 
-GOFLAGS=-ldflags "-X github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service-go.Version=$(VERSION)"
+GOFLAGS=-ldflags "-X github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service.Version=$(VERSION)"
 
 STACK_NAME ?= Inventory-Suite-Dev
 SERVICE_NAME ?= mqtt-device-service
