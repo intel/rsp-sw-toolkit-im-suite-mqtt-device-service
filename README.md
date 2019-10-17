@@ -1,5 +1,5 @@
 
-# MQTT Device Service
+# RFID MQTT Device Service
 Based on the Edgex Go MQTT Device Service, modified to support multiple
 topics and consume RSP Controller messages and also send commands to RSP controller and receive responses
 
