@@ -53,7 +53,7 @@ func (dr *DecoderRing) AddBitTagDecoder(authority, date string, widths []int) er
 		return bitTag.URI(), nil
 	}
 
-	dr.Decoders = append(dr.Decoders, NamedDecoder{Name:btd.Prefix(), TagDecoder: decoder})
+	dr.Decoders = append(dr.Decoders, NamedDecoder{Name: btd.Prefix(), TagDecoder: decoder})
 	return nil
 }
 
@@ -70,7 +70,7 @@ func (dr *DecoderRing) AddSGTINDecoder(strict bool) {
 		return
 	}
 
-	dr.Decoders = append(dr.Decoders, NamedDecoder{Name:"SGTIN", TagDecoder: decoder})
+	dr.Decoders = append(dr.Decoders, NamedDecoder{Name: "SGTIN", TagDecoder: decoder})
 }
 
 func (dr *DecoderRing) TagDataToURI(tagData string) (string, error) {

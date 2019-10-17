@@ -33,9 +33,9 @@ func TestNotification_MarshalJSON(t *testing.T) {
 
 func TestNotification_UnmarshalJSON(t *testing.T) {
 	w := expect.WrapT(t)
-	data := []byte(`{"jsonrpc":"2.0","method":"my_method","params":{`+
-		`"strParam":"imma string",`+
-		`"objParam":{"nestStr":"soam I","nestFloat":3.14},`+
+	data := []byte(`{"jsonrpc":"2.0","method":"my_method","params":{` +
+		`"strParam":"imma string",` +
+		`"objParam":{"nestStr":"soam I","nestFloat":3.14},` +
 		`"numParam":1e10}}`)
 
 	var n Notification
@@ -43,8 +43,8 @@ func TestNotification_UnmarshalJSON(t *testing.T) {
 	w.ShouldContain(n.Params, []string{"strParam", "objParam", "numParam"})
 	w.ShouldContainValues(n.Params, []json.RawMessage{
 		json.RawMessage(`"imma string"`),
-		json.RawMessage( `{"nestStr":"soam I","nestFloat":3.14}`),
-		json.RawMessage( `1e10`),
+		json.RawMessage(`{"nestStr":"soam I","nestFloat":3.14}`),
+		json.RawMessage(`1e10`),
 	})
 
 	var s string

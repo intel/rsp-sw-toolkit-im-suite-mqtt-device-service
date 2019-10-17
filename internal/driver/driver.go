@@ -218,12 +218,7 @@ func (driver *Driver) onMqttConnect(client mqtt.Client) {
 
 	driver.subscribeAll()
 
-	// tell the RSP Controller what notifications we would like to receive
-	if driver.Config.RspControllerNotifications != nil && len(driver.Config.RspControllerNotifications) > 0 {
-		if err := driver.publishCommand(jsonrpc.NewRSPControllerSubscribeRequest(driver.Config.RspControllerNotifications)); err != nil {
-			driver.Logger.Warn("unable to subscribe to rsp controller notifications", "cause", err)
-		}
-	}
+	driver.configureControllerNotifications()
 
 	driver.started <- true
 }
@@ -361,4 +356,14 @@ func (driver *Driver) setupDecoderRing() error {
 		driver.Logger.Info("added decoder %+v", driver.DecoderRing.Decoders[idx])
 	}
 	return nil
+}
+
+// configureControllerNotifications tells the RSP Controller which notifications it should send over MQTT
+func (driver *Driver) configureControllerNotifications() {
+	// tell the RSP Controller what notifications we would like to receive
+	if driver.Config.RspControllerNotifications != nil && len(driver.Config.RspControllerNotifications) > 0 {
+		if err := driver.publishCommand(jsonrpc.NewRSPControllerSubscribeRequest(driver.Config.RspControllerNotifications)); err != nil {
+			driver.Logger.Warn("unable to subscribe to rsp controller notifications", "cause", err)
+		}
+	}
 }

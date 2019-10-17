@@ -58,13 +58,13 @@ type Request struct {
 }
 
 type RSPCommandRequest struct {
-	Request // embed
-	Params DeviceIdParams `json:"params"`
+	Request                // embed
+	Params  DeviceIdParams `json:"params"`
 }
 
 type RSPControllerSubscribeRequest struct {
-	Request // embed
-	Params []string `json:"params"`
+	Request          // embed
+	Params  []string `json:"params"`
 }
 
 // DeviceIdParams holds the device id parameter used in command requests to RSP Controller
