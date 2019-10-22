@@ -1,6 +1,13 @@
 
 # RSP MQTT Device Service
-Based on the Edgex Go MQTT Device Service, the RSP MQTT Device Service is a specific connector for Intel® RSP Controller Application. With this connector and the RSP Controller Application, RFID reads from Intel® RSP Sensor can send RFID reads to EdgeX Core Data service, as well as respond to certain commands via the EdgeX Command Service.  
+Based on the Edgex Go MQTT Device Service, the RSP MQTT Device Service is a specific connector for Intel® RSP Controller Application. 
+
+RSP MQTT Device Service:
+*   Registers the Intel® RSP Controller Application device with the EdgeX platform
+*   Sends commands from the EdgeX's Command service to the Intel® RSP Controller Application
+*   Sends responses from the Intel® RSP Controller Application to the EdgeX Command service
+*   Sends RFID reads from an Intel® RSP Sensor to EdgeX Core Data service
+
 To accomplish this, modifications were made to:
 *   Add multiple topics support
 *   Consume RSP Controller Application messages 
