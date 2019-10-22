@@ -12,13 +12,13 @@ To accomplish this, modifications were made to:
   
 ## Prerequisites
 
-### EdgeX
-*   Must have EdgeX core services installed and running.
+### EdgeX **Edinburgh**
+*   Must have EdgeX - [Edinburgh Release](https://www.edgexfoundry.org/release-1-0-edinburgh/) core services installed and running.
 ### Intel® RSP Controller Application
-*   Must have the RSP Controller Application installed and running.  This will allow for the RSP MQTT Device service to register the RSP Controller Application and the list of commands that are made available.
+*   Must have the Intel® RSP Controller Application [*Getting Started with Intel® RFID Sensor Platform (RSP) on Linux*](https://software.intel.com/en-us/getting-started-with-intel-rfid-sensor-platform-on-linux) installed and running.  This will allow for the RSP MQTT Device service to register the RSP Controller Application and the list of commands that are made available.
 
-## Sending Commands to RSP Controller
-To send commands from Edgex to RSP Controller we can use some client such as POSTMAN [https://www.getpostman.com/].
+## Sending Commands to RSP Controller Application
+To send commands from Edgex to RSP Controller Application we can use some client such as POSTMAN [https://www.getpostman.com/].
  
 Open POSTMAN or any similar tool and execute the following apis:
 
