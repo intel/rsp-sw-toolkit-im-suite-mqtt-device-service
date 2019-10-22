@@ -4,8 +4,8 @@ Based on the Edgex Go MQTT Device Service, the RSP MQTT Device Service is a spec
 
 RSP MQTT Device Service:
 *   Registers the Intel® RSP Controller Application device with the EdgeX platform
-*   Sends commands from the EdgeX's Command service to the Intel® RSP Controller Application
-*   Sends responses from the Intel® RSP Controller Application to the EdgeX Command service
+*   Sends commands from EdgeX's [Command](https://docs.edgexfoundry.org/Ch-Command.html) service to the Intel® RSP Controller Application
+*   Sends responses from the Intel® RSP Controller Application to the EdgeX [Command](https://docs.edgexfoundry.org/Ch-Command.html) service
 *   Sends RFID reads from an Intel® RSP Sensor to EdgeX Core Data service
 
 To accomplish this, modifications were made to:
@@ -19,8 +19,8 @@ To accomplish this, modifications were made to:
   
 ## Prerequisites
 
-### EdgeX **Edinburgh**
-*   Must have EdgeX - [Edinburgh Release](https://www.edgexfoundry.org/release-1-0-edinburgh/) core services installed and running.
+### EdgeX [Edinburgh Release](https://www.edgexfoundry.org/release-1-0-edinburgh/)
+*   Must have EdgeX - [Core Services](https://docs.edgexfoundry.org/Ch-CoreServices.html) microservices installed and running.
 ### Intel® RSP Controller Application
 *   Must have the Intel® RSP Controller Application [*Getting Started with Intel® RFID Sensor Platform (RSP) on Linux*](https://software.intel.com/en-us/getting-started-with-intel-rfid-sensor-platform-on-linux) installed and running.  This will allow for the RSP MQTT Device service to register the RSP Controller Application and the list of commands that are made available.
 
