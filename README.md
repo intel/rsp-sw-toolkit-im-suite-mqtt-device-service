@@ -1,6 +1,6 @@
 
 # RSP MQTT Device Service
-Based on the Edgex Go MQTT Device Service, the RSP MQTT Device Service is a specific connector for Intel® RSP Controller Application. 
+Based on the Edgex Go MQTT Device Service, the RSP MQTT Device Service is a specific connector for the Intel® RSP Controller Application to EdgeX. 
 
 RSP MQTT Device Service:
 *   Registers the Intel® RSP Controller Application device with the EdgeX platform
