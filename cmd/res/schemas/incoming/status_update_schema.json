@@ -1,0 +1,51 @@
+{
+  "type": "object",
+  "required": [
+    "jsonrpc",
+    "method",
+    "params"
+  ],
+  "properties": {
+    "jsonrpc": {
+      "type": "string"
+    },
+    "method": {
+      "type": "string"
+    },
+    "params": {
+      "type": "object",
+      "required": [
+        "sent_on",
+        "device_id",
+        "facility_id",
+        "status"
+      ],
+      "properties": {
+        "sent_on": {
+          "type": "integer"
+        },
+        "device_id": {
+          "type": "string"
+        },
+        "facility_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "ready",
+            "in_reset",
+            "shutting_down",
+            "firmware_update",
+            "lost"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

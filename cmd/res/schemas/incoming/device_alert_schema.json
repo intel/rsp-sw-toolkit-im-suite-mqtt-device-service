@@ -1,0 +1,123 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "jsonrpc",
+    "method",
+    "params"
+  ],
+  "properties": {
+    "jsonrpc": {
+      "type": "string"
+    },
+    "method": {
+      "type": "string"
+    },
+    "params": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sent_on",
+            "device_id",
+            "facilities",
+            "alert_number",
+            "alert_description",
+            "severity",
+            "controller_id"
+          ],
+          "properties": {
+            "sent_on": {
+              "type": "integer"
+            },
+            "device_id": {
+              "type": "string"
+            },
+            "controller_id": {
+              "type": "string"
+            },
+            "facilities": {
+              "type": [
+                "array"
+              ],
+              "items": {
+                "type": "string"
+              }
+            },
+            "alert_number": {
+              "type": "integer",
+              "maximum": 199
+            },
+            "alert_description": {
+              "type": "string"
+            },
+            "severity": {
+              "type": "string",
+              "enum": [
+                "info",
+                "warning",
+                "urgent",
+                "critical"
+              ]
+            },
+            "optional": {
+              "type": [
+                "null",
+                "object"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sent_on",
+            "device_id",
+            "facility_id",
+            "alert_number",
+            "alert_description",
+            "severity"
+          ],
+          "properties": {
+            "sent_on": {
+              "type": "integer"
+            },
+            "device_id": {
+              "type": "string"
+            },
+            "facility": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "alert_number": {
+              "type": "integer",
+              "maximum": 199
+            },
+            "alert_description": {
+              "type": "string"
+            },
+            "severity": {
+              "type": "string",
+              "enum": [
+                "info",
+                "warning",
+                "urgent",
+                "critical"
+              ]
+            },
+            "optional": {
+              "type": [
+                "null",
+                "object"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "jsonrpc",
+    "method",
+    "params"
+  ],
+  "properties": {
+    "additionalProperties": false,
+    "jsonrpc": {
+      "type": "string"
+    },
+    "method": {
+      "type": "string"
+    },
+    "params": {
+      "type": "object",
+      "required": [
+        "sent_on",
+        "device_id",
+        "facility_id"
+      ],
+      "properties": {
+        "sent_on": {
+          "type": "integer"
+        },
+        "device_id": {
+          "type": "string"
+        },
+        "facility_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "image_resolution": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "image_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "location": {
+          "type": [
+            "object",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

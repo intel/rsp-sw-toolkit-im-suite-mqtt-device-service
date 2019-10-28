@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 	"github.impcloud.net/RSP-Inventory-Suite/expect"
+	"github.impcloud.net/RSP-Inventory-Suite/gojsonschema"
 	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/jsonrpc"
 	"testing"
 )
@@ -121,4 +122,46 @@ func TestProcessTagData_fullMessage(t *testing.T) {
 		json.RawMessage(`"urn:epc:id:sgtin:0888446.067142.193870173703"`))
 	w.ShouldBeEqual(data[1][tagDataKey],
 		json.RawMessage(`"30143639F84191AD23901607"`))
+}
+
+func TestJSONValidation(t *testing.T) {
+	w := expect.WrapT(t)
+	d := &Driver{
+		incomingSchemas: map[string]*gojsonschema.Schema{},
+		responseSchemas: map[string]*gojsonschema.Schema{},
+		Config: &configuration{SchemasDir: "testdata"},
+	}
+
+	w.As("empty method").ShouldHaveError(d.loadSchema(incomingDir, ""))
+	w.As("empty type").ShouldHaveError(d.loadSchema("","m1"))
+
+	w.As("valid m1").ShouldSucceed(d.validateIncoming("m1", []byte(`{"id": 5}`)))
+	w.As("valid m2").ShouldSucceed(d.validateIncoming("m2", []byte(`{"s": "123"}`)))
+
+	w.As("needs id; s invalid").ShouldFail(d.validateIncoming("m1", []byte(`{"s": "123"}`)))
+	w.As("needs s; id invalid").ShouldFail(d.validateIncoming("m2", []byte(`{"id": 5}`)))
+	w.As("nil data").ShouldFail(d.validateIncoming("m1", nil))
+	w.As("empty data").ShouldFail(d.validateIncoming("m1", []byte{}))
+	w.As("one null byte").ShouldFail(d.validateIncoming("m1", []byte{0x00}))
+	w.As("invalid json").ShouldFail(d.validateIncoming("m1", []byte(`id: 1`)))
+	w.As("missing id").ShouldFail(d.validateIncoming("m1", []byte(`{}`)))
+	w.As("id too small").ShouldFail(d.validateIncoming("m1", []byte(`{"id": -1}`)))
+	w.As("id too large").ShouldFail(d.validateIncoming("m1", []byte(`{"id": 11}`)))
+	w.As("no such method").ShouldFail(d.validateIncoming("no_such_method", []byte{0x00}))
+	w.As("bad schema").ShouldFail(d.validateIncoming("invalid", []byte{0x00}))
+
+	w.As("valid m1").ShouldSucceed(d.validateResponse("m1", []byte(`{"id": 5}`)))
+	w.As("valid m2").ShouldSucceed(d.validateResponse("m2", []byte(`{"s": "123"}`)))
+
+	w.As("needs id; s invalid").ShouldFail(d.validateResponse("m1", []byte(`{"s": "123"}`)))
+	w.As("needs s; id invalid").ShouldFail(d.validateResponse("m2", []byte(`{"id": 5}`)))
+	w.As("nil data").ShouldFail(d.validateResponse("m1", nil))
+	w.As("empty data").ShouldFail(d.validateResponse("m1", []byte{}))
+	w.As("one null byte").ShouldFail(d.validateResponse("m1", []byte{0x00}))
+	w.As("invalid json").ShouldFail(d.validateResponse("m1", []byte(`id: 1`)))
+	w.As("missing id").ShouldFail(d.validateResponse("m1", []byte(`{}`)))
+	w.As("id too small").ShouldFail(d.validateResponse("m1", []byte(`{"id": -1}`)))
+	w.As("id too large").ShouldFail(d.validateResponse("m1", []byte(`{"id": 11}`)))
+	w.As("no such method").ShouldFail(d.validateResponse("no_such_method", []byte{0x00}))
+	w.As("bad schema").ShouldFail(d.validateResponse("invalid", []byte{0x00}))
 }

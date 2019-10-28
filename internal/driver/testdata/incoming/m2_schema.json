@@ -1,0 +1,8 @@
+{
+  "type": "object",
+  "required": ["s"],
+  "additionalProperties": false,
+  "properties": {
+    "s": { "type": "string", "minimum": 3 }
+  }
+}

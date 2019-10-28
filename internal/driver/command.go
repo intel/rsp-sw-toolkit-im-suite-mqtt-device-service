@@ -72,6 +72,7 @@ func (driver *Driver) handleReadCommandRequest(deviceName string, req sdkModel.C
 	}
 
 	timeout := time.NewTimer(time.Duration(driver.Config.MaxWaitTimeForReq) * time.Second)
+	defer timeout.Stop()
 
 	// wait for either the response or a timeout
 	for {

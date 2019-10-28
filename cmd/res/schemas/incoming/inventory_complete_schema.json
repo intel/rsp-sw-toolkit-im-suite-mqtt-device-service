@@ -1,0 +1,40 @@
+{
+  "type": "object",
+  "required": [
+    "jsonrpc",
+    "method",
+    "params"
+  ],
+  "properties": {
+    "jsonrpc": {
+      "type": "string"
+    },
+    "method": {
+      "type": "string"
+    },
+    "params": {
+      "type": "object",
+      "required": [
+        "sent_on",
+        "device_id",
+        "facility_id"
+      ],
+      "properties": {
+        "sent_on": {
+          "type": "integer"
+        },
+        "device_id": {
+          "type": "string"
+        },
+        "facility_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

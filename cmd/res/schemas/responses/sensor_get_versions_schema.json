@@ -1,0 +1,36 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "app_version",
+    "module_version",
+    "platform_id",
+    "platform_support_version",
+    "pkg_manifest_version",
+    "uboot_version",
+    "linux_version"
+  ],
+  "properties": {
+    "app_version": {
+      "type": "string"
+    },
+    "module_version": {
+      "type": "string"
+    },
+    "platform_id": {
+      "type": "string"
+    },
+    "platform_support_version": {
+      "type": "string"
+    },
+    "pkg_manifest_version": {
+      "type": "string"
+    },
+    "uboot_version": {
+      "type": "string"
+    },
+    "linux_version": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "type": "object",
+  "required": [
+    "device_id",
+    "connection_state",
+    "read_state",
+    "behavior_id",
+    "facility_id",
+    "personality",
+    "aliases",
+    "alerts"
+  ],
+  "properties": {
+    "device_id": {
+      "type": "string"
+    },
+    "facility_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "connection_state": {
+      "type": "string"
+    },
+    "read_state": {
+      "type": "string"
+    },
+    "behavior_id": {
+      "type": "string"
+    },
+    "personality": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "aliases": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "alerts": {
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sent_on",
+          "device_id",
+          "facility_id",
+          "alert_number",
+          "alert_description",
+          "severity"
+        ],
+        "properties": {
+          "sent_on": {
+            "type": "integer"
+          },
+          "device_id": {
+            "type": "string"
+          },
+          "facility_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "alert_number": {
+            "type": "integer"
+          },
+          "alert_description": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,48 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "hostname",
+    "hwaddress",
+    "app_version",
+    "module_version",
+    "num_physical_ports",
+    "motion_sensor",
+    "camera",
+    "wireless",
+    "configuration_state",
+    "operational_state"
+  ],
+  "properties": {
+    "hostname": {
+      "type": "string"
+    },
+    "hwaddress": {
+      "type": "string"
+    },
+    "app_version": {
+      "type": "string"
+    },
+    "module_version": {
+      "type": "string"
+    },
+    "num_physical_ports": {
+      "type": "integer"
+    },
+    "motion_sensor": {
+      "type": "boolean"
+    },
+    "camera": {
+      "type": "boolean"
+    },
+    "wireless": {
+      "type": "boolean"
+    },
+    "configuration_state": {
+      "type": "string"
+    },
+    "operational_state": {
+      "type": "string"
+    }
+  }
+}

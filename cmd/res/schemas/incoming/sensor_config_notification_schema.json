@@ -1,0 +1,33 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "device_id",
+    "facility_id",
+    "personality",
+    "aliases"
+  ],
+  "properties": {
+    "device_id": {
+      "type": "string"
+    },
+    "facility_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "personality": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "aliases": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

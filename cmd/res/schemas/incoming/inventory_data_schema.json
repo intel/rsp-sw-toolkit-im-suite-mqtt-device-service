@@ -1,0 +1,113 @@
+{
+  "type": "object",
+  "required": [
+    "jsonrpc",
+    "method",
+    "params"
+  ],
+  "properties": {
+    "jsonrpc": {
+      "type": "string",
+      "enum": [
+        "2.0"
+      ]
+    },
+    "method": {
+      "type": "string",
+      "enum": [
+        "inventory_data"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "required": [
+        "sent_on",
+        "device_id",
+        "facility_id",
+        "motion_detected",
+        "period",
+        "data"
+      ],
+      "properties": {
+        "sent_on": {
+          "type": "integer"
+        },
+        "device_id": {
+          "type": "string"
+        },
+        "facility_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "motion_detected": {
+          "type": "boolean"
+        },
+        "period": {
+          "type": "integer"
+        },
+        "location": {
+          "type": [
+            "null",
+            "object"
+          ]
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "epc",
+              "antenna_id",
+              "last_read_on",
+              "rssi",
+              "phase",
+              "frequency"
+            ],
+            "properties": {
+              "epc": {
+                "type": "string",
+                "pattern": "^[A-Fa-f0-9]+$"
+              },
+              "tid": {
+                "type": [
+                  "null",
+                  "string"
+                ],
+                "pattern": "^[A-Fa-f0-9]*$"
+              },
+              "antenna_id": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "last_read_on": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "rssi": {
+                "type": "integer"
+              },
+              "phase": {
+                "type": "integer"
+              },
+              "frequency": {
+                "type": "integer"
+              },
+              "uri": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^(urn:epc:id:sgtin:|tag:|$)"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

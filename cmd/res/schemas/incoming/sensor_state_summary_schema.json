@@ -1,0 +1,41 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "jsonrpc",
+    "method",
+    "params"
+  ],
+  "properties": {
+    "jsonrpc": {
+      "type": "string"
+    },
+    "method": {
+      "type": "string"
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "device_id",
+        "previous_state",
+        "current_state",
+        "behavior_id"
+      ],
+      "properties": {
+        "device_id": {
+          "type": "string"
+        },
+        "previous_state": {
+          "type": "string"
+        },
+        "current_state": {
+          "type": "string"
+        },
+        "behavior_id": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

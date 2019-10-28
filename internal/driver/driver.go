@@ -17,8 +17,10 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/jsonrpc"
+	"io/ioutil"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -29,6 +31,7 @@ import (
 	sdkModel "github.com/edgexfoundry/device-sdk-go/pkg/models"
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 	edgexModels "github.com/edgexfoundry/go-mod-core-contracts/models"
+	"github.impcloud.net/RSP-Inventory-Suite/gojsonschema"
 )
 
 const (
@@ -40,8 +43,11 @@ const (
 	subscribeFailureSleep   = 5 * time.Second
 	// maximum amount of incoming data mqtt messages to handle at one time
 	incomingDataMessageBuffer = 100
-	// maximujm amount of incoming mqtt responses to handle at one time
+	// maximum amount of incoming mqtt responses to handle at one time
 	incomingResponseMessageBuffer = 10
+
+	incomingDir  = "incoming"
+	responsesDir = "responses"
 )
 
 var (
@@ -68,6 +74,9 @@ type Driver struct {
 
 	started chan bool
 	done    chan interface{}
+
+	incomingSchemas map[string]*gojsonschema.Schema
+	responseSchemas map[string]*gojsonschema.Schema
 }
 
 // NewProtocolDriver returns the package-level driver instance.
@@ -76,6 +85,8 @@ func NewProtocolDriver() sdkModel.ProtocolDriver {
 		driverInstance = new(Driver)
 		driverInstance.mqttDataChan = make(chan mqtt.Message, incomingDataMessageBuffer)
 		driverInstance.mqttResponseChan = make(chan mqtt.Message, incomingResponseMessageBuffer)
+		driverInstance.incomingSchemas = make(map[string]*gojsonschema.Schema)
+		driverInstance.responseSchemas = make(map[string]*gojsonschema.Schema)
 	})
 	return driverInstance
 }
@@ -98,6 +109,9 @@ func (driver *Driver) Initialize(lc logger.LoggingClient, asyncCh chan<- *sdkMod
 	config, err := CreateDriverConfig(device.DriverConfigs())
 	if err != nil {
 		panic(errors.Wrap(err, "read MQTT driver configuration failed"))
+	}
+	if config.SchemasDir == "" {
+		return errors.New("schema directory must be set in configuration")
 	}
 	driver.Config = config
 
@@ -180,7 +194,7 @@ func (driver *Driver) stopWatchdog() {
 }
 
 func (driver *Driver) onMqttConnectionLost(client mqtt.Client, e error) {
-	driver.Logger.Warn("MQTT connection lost", "cause", e)
+	driver.Logger.Warn("MQTT connection lost", "cause", e.Error())
 
 	// IsConnected returns true if we are trying to reconnect still
 	if client.IsConnected() {
@@ -279,7 +293,8 @@ func (driver *Driver) createClient() {
 	opts.SetConnectionLostHandler(driver.onMqttConnectionLost)
 	opts.SetOnConnectHandler(driver.onMqttConnect)
 
-	driver.Logger.Info("Create MQTT client", "uri", uri.String(), "clientId", driver.Config.MqttClientId)
+	driver.Logger.Info("Create MQTT client", "uri",
+		uri.String(), "clientId", driver.Config.MqttClientId)
 
 	driver.Client = mqtt.NewClient(opts)
 }
@@ -321,7 +336,8 @@ func (driver *Driver) registerRSP(deviceId string) {
 		},
 	})
 	if err != nil {
-		driver.Logger.Error(fmt.Sprintf("Registering of sensor device %v failed: %v", deviceId, err))
+		driver.Logger.Error("Sensor device registration failed",
+			"device", deviceId, "cause", err)
 	}
 }
 func (driver *Driver) setupDecoderRing() error {
@@ -338,9 +354,11 @@ func (driver *Driver) setupDecoderRing() error {
 		case "sgtin":
 			driver.DecoderRing.AddSGTINDecoder(driver.Config.SGTINStrictDecoding)
 		default:
-			return errors.Errorf("unknown tag format: %s", f)
+			return errors.Errorf("Unknown tag format: %s", f)
 		}
-		driver.Logger.Info("added decoder %+v", driver.DecoderRing.Decoders[idx])
+		driver.Logger.Info("Added tag data decoder", "format", f,
+			"details", fmt.Sprintf("%+v", driver.DecoderRing.Decoders[idx]),
+		)
 	}
 	return nil
 }
@@ -349,8 +367,73 @@ func (driver *Driver) setupDecoderRing() error {
 func (driver *Driver) configureControllerNotifications() {
 	// tell the RSP Controller what notifications we would like to receive
 	if driver.Config.RspControllerNotifications != nil && len(driver.Config.RspControllerNotifications) > 0 {
-		if err := driver.publishCommand(jsonrpc.NewRSPControllerSubscribeRequest(driver.Config.RspControllerNotifications)); err != nil {
-			driver.Logger.Warn("unable to subscribe to rsp controller notifications", "cause", err)
+		if err := driver.publishCommand(
+			jsonrpc.NewRSPControllerSubscribeRequest(driver.Config.RspControllerNotifications)); err != nil {
+			driver.Logger.Warn("unable to subscribe to rsp controller notifications",
+				"cause", err.Error())
 		}
 	}
+}
+
+// validateIncoming checks the data against the matching incoming schema.
+func (driver *Driver) validateIncoming(method string, data []byte) error {
+	schema, ok := driver.incomingSchemas[method]
+	if !ok {
+		var err error
+		schema, err = driver.loadSchema(incomingDir, method)
+		if err != nil {
+			return err
+		}
+		driver.incomingSchemas[method] = schema
+	}
+
+	result, err := schema.Validate(gojsonschema.NewBytesLoader(data))
+	if err != nil {
+		return errors.Wrapf(err, "unable to validate schema for method %q", method)
+	}
+	if !result.Valid() {
+		return errors.Errorf("JSON validation failed for %q: %+v", method, result.Errors())
+	}
+	return nil
+}
+
+// validateResponse checks the data against the matching response schema.
+func (driver *Driver) validateResponse(method string, data []byte) error {
+	schema, ok := driver.responseSchemas[method]
+	if !ok {
+		var err error
+		schema, err = driver.loadSchema(responsesDir, method)
+		if err != nil {
+			return err
+		}
+		driver.responseSchemas[method] = schema
+	}
+
+	result, err := schema.Validate(gojsonschema.NewBytesLoader(data))
+	if err != nil {
+		return errors.Wrapf(err, "unable to validate schema for method %q", method)
+	}
+	if !result.Valid() {
+		return errors.Errorf("JSON validation failed for %q: %+v", method, result.Errors())
+	}
+	return nil
+}
+
+// loadSchema constructs a filepath from the parameters and attempts to load a
+// schema from that location.
+func (driver *Driver) loadSchema(subDir, method string) (*gojsonschema.Schema, error) {
+	if subDir == "" || method == "" {
+		return nil, errors.Errorf("can't load schema: missing subDir (%q) or method (%q)",
+			subDir, method)
+	}
+
+	filename := filepath.Join(driver.Config.SchemasDir, subDir, method+"_schema.json")
+	schemaData, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to load schema file %q for method %q",
+			filename, method)
+	}
+
+	schema, err := gojsonschema.NewSchema(gojsonschema.NewBytesLoader(schemaData))
+	return schema, errors.Wrapf(err, "unable to create schema for method %q", method)
 }

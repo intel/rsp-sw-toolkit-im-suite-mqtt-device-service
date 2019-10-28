@@ -1,0 +1,81 @@
+{
+  "type": "object",
+  "required": [
+    "jsonrpc",
+    "method",
+    "params"
+  ],
+  "properties": {
+    "jsonrpc": {
+      "type": "string"
+    },
+    "method": {
+      "type": "string"
+    },
+    "params": {
+      "type": "object",
+      "required": [
+        "sent_on",
+        "device_id",
+        "facility_id",
+        "motion_detected",
+        "data"
+      ],
+      "properties": {
+        "sent_on": {
+          "type": "integer"
+        },
+        "device_id": {
+          "type": "string"
+        },
+        "facility_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "motion_detected": {
+          "type": "boolean"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "epc",
+              "event_type",
+              "antenna_id",
+              "event_date"
+            ],
+            "properties": {
+              "epc": {
+                "type": "string",
+                "pattern": "^[A-Fa-f0-9]+$"
+              },
+              "tid": {
+                "type": [
+                  "null",
+                  "string"
+                ],
+                "pattern": "(^$)|(^[A-Fa-f0-9]+$)"
+              },
+              "event_type": {
+                "type": "string"
+              },
+              "antenna_id": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "event_date": {
+                "type": "integer"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,37 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "jsonrpc",
+    "method",
+    "params"
+  ],
+  "properties": {
+    "jsonrpc": {
+      "type": "string"
+    },
+    "method": {
+      "type": "string"
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reading",
+        "connected",
+        "disconnected"
+      ],
+      "properties": {
+        "reading": {
+          "type": "integer"
+        },
+        "connected": {
+          "type": "integer"
+        },
+        "disconnected": {
+          "type": "integer"
+        }
+      }
+    }
+  }
+}

@@ -8,7 +8,6 @@ package driver
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/jsonrpc"
 	"time"
 
@@ -33,15 +32,19 @@ const (
 
 func (driver *Driver) onIncomingDataReceived(message mqtt.Message) {
 	outgoing := message.Payload()
+
 	var incomingData jsonrpc.Notification
 	if err := json.Unmarshal(message.Payload(), &incomingData); err != nil {
-		driver.Logger.Error(fmt.Sprintf("Unmarshal failed. cause=%+v payload=%s messageObject=%+v",
-			err, string(outgoing), message))
+		driver.Logger.Error("Unmarshal failed.",
+			"cause", err.Error(),
+			"payload", string(outgoing),
+			"message", message)
 		return
 	}
 
 	if incomingData.Version != jsonRpcVersion {
-		driver.Logger.Error(fmt.Sprintf("Invalid version: %s", incomingData.Version))
+		driver.Logger.Error("Invalid JSON RPC version",
+			"incoming", incomingData.Version, "expected", jsonRpcVersion)
 		return
 	}
 
@@ -56,9 +59,16 @@ func (driver *Driver) onIncomingDataReceived(message mqtt.Message) {
 		return
 	}
 
+	if err := driver.validateIncoming(incomingData.Method, outgoing); err != nil {
+		driver.Logger.Error("Schema validation failed",
+			"resourceName", resourceName, "cause", err.Error())
+		return
+	}
+
 	modified, err := driver.processResource(incomingData)
 	if err != nil {
-		driver.Logger.Error("Failed to handle %q: %+v", resourceName, err)
+		driver.Logger.Error("Incoming resource processing failed",
+			"resourceName", resourceName, "cause", err.Error())
 		return
 	}
 	if modified != nil {

@@ -1,0 +1,92 @@
+{
+  "oneOf": [
+    {
+      "type": "null"
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "clusters"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "clusters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "personality",
+              "facility_id",
+              "aliases",
+              "behavior_id",
+              "sensor_groups",
+              "tokens"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "personality": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "facility_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "aliases": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "behavior_id": {
+                "type": "string"
+              },
+              "sensor_groups": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "tokens": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "username": {
+                      "type": "string"
+                    },
+                    "token": {
+                      "type": "string"
+                    },
+                    "generated_timestamp": {
+                      "type": "integer"
+                    },
+                    "expiration_timestamp": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -22,6 +22,7 @@ const (
 	IncomingTopics = "IncomingTopics"
 	CommandTopic   = "CommandTopic"
 	ResponseTopic  = "ResponseTopic"
+	SchemasDir     = "SchemasDir"
 
 	// RspControllerNotifications a slice of the notification types we want to receive from the rsp controller
 	RspControllerNotifications = "RspControllerNotifications"

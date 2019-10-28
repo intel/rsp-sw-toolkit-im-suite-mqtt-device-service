@@ -28,6 +28,7 @@ func TestCreateDriverConfig(t *testing.T) {
 		CommandTopic:               "rfid/controller/command",
 		ResponseTopic:              "rfid/controller/response",
 		IncomingTopics:             "rfid/controller/alerts,rfid/controller/heartbeat,rfid/controller/notification,rfid/rsp/data/+,rfid/rsp/rsp_status/+",
+		SchemasDir:                 "schemas",
 		RspControllerNotifications: "scheduler_run_state,sensor_config_notification,sensor_connection_state_notification",
 		MqttScheme:                 "tcp",
 		MqttHost:                   "mosquitto-server",
@@ -59,6 +60,7 @@ func TestCreateDriverConfig(t *testing.T) {
 		cfg.CommandTopic != configs[CommandTopic] ||
 		cfg.ResponseTopic != configs[ResponseTopic] ||
 		convertSlice(cfg.RspControllerNotifications) != configs[RspControllerNotifications] ||
+		cfg.SchemasDir != configs[SchemasDir] ||
 		cfg.MqttScheme != configs[MqttScheme] ||
 		cfg.MqttHost != configs[MqttHost] ||
 		cfg.MqttPort != configs[MqttPort] ||
@@ -70,7 +72,7 @@ func TestCreateDriverConfig(t *testing.T) {
 		cfg.ResponseQos != convertByte(configs[ResponseQos]) ||
 		cfg.IncomingQos != convertByte(configs[IncomingQos]) {
 
-		t.Fatalf("Unexpected test result; driver config doesn't load correctly")
+		t.Fatalf("Driver config didn't load correctly")
 	}
 }
 

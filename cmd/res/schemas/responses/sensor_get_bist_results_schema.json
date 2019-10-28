@@ -1,0 +1,54 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "rf_module_error",
+    "rf_status_code",
+    "ambient_temp",
+    "rf_module_temp",
+    "time_alive",
+    "cpu_usage",
+    "mem_used_percent",
+    "mem_total_bytes",
+    "camera_installed",
+    "temp_sensor_installed",
+    "accelerometer_installed",
+    "region",
+    "rf_port_statuses",
+    "device_moved"
+  ],
+  "properties": {
+    "rf_module_error": { "type": "boolean" },
+    "rf_status_code": { "type": "integer" },
+    "ambient_temp": { "type": "integer" },
+    "rf_module_temp": { "type": "integer" },
+    "time_alive": { "type": "integer" },
+    "cpu_usage": { "type": "integer" },
+    "mem_used_percent": { "type": "integer" },
+    "mem_total_bytes": { "type": "integer" },
+    "camera_installed": { "type": "boolean" },
+    "temp_sensor_installed": { "type": "boolean" },
+    "accelerometer_installed": { "type": "boolean" },
+    "region": { "type": "string" },
+    "device_moved": { "type": "boolean" },
+    "rf_port_statuses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "port",
+          "forward_power_dbm10",
+          "reverse_power_dbm10",
+          "connected"
+        ],
+        "properties": {
+          "port": { "type": "integer" },
+          "forward_power_dbm10": { "type": "integer" },
+          "reverse_power_dbm10": { "type": "integer" },
+          "connected": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

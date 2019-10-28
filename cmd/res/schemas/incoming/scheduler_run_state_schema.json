@@ -1,0 +1,106 @@
+{
+  "type": "object",
+  "required": [
+    "jsonrpc",
+    "method",
+    "params"
+  ],
+  "properties": {
+    "jsonrpc": {
+      "type": "string"
+    },
+    "method": {
+      "type": "string"
+    },
+    "params": {
+      "type": "object",
+      "required": [
+        "run_state",
+        "available_states",
+        "clusters"
+      ],
+      "properties": {
+        "run_state": {
+          "type": "string",
+          "enum": [
+            "INACTIVE",
+            "ALL_ON",
+            "ALL_SEQUENCED",
+            "FROM_CONFIG"
+          ]
+        },
+        "available_states": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "clusters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "personality": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "facility_id": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "aliases": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "behavior_id": {
+                "type": "string"
+              },
+              "sensor_groups": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "tokens": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "username": {
+                      "type": "string"
+                    },
+                    "token": {
+                      "type": "string"
+                    },
+                    "generated_timestamp": {
+                      "type": "integer"
+                    },
+                    "expiration_timestamp": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

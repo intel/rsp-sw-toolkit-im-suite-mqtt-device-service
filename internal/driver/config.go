@@ -33,13 +33,17 @@ type configuration struct {
 
 	// IncomingTopics is a list of all topics containing data to be ingested
 	IncomingTopics []string
+
 	// CommandTopic is the topic to send commands on
 	CommandTopic string
 	// ResponseTopic is the topic to listen for responses on
 	ResponseTopic string
-
 	// RspControllerNotifications a slice of the notification types we want to receive from the rsp controller
 	RspControllerNotifications []string
+	// SchemasDir is the root directory of schema files. They're looked up as
+	// <schemasDir>/<incoming | responses>/<method>_schema.json where "method"
+	// is the jsonrpc method on the incoming data or the command request.
+	SchemasDir string
 
 	// Mqtt connection info
 	MqttScheme   string

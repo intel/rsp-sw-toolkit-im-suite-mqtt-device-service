@@ -11,10 +11,10 @@ require (
 	github.com/gorilla/mux v1.7.0 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/pkg/errors v0.8.1
-	github.com/spf13/cast v1.3.0
 	github.impcloud.net/RSP-Inventory-Suite/expect v1.1.1
+	github.impcloud.net/RSP-Inventory-Suite/gojsonschema v1.1.0
 	github.impcloud.net/RSP-Inventory-Suite/tagcode v1.1.0
+	github.impcloud.net/RSP-Inventory-Suite/utilities v0.0.0-20190318223020-7136022498b9
 	golang.org/x/net v0.0.0-20190213061140-3a22650c66bd // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
-	gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce
 )

@@ -1,0 +1,57 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "jsonrpc",
+    "method",
+    "params"
+  ],
+  "properties": {
+    "jsonrpc": {
+      "type": "string"
+    },
+    "method": {
+      "type": "string"
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sent_on",
+        "device_id",
+        "region",
+        "file",
+        "status",
+        "current_line_num",
+        "total_lines",
+        "message"
+      ],
+      "properties": {
+        "sent_on": {
+          "type": "integer"
+        },
+        "device_id": {
+          "type": "string"
+        },
+        "region": {
+          "type": "string"
+        },
+        "file": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "current_line_num": {
+          "type": "integer"
+        },
+        "total_lines": {
+          "type": "integer"
+        },
+        "message": {
+          "type": "null"
+        }
+      }
+    }
+  }
+}

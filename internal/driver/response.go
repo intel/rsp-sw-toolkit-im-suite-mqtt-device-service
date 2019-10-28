@@ -16,6 +16,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/eclipse/paho.mqtt.golang"
+	"github.com/pkg/errors"
 	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/jsonrpc"
 	"time"
 
@@ -27,7 +28,7 @@ func (driver *Driver) onCommandResponseReceived(message mqtt.Message) {
 	var response jsonrpc.Response
 
 	if err := json.Unmarshal(message.Payload(), &response); err != nil {
-		driver.Logger.Error("[Response listener] Unmarshalling of command response failed", "cause", err)
+		driver.Logger.Error("[Response listener] Unmarshalling of command response failed", "cause", err.Error())
 		return
 	}
 
@@ -44,14 +45,16 @@ func (driver *Driver) onCommandResponseReceived(message mqtt.Message) {
 
 func (driver *Driver) createEdgeXResponse(deviceResourceName string, response *jsonrpc.Response) (*sdkModel.CommandValue, error) {
 	// Return just the result or error field from the jsonrpc response
-
 	origin := time.Now().UnixNano() / int64(time.Millisecond)
 
-	if response.Result != nil && len(response.Result) > 0 {
+	if len(response.Result) > 0 {
+		if err := driver.validateResponse(deviceResourceName, response.Result); err != nil {
+			return nil, errors.Wrapf(err, "Validation failed for %q: %+v", deviceResourceName, err)
+		}
 		driver.Logger.Info("Get command finished successfully", "response.result", string(response.Result))
 		return sdkModel.NewStringValue(deviceResourceName, origin, string(response.Result)), nil
 
-	} else if response.Error != nil && len(response.Error) > 0 {
+	} else if len(response.Error) > 0 {
 		driver.Logger.Info("Get command finished with an error", "response.error", string(response.Error))
 		return nil, fmt.Errorf(string(response.Error))
 	}
