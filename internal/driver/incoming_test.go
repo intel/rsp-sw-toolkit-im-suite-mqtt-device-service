@@ -129,11 +129,11 @@ func TestJSONValidation(t *testing.T) {
 	d := &Driver{
 		incomingSchemas: map[string]*gojsonschema.Schema{},
 		responseSchemas: map[string]*gojsonschema.Schema{},
-		Config: &configuration{SchemasDir: "testdata"},
+		Config:          &configuration{SchemasDir: "testdata"},
 	}
 
 	w.As("empty method").ShouldHaveError(d.loadSchema(incomingDir, ""))
-	w.As("empty type").ShouldHaveError(d.loadSchema("","m1"))
+	w.As("empty type").ShouldHaveError(d.loadSchema("", "m1"))
 
 	w.As("valid m1").ShouldSucceed(d.validateIncoming("m1", []byte(`{"id": 5}`)))
 	w.As("valid m2").ShouldSucceed(d.validateIncoming("m2", []byte(`{"s": "123"}`)))
