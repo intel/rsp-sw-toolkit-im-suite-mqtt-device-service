@@ -1,0 +1,129 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Meta-schema for Incoming Schemas",
+  "description": "Defines what is permitted within an 'incoming' schema - namely, that it should have JSON RPC headers and explicitly define required and additional properties",
+  "type": "object",
+  "additionalProperties": false,
+  "definitions": {
+    "params": {
+      "type": "object",
+      "required": [
+        "type",
+        "additionalProperties",
+        "required",
+        "properties"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "object"
+          ]
+        },
+        "additionalProperties": {
+          "type": "boolean"
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "properties": {
+          "type": "object"
+        }
+      }
+    }
+  },
+  "required": [
+    "type",
+    "required",
+    "properties",
+    "additionalProperties"
+  ],
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "object"
+      ]
+    },
+    "additionalProperties": {
+      "type": "boolean",
+      "enum": [
+        false
+      ]
+    },
+    "required": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "jsonrpc",
+          "method",
+          "params"
+        ]
+      }
+    },
+    "properties": {
+      "type": "object",
+      "required": [
+        "jsonrpc",
+        "method",
+        "params"
+      ],
+      "properties": {
+        "jsonrpc": {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "string"
+              ]
+            }
+          }
+        },
+        "method": {
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "string"
+              ]
+            }
+          }
+        },
+        "params": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/params"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "oneOf"
+              ],
+              "properties": {
+                "oneOf": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/params"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -2,28 +2,45 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "connection_state",
-    "broker_uri",
-    "subscribes",
-    "publishes"
+    "jsonrpc",
+    "method",
+    "params"
   ],
   "properties": {
-    "connection_state": {
+    "jsonrpc": {
       "type": "string"
     },
-    "broker_uri": {
+    "method": {
       "type": "string"
     },
-    "subscribes": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "publishes": {
-      "type": "array",
-      "items": {
-        "type": "string"
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "connection_state",
+        "broker_uri",
+        "subscribes",
+        "publishes"
+      ],
+      "properties": {
+        "connection_state": {
+          "type": "string"
+        },
+        "broker_uri": {
+          "type": "string"
+        },
+        "subscribes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "publishes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
       }
     }
   }

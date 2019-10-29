@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Meta-schema for Responses Schemas",
+  "description": "Defines what is permitted within an 'responses' schema - namely, that objects should specify required and additional properties",
+  "type": "object",
+  "anyOf": [
+    {
+      "title": "object meta schema",
+      "description": "objects must specify additionalProperties",
+      "required": [
+        "type",
+        "additionalProperties"
+      ],
+      "properties": {
+        "additionalProperties": {
+          "type": "boolean"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "object"
+          ]
+        }
+      }
+    },
+    {
+      "title": "non-object schema",
+      "properties": {
+        "type": {
+          "type": "string",
+          "not": {
+            "enum": [
+              "object"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

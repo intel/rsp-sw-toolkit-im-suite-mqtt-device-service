@@ -16,6 +16,7 @@
     },
     "params": {
       "type": "object",
+      "additionalProperties": false,
       "required": [
         "sent_on",
         "device_id",
