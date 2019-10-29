@@ -14,17 +14,14 @@ To accomplish this, modifications were made to:
 *   Send commands to RSP controller Application and receive responses
 
 ## Contents
-  * [Prerequisites](#prerequisites)
   * [Make Targets](#make-targets)
-  * [Docker Usage](#docker-usage)
-  * [Sending Commands to RSP Controller](#sending-commands-to-rsp-controller)
-  
-## Prerequisites
-
-### EdgeX [Edinburgh Release](https://www.edgexfoundry.org/release-1-0-edinburgh/)
-*   Must have EdgeX - [Core Services](https://docs.edgexfoundry.org/Ch-CoreServices.html) microservices installed and running.
-### Intel® RSP Controller Application
-*   Must have the Intel® RSP Controller Application [*Getting Started with Intel® RFID Sensor Platform (RSP) on Linux*](https://software.intel.com/en-us/getting-started-with-intel-rfid-sensor-platform-on-linux) installed and running.  This will allow for the RSP MQTT Device service to register the RSP Controller Application and the list of commands that are made available.
+  * [Building and Launching the MQTT Device Service with EdgeX](#building-and-launching-the-mqtt-device-service-with-edgeX)
+    + [Prerequisites](#prerequisites)
+    + [Getting the source code](#getting-the-source-code)
+    + [Building and creating the docker image](#building-and-creating-the-docker-image)
+    + [Adding to EdgeX](#adding-to-edgeX)
+    + [Starting the services](#starting-the-services)
+  * [Sending Commands to RSP Controller Application](#sending-commands-to-rsp-controller-application)
 
 ## Make Targets
 The included [Makefile](Makefile) has some useful targets for building and 
@@ -37,11 +34,43 @@ testing the service. Here's a description of these targets:
 - `image`: builds and tags a Docker image
 - `clean-img` deletes the Docker image
 
-## Docker Usage
-You can use this service with Docker by adding it to your `docker-compose.yml`
-and giving it network access to the EdgeX services and the MQTT broker. If the
-EdgeX services are reachable on a network named `edgex-network` and the MQTT 
-broker is reachable via `172.17.0.1`, here's one way of doing this:
+## Building and Launching the MQTT Device Service with EdgeX
+
+### Prerequisites
+
+#### Golang
+*   [Golang (1.12+)](https://golang.org/doc/install)
+
+#### Docker
+*   [Install Instructions](https://docs.docker.com/install/)
+
+#### Docker Compose
+*   [Install Instructions](https://docs.docker.com/compose/install/)
+
+#### EdgeX [Edinburgh Release](https://www.edgexfoundry.org/release-1-0-edinburgh/)
+*   Must have EdgeX - [Core Services](https://docs.edgexfoundry.org/Ch-CoreServices.html) microservices.
+
+
+#### Intel® RSP Controller Application
+*   Must have the Intel® RSP Controller Application [*Getting Started with Intel® RFID Sensor Platform (RSP) on Linux*](https://software.intel.com/en-us/getting-started-with-intel-rfid-sensor-platform-on-linux) installed and running.  This will allow for the RSP MQTT Device service to register the RSP Controller Application and the list of commands that are made available.
+
+### Getting the source code
+```bash
+git clone https://github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service.git
+```
+
+### Building and creating the docker image
+```bash
+cd mqtt-device-service
+```
+
+```bash
+make build image 
+```
+
+### Adding to EdgeX
+1.  Download the latest EdgeX Edinburgh docker-compose file [here](https://raw.githubusercontent.com/edgexfoundry/developer-scripts/master/releases/edinburgh/compose-files/docker-compose-edinburgh-1.0.1.yml) and save this as docker-compose.yml in your local directory. This file contains everything you need to deploy EdgeX with docker.
+2.  To use this service with Docker you add it to the EdgeX `docker-compose.yml` and give it network access to the EdgeX services and the MQTT broker. If the EdgeX services are reachable on a network named `edgex-network` (this is the default name in the EdgeX Edinburgh docker-compose.yml) and the MQTT broker is reachable via `172.17.0.1`, add this section to the `docker-compose.yml`:
 
 ```yaml
   mqtt-device-service:
@@ -50,6 +79,11 @@ broker is reachable via `172.17.0.1`, here's one way of doing this:
         - edgex-network 
     extra_hosts:
       - "mosquitto-server:172.17.0.1"
+```
+
+### Starting the services
+```bash
+docker-compose up -d
 ```
 
 
