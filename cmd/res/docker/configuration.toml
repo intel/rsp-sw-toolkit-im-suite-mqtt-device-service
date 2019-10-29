@@ -18,7 +18,7 @@ Type = "consul"
 
 [Logging]
 EnableRemote = false
-File = "./mqtt-device-service.log"
+File = "/logs/mqtt-device-service.log"
 
 [Writable]
 LogLevel = "DEBUG"

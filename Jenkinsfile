@@ -11,7 +11,7 @@ rrpBuildGoCode {
         stackName: 'RSP-Codepipeline-MqttDeviceService'
     ]
 
-    customBuildScript = "./build.sh"
+    customBuildScript = "make build"
 
     notify = [
         slack: [ success: '#ima-build-success', failure: '#ima-build-failed' ]

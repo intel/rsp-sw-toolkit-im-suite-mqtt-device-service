@@ -12,7 +12,7 @@
 
 // Intel modified the project name from device-mqtt-go to mqtt-device-service
 
-package mqtt_device_service
+package main
 
 // Global version for mqtt-device-service; overwritten during build process via
 // -ldflags="-X 'importpath.Version=value'".

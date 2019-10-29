@@ -20,10 +20,30 @@
 # Unless otherwise agreed by Intel in writing, you may not remove or alter this notice or any other
 # notice embedded in Materials by Intel or Intel's suppliers or licensors in any way.
 
+# ---------------------------------------------------------
+# can't create files in a scratch container, nor can you run chown, so this adds
+# the file structure here so it can be copied. This also adds the prebuilt image
+# so the service image itself is the same for this and the Dockerfile_dev
+FROM alpine as builder
+ARG SERVICE=mqtt-device-service
+WORKDIR /app
+COPY  ${SERVICE} service
+RUN mkdir logs
+
+# ---------------------------------------------------------
+FROM scratch as service
 ARG APP_PORT=49982
-FROM scratch
-ADD cmd /
+
+# ARG variable substitution doesn't work with --chown below 19.03.0 :(
+# https://github.com/moby/moby/issues/35018
+COPY --from=builder --chown=2000:2000 /app/logs /logs
+COPY --from=builder --chown=2000:2000 /app/service /
+COPY LICENSE .
+COPY cmd/res /res
+
+USER 2000
 ENV APP_PORT=$APP_PORT
 EXPOSE $APP_PORT
+ENTRYPOINT ["/service"]
+CMD ["--registry=consul://edgex-core-consul:8500", "--profile=docker","--confdir=/res"]
 
-ENTRYPOINT ["/mqtt-device-service","--registry=consul://edgex-core-consul:8500","--profile=docker","--confdir=/res"]

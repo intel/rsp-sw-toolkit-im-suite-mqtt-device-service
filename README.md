@@ -15,6 +15,8 @@ To accomplish this, modifications were made to:
 
 ## Contents
   * [Prerequisites](#prerequisites)
+  * [Make Targets](#make-targets)
+  * [Docker Usage](#docker-usage)
   * [Sending Commands to RSP Controller](#sending-commands-to-rsp-controller)
   
 ## Prerequisites
@@ -23,6 +25,33 @@ To accomplish this, modifications were made to:
 *   Must have EdgeX - [Core Services](https://docs.edgexfoundry.org/Ch-CoreServices.html) microservices installed and running.
 ### Intel® RSP Controller Application
 *   Must have the Intel® RSP Controller Application [*Getting Started with Intel® RFID Sensor Platform (RSP) on Linux*](https://software.intel.com/en-us/getting-started-with-intel-rfid-sensor-platform-on-linux) installed and running.  This will allow for the RSP MQTT Device service to register the RSP Controller Application and the list of commands that are made available.
+
+## Make Targets
+The included [Makefile](Makefile) has some useful targets for building and 
+testing the service. Here's a description of these targets:
+
+- `$(SERVICE_NAME)` (default is `mqtt-device-service`): builds the service 
+- `build`: alias for `$(SERVICE_NAME)` 
+- `test`: runs the test suite with coverage 
+- `clean`: deletes the service executable
+- `image`: builds and tags a Docker image
+- `clean-img` deletes the Docker image
+
+## Docker Usage
+You can use this service with Docker by adding it to your `docker-compose.yml`
+and giving it network access to the EdgeX services and the MQTT broker. If the
+EdgeX services are reachable on a network named `edgex-network` and the MQTT 
+broker is reachable via `172.17.0.1`, here's one way of doing this:
+
+```yaml
+  mqtt-device-service:
+    image: mqtt-device-service:latest
+    networks:
+        - edgex-network 
+    extra_hosts:
+      - "mosquitto-server:172.17.0.1"
+```
+
 
 ## Sending Commands to RSP Controller Application
 To send commands from Edgex to RSP Controller Application we can use some client such as [Postman](https://www.getpostman.com/).

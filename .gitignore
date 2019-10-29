@@ -30,3 +30,4 @@ squashfs-root/
 # service/control
 mqtt-device-service
 mqtt-device-service.docker
+service

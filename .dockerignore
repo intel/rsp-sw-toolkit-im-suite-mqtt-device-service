@@ -2,3 +2,14 @@
 # different versions of Golang. Remove once all Go versions
 # are in sync
 go.sum
+Dockerfile
+Dockerfile_dev
+Makefile
+Jenkinsfile
+docker-compose.yml
+.gitignore
+.env
+.dockerignore
+snap/**
+docs/**
+
