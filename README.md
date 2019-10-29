@@ -47,7 +47,7 @@ testing the service. Here's a description of these targets:
 #### Docker Compose
 *   [Install Instructions](https://docs.docker.com/compose/install/)
 
-#### [EdgeX Edinburgh Release](https://www.edgexfoundry.org/release-1-0-edinburgh/)
+#### EdgeX [Edinburgh Release](https://www.edgexfoundry.org/release-1-0-edinburgh/)
 Must have EdgeX - [Core Services](https://docs.edgexfoundry.org/Ch-CoreServices.html) microservices.
 
 
