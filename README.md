@@ -15,7 +15,7 @@ To accomplish this, modifications were made to:
 
 ## Contents
   * [Make Targets](#make-targets)
-  * [Building and Launching the MQTT Device Service with EdgeX - Docker Usage](#building-and-launching-the-mqtt-device-service-with-edgeX)
+  * [Building and Launching the MQTT Device Service with EdgeX](#building-and-launching-the-mqtt-device-service-with-edgeX)
     + [Prerequisites](#prerequisites)
     + [Getting the source code](#getting-the-source-code)
     + [Building and creating the docker image](#building-and-creating-the-docker-image)
