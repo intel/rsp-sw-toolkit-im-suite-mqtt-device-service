@@ -30,7 +30,7 @@ To accomplish this, modifications were made to:
 ### Docker Compose
 *   [Install Instructions](https://docs.docker.com/compose/install/)
 
-### EdgeX [Edinburgh Release](https://www.edgexfoundry.org/release-1-0-edinburgh/)
+### [EdgeX Edinburgh Release](https://www.edgexfoundry.org/release-1-0-edinburgh/)
 *   Must have EdgeX - [Core Services](https://docs.edgexfoundry.org/Ch-CoreServices.html) microservices.
 1.  Download the latest EdgeX Edinburgh docker-compose file [here](https://raw.githubusercontent.com/edgexfoundry/developer-scripts/master/releases/edinburgh/compose-files/docker-compose-edinburgh-1.0.1.yml) and save this as docker-compose.yml in your local directory. This file contains everything you need to deploy EdgeX with docker.
 2.  Use this command to download the EdgeX Foundry Docker images from Docker Hub:
@@ -67,7 +67,7 @@ cd mqtt-device-service
 make build image 
 ```
 
-3.  To use this service with Docker you *MUST* add it to your `docker-compose.yml` and giving it network access to the EdgeX services and the MQTT broker. If the
+3.  To use this service with Docker you *MUST* add it to the EdgeX `docker-compose.yml` to saved in the [prerequisite section](#edgex-edinburgh-release) and giving it network access to the EdgeX services and the MQTT broker. If the
 EdgeX services are reachable on a network named `edgex-network` (this is the default name in the EdgeX Edginburgh docker-compose.yml) and the MQTT 
 broker is reachable via `172.17.0.1`, add this section to the `docker-compose.yml`:
 
