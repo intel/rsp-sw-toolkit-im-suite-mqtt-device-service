@@ -14,7 +14,7 @@ build: $(SERVICE_NAME)
 DEPENDS=internal/driver/*.go internal/jsonrpc/*.go cmd/*.go \
 	cmd/res/*.toml cmd/res/*.yml cmd/res/docker/*.toml \
 	cmd/res/schemas/incoming/*.json cmd/res/schemas/responses/*.json
-$(SERVICE_NAME): go.mod go.sum VERSION $(DEPENDS)
+$(SERVICE_NAME): go.mod VERSION $(DEPENDS)
 	$(GO) build $(GOFLAGS) -o $@ ./cmd
 
 image: $(SERVICE_NAME) Dockerfile
