@@ -14,32 +14,14 @@ To accomplish this, modifications were made to:
 *   Send commands to RSP controller Application and receive responses
 
 ## Contents
-  * [Prerequisites](#prerequisites)
   * [Make Targets](#make-targets)
-  * [Docker Usage](#docker-usage)
+  * [Building and Launching the MQTT Device Service with EdgeX - Docker Usage](#building-and-launching-the-mqtt-device-service-with-edgeX)
+    + [Prerequisites](#prerequisites)
+    + [Getting the source code](#getting-the-source-code)
+    + [Building and creating the docker image](#building-and-creating-the-docker-image)
+    + [Adding to EdgeX](#adding-to-edgeX)
+    + [Starting the services](#starting-the-services)
   * [Sending Commands to RSP Controller](#sending-commands-to-rsp-controller)
-  
-## Prerequisites
-
-### Golang
-*   [Golang (1.12+)](https://golang.org/doc/install)
-
-### Docker
-*   [Install Instructions](https://docs.docker.com/install/)
-
-### Docker Compose
-*   [Install Instructions](https://docs.docker.com/compose/install/)
-
-### [EdgeX Edinburgh Release](https://www.edgexfoundry.org/release-1-0-edinburgh/)
-*   Must have EdgeX - [Core Services](https://docs.edgexfoundry.org/Ch-CoreServices.html) microservices.
-1.  Download the latest EdgeX Edinburgh docker-compose file [here](https://raw.githubusercontent.com/edgexfoundry/developer-scripts/master/releases/edinburgh/compose-files/docker-compose-edinburgh-1.0.1.yml) and save this as docker-compose.yml in your local directory. This file contains everything you need to deploy EdgeX with docker.
-2.  Use this command to download the EdgeX Foundry Docker images from Docker Hub:
-```bash
-docker-compose pull
-```
-
-### Intel® RSP Controller Application
-*   Must have the Intel® RSP Controller Application [*Getting Started with Intel® RFID Sensor Platform (RSP) on Linux*](https://software.intel.com/en-us/getting-started-with-intel-rfid-sensor-platform-on-linux) installed and running.  This will allow for the RSP MQTT Device service to register the RSP Controller Application and the list of commands that are made available.
 
 ## Make Targets
 The included [Makefile](Makefile) has some useful targets for building and 
@@ -52,12 +34,37 @@ testing the service. Here's a description of these targets:
 - `image`: builds and tags a Docker image
 - `clean-img` deletes the Docker image
 
-## Building and Launching the MQTT Device Service with EdgeX - Docker Usage
+## Building and Launching the MQTT Device Service with EdgeX
+
+### Prerequisites
+
+#### Golang
+*   [Golang (1.12+)](https://golang.org/doc/install)
+
+#### Docker
+*   [Install Instructions](https://docs.docker.com/install/)
+
+#### Docker Compose
+*   [Install Instructions](https://docs.docker.com/compose/install/)
+
+#### [EdgeX Edinburgh Release](https://www.edgexfoundry.org/release-1-0-edinburgh/)
+*   Must have EdgeX - [Core Services](https://docs.edgexfoundry.org/Ch-CoreServices.html) microservices.
+1.  Download the latest EdgeX Edinburgh docker-compose file [here](https://raw.githubusercontent.com/edgexfoundry/developer-scripts/master/releases/edinburgh/compose-files/docker-compose-edinburgh-1.0.1.yml) and save this as docker-compose.yml in your local directory. This file contains everything you need to deploy EdgeX with docker.
+2.  Use this command to download the EdgeX Foundry Docker images from Docker Hub:
+```bash
+docker-compose pull
+```
+
+#### Intel® RSP Controller Application
+*   Must have the Intel® RSP Controller Application [*Getting Started with Intel® RFID Sensor Platform (RSP) on Linux*](https://software.intel.com/en-us/getting-started-with-intel-rfid-sensor-platform-on-linux) installed and running.  This will allow for the RSP MQTT Device service to register the RSP Controller Application and the list of commands that are made available.
+
+### Getting the source code
 1. Clone the repository
 ```bash
 git clone https://github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service.git
 ```
 
+### Building and creating the docker image
 2.  Build the RSP MQTT Device service and create the Docker image
 ```bash
 cd mqtt-device-service
@@ -67,6 +74,7 @@ cd mqtt-device-service
 make build image 
 ```
 
+### Adding to EdgeX
 3.  To use this service with Docker you *MUST* add it to the EdgeX `docker-compose.yml` to saved in the [prerequisite section](#edgex-edinburgh-release) and giving it network access to the EdgeX services and the MQTT broker. If the
 EdgeX services are reachable on a network named `edgex-network` (this is the default name in the EdgeX Edginburgh docker-compose.yml) and the MQTT 
 broker is reachable via `172.17.0.1`, add this section to the `docker-compose.yml`:
@@ -80,6 +88,7 @@ broker is reachable via `172.17.0.1`, add this section to the `docker-compose.ym
       - "mosquitto-server:172.17.0.1"
 ```
 
+### Starting the services
 4.  Then start up all of the EdgeX Foundry microservices and the RSP MQTT Device Service:
 ```bash
 docker-compose up -d
