@@ -75,7 +75,7 @@ make build image
 ```
 
 ### Adding to EdgeX
-3.  To use this service with Docker you *MUST* add it to the EdgeX `docker-compose.yml` to saved in the [prerequisite section](#edgex-edinburgh-release) and giving it network access to the EdgeX services and the MQTT broker. If the
+3.  To use this service with Docker you *MUST* add it to the EdgeX `docker-compose.yml` that was saved in the [prerequisite section](#edgex-edinburgh-release) and giving it network access to the EdgeX services and the MQTT broker. If the
 EdgeX services are reachable on a network named `edgex-network` (this is the default name in the EdgeX Edginburgh docker-compose.yml) and the MQTT 
 broker is reachable via `172.17.0.1`, add this section to the `docker-compose.yml`:
 
