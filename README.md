@@ -53,12 +53,21 @@ testing the service. Here's a description of these targets:
 - `clean-img` deletes the Docker image
 
 ## Building and Launching the MQTT Device Service with EdgeX - Docker Usage
-1.  Build the RSP MQTT Device service and create the Docker image
+1. Clone the repository
+```bash
+git clone https://github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service.git
 ```
+
+2.  Build the RSP MQTT Device service and create the Docker image
+```bash
+cd mqtt-device-service
+```
+
+```bash
 make build image 
 ```
 
-2.  To use this service with Docker you *MUST* add it to your `docker-compose.yml` and giving it network access to the EdgeX services and the MQTT broker. If the
+3.  To use this service with Docker you *MUST* add it to your `docker-compose.yml` and giving it network access to the EdgeX services and the MQTT broker. If the
 EdgeX services are reachable on a network named `edgex-network` (this is the default name in the EdgeX Edginburgh docker-compose.yml) and the MQTT 
 broker is reachable via `172.17.0.1`, add this section to the `docker-compose.yml`:
 
@@ -71,7 +80,7 @@ broker is reachable via `172.17.0.1`, add this section to the `docker-compose.ym
       - "mosquitto-server:172.17.0.1"
 ```
 
-3.  Then start up all of the EdgeX Foundry microservices and the RSP MQTT Device Service:
+4.  Then start up all of the EdgeX Foundry microservices and the RSP MQTT Device Service:
 ```bash
 docker-compose up -d
 ```
