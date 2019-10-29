@@ -48,7 +48,7 @@ testing the service. Here's a description of these targets:
 *   [Install Instructions](https://docs.docker.com/compose/install/)
 
 #### EdgeX [Edinburgh Release](https://www.edgexfoundry.org/release-1-0-edinburgh/)
-Must have EdgeX - [Core Services](https://docs.edgexfoundry.org/Ch-CoreServices.html) microservices.
+*   Must have EdgeX - [Core Services](https://docs.edgexfoundry.org/Ch-CoreServices.html) microservices.
 
 
 #### Intel® RSP Controller Application
