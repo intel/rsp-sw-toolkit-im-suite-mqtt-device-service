@@ -21,7 +21,7 @@ To accomplish this, modifications were made to:
     + [Building and creating the docker image](#building-and-creating-the-docker-image)
     + [Adding to EdgeX](#adding-to-edgeX)
     + [Starting the services](#starting-the-services)
-  * [Sending Commands to RSP Controller](#sending-commands-to-rsp-controller)
+  * [Sending Commands to RSP Controller Application](#sending-commands-to-rsp-controller-application)
 
 ## Make Targets
 The included [Makefile](Makefile) has some useful targets for building and 
