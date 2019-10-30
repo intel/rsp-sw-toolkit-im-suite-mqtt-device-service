@@ -53,9 +53,9 @@ sudo apt -y install make
 
 *   :heavy_check_mark: If you installed the DOCKER version of the Intel® RSP Controller Application, go straight to the [Getting the source code](#getting-the-source-code) section.
 
-*   :warning: If you installed the NATIVE version of the Intel® RSP Controller Application you will need the following prerequisites.
+*   :warning: If you installed the NATIVE version of the Intel® RSP Controller Application you will need the following:
 
-#####   Curl 
+##### Curl 
 ```bash
 sudo apt -y install curl
 ```
