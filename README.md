@@ -81,7 +81,7 @@ cd mqtt-device-service
 ```
 
 ```bash
-make build image 
+sudo make build image 
 ```
 
 ### Adding to EdgeX
@@ -103,14 +103,14 @@ Section to add to the `docker-compose.yml` (remember spacing and alignment is im
 
 ### Starting the services
 ```bash
-docker-compose up -d
+sudo docker-compose up -d
 ```
 
 
 ## Sending Commands to RSP Controller Application
-To send commands from Edgex to RSP Controller Application we can use some client such as [Postman](https://www.getpostman.com/).
+To demonstrate sending commands from Edgex to RSP Controller Application use a web browser or tool similar to [Postman](https://www.getpostman.com/) .
  
-Open POSTMAN or any similar tool and execute the following apis:
+Execute the following apis:
 
 - Replace `localhost` in the below api with your respective server IP address if not running on localhost. This api is
 used to find all the executable commands for a particular device (rsp-controller is the default name of the RSP Controller)
@@ -133,10 +133,10 @@ GET to http://localhost:48082/api/v1/device/name/rsp-controller/command/behavior
 ![GET command](docs/Response.png)
 
 - Also GET command requests which requires only `device_id` as parameter are supported. For e.g. command below can be used 
-to get bist_results of a sensor named `RSP-150000`. Be sure to replace `RSP-150000` with the one you need.
+to get basic information of a sensor named `RSP-150000`. Be sure to replace `RSP-150000` with the one you need.
 Since Edgex does not support GET requests with query parameters this is an alternate solution.
 ```
-GET to http://localhost:48082/api/v1/device/name/RSP-150000/command/sensor_get_bist_results
+GET to http://localhost:48082/api/v1/device/name/RSP-150000/command/sensor_get_basic_info
 ```
 
   
