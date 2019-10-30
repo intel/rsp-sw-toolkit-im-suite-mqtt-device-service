@@ -37,22 +37,38 @@ testing the service. Here's a description of these targets:
 ## Building and Launching the MQTT Device Service with EdgeX
 
 ### Prerequisites
+#### Make
+```bash
+sudo apt -y install make
+```
 
 #### Golang (1.12+)
 *   [Install Instructions](https://golang.org/doc/install)
 
-#### Docker
-*   [Install Instructions](https://docs.docker.com/install/)
-
-#### Docker Compose
-*   [Install Instructions](https://docs.docker.com/compose/install/)
-
-#### EdgeX [Edinburgh Release](https://www.edgexfoundry.org/release-1-0-edinburgh/)
-*   Must have EdgeX - [Core Services](https://docs.edgexfoundry.org/Ch-CoreServices.html) microservices.
-1. Download the latest EdgeX Edinburgh docker-compose file [here](https://raw.githubusercontent.com/edgexfoundry/developer-scripts/master/releases/edinburgh/compose-files/docker-compose-edinburgh-no-secty-1.0.1.yml) and save this as docker-compose.yml in your local directory. This file contains everything you need to deploy EdgeX with docker.
+#### EdgeX - Edinburgh Release
+*   Download the latest EdgeX Edinburgh docker-compose file [here](https://raw.githubusercontent.com/edgexfoundry/developer-scripts/master/releases/edinburgh/compose-files/docker-compose-edinburgh-no-secty-1.0.1.yml) and save this as docker-compose.yml in your local directory. This file contains everything you need to deploy EdgeX with docker.
 
 #### Intel® RSP Controller Application
 *   Must have the Intel® RSP Controller Application [*Getting Started with Intel® RFID Sensor Platform (RSP) on Linux*](https://software.intel.com/en-us/getting-started-with-intel-rfid-sensor-platform-on-linux) installed and running.  This will allow for the RSP MQTT Device service to register the RSP Controller Application and the list of commands that are made available.
+
+*   :heavy_check_mark: If you installed the DOCKER version of the Intel® RSP Controller Application, go straight to the [Getting the source code](#getting-the-source-code) section.
+
+*   :warning: If you installed the NATIVE version of the Intel® RSP Controller Application you will need the following prerequisites.
+
+#####   Curl 
+```bash
+sudo apt -y install curl
+```
+
+##### Docker
+```bash
+apt -y install docker.io
+```
+
+##### Docker Compose
+```bash
+curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && sudo chmod a+x /usr/local/bin/docker-compose
+```
 
 ### Getting the source code
 ```bash
