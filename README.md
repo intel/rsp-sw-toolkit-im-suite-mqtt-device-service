@@ -81,6 +81,8 @@ Section to add to the `docker-compose.yml` (remember spacing and alignment is im
         - edgex-network 
     extra_hosts:
       - "mosquitto-server:172.17.0.1"
+    depends_on:
+      - logging
 ```
 
 ### Starting the services
