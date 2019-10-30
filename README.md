@@ -69,16 +69,10 @@ make build image
 ```
 
 ### Adding to EdgeX
----
-    Note: If the EdgeX services are up and running, stop the services with the following command:
-     
-    docker-compose down
-    
----
 1. To use this service with Docker go to the directory with the EdgeX `docker-compose.yml` file you downloaded in the [EdgeX prerequisites section](#EdgeX). 
 2. Add the following code snippet to the DEVICE SERVICES section of the EdgeX `docker-compose.yml`.  This snippet also gives it network access to the EdgeX services and the MQTT broker. If the EdgeX services are reachable on a network named `edgex-network` (this is the default name in the EdgeX Edinburgh docker-compose.yml) and the MQTT broker is reachable via `172.17.0.1`. 
 
-Section to add to the `docker-compose.yml`:
+Section to add to the `docker-compose.yml` (remember spacing and alignment is important!):
 
 ```yaml
   mqtt-device-service:
