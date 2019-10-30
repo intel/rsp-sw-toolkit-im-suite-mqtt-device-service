@@ -38,8 +38,8 @@ testing the service. Here's a description of these targets:
 
 ### Prerequisites
 
-#### Golang
-*   [Golang (1.12+)](https://golang.org/doc/install)
+#### Golang (1.12+)
+*   [Install Instructions](https://golang.org/doc/install)
 
 #### Docker
 *   [Install Instructions](https://docs.docker.com/install/)
@@ -49,6 +49,11 @@ testing the service. Here's a description of these targets:
 
 #### EdgeX [Edinburgh Release](https://www.edgexfoundry.org/release-1-0-edinburgh/)
 *   Must have EdgeX - [Core Services](https://docs.edgexfoundry.org/Ch-CoreServices.html) microservices.
+1. Download the latest EdgeX Edinburgh docker-compose file [here](https://raw.githubusercontent.com/edgexfoundry/developer-scripts/master/releases/edinburgh/compose-files/docker-compose-edinburgh-1.0.1.yml) and save this as docker-compose.yml in your local directory. This file contains everything you need to deploy EdgeX with docker.
+
+---
+    Note: The RSP MQTT Device Service will be added to this docker-compose.yml file in the *later* step, [Adding to EdgeX](#adding-to-edgex)
+---
 
 
 #### Intel® RSP Controller Application
@@ -69,8 +74,16 @@ make build image
 ```
 
 ### Adding to EdgeX
-1.  Download the latest EdgeX Edinburgh docker-compose file [here](https://raw.githubusercontent.com/edgexfoundry/developer-scripts/master/releases/edinburgh/compose-files/docker-compose-edinburgh-1.0.1.yml) and save this as docker-compose.yml in your local directory. This file contains everything you need to deploy EdgeX with docker.
-2.  To use this service with Docker you add it to the DEVICE SERVICES section of the EdgeX `docker-compose.yml` and give it network access to the EdgeX services and the MQTT broker. If the EdgeX services are reachable on a network named `edgex-network` (this is the default name in the EdgeX Edinburgh docker-compose.yml) and the MQTT broker is reachable via `172.17.0.1`, add this section to the `docker-compose.yml`:
+---
+    Note: If the EdgeX services are up and running, stop the services with the following command:
+     
+    docker-compose down
+    
+---
+1. To use this service with Docker go to the directory with the EdgeX `docker-compose.yml` file you downloaded in the [prerequisites section](#prerequisites). 
+2. Add the following code snippet to the DEVICE SERVICES section of the EdgeX `docker-compose.yml`.  This snippet also gives it network access to the EdgeX services and the MQTT broker. If the EdgeX services are reachable on a network named `edgex-network` (this is the default name in the EdgeX Edinburgh docker-compose.yml) and the MQTT broker is reachable via `172.17.0.1`. 
+
+Section to add to the `docker-compose.yml`:
 
 ```yaml
   mqtt-device-service:
