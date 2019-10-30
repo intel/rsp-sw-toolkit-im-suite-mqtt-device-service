@@ -62,12 +62,12 @@ sudo apt -y install curl
 
 ##### Docker
 ```bash
-apt -y install docker.io
+sudo apt -y install docker.io
 ```
 
 ##### Docker Compose
 ```bash
-curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && sudo chmod a+x /usr/local/bin/docker-compose
+sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && sudo chmod a+x /usr/local/bin/docker-compose
 ```
 
 ### Getting the source code
