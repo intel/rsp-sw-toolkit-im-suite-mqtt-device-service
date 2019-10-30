@@ -136,6 +136,11 @@ GET to http://localhost:48082/api/v1/device/name/rsp-controller/command/behavior
 
 ## Retrieving raw sensor data from EdgeX Core Data
 To demonstrate retrieving raw RSP sensor data, the below api can be executed. If successful, a response is sent back similar to:
+```
+GET to http://127.0.0.1:48080/api/v1/reading/device/rsp-controller/1
+
+(1 being the last event)
+```
 
 ```json
 [
