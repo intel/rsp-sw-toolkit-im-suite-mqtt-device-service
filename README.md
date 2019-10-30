@@ -22,6 +22,7 @@ To accomplish this, modifications were made to:
     + [Adding to EdgeX](#adding-to-edgeX)
     + [Starting the services](#starting-the-services)
   * [Sending Commands to RSP Controller Application](#sending-commands-to-rsp-controller-application)
+  * [Retrieving raw sensor data from EdgeX Core Data](#retrieving-raw-sensor-data-from-edgeX-core-data)
 
 ## Make Targets
 The included [Makefile](Makefile) has some useful targets for building and 
@@ -132,11 +133,22 @@ GET to http://localhost:48082/api/v1/device/name/rsp-controller/command/behavior
 
 ![GET command](docs/Response.png)
 
-- Also GET command requests which requires only `device_id` as parameter are supported. For e.g. command below can be used 
-to get basic information of a sensor named `RSP-150000`. Be sure to replace `RSP-150000` with the one you need.
-Since Edgex does not support GET requests with query parameters this is an alternate solution.
-```
-GET to http://localhost:48082/api/v1/device/name/RSP-150000/command/sensor_get_basic_info
+
+## Retrieving raw sensor data from EdgeX Core Data
+To demonstrate retrieving raw RSP sensor data, the below api can be executed. If successful, a response is sent back similar to:
+
+```json
+[
+    {
+        "id": "ff74476a-c741-48a5-8533-22f946f29ff8",
+        "created": 1572475398900,
+        "origin": 1572475398882,
+        "modified": 1572475398900,
+        "device": "rsp-controller",
+        "name": "inventory_data",
+        "value": "{\"jsonrpc\":\"2.0\",\"method\":\"inventory_data\",\"params\":{\"sent_on\":1572475398919,\"period\":500,\"device_id\":\"RSP-1508b2\",\"location\":{\"latitude\":0.0,\"longitude\":0.0,\"altitude\":0.0},\"facility_id\":\"DEFAULT_FACILITY\",\"motion_detected\":false,\"data\":[{\"epc\":\"300C0000000000000000006B\",\"tid\":null,\"antenna_id\":0,\"last_read_on\":1572475398409,\"rssi\":-591,\"phase\":20,\"frequency\":911250},{\"epc\":\"300C0000000000000000006B\",\"tid\":null,\"antenna_id\":0,\"last_read_on\":1572475398484,\"rssi\":-608,\"phase\":-43,\"frequency\":911250},{\"epc\":\"300C0000000000000000006B\",\"tid\":null,\"antenna_id\":0,\"last_read_on\":1572475398602,\"rssi\":-636,\"phase\":20,\"frequency\":911250},{\"epc\":\"300C0000000000000000006B\",\"tid\":null,\"antenna_id\":0,\"last_read_on\":1572475398678,\"rssi\":-618,\"phase\":17,\"frequency\":911750},{\"epc\":\"300C0000000000000000006B\",\"tid\":null,\"antenna_id\":0,\"last_read_on\":1572475398723,\"rssi\":-618,\"phase\":-53,\"frequency\":911750},{\"epc\":\"300C0000000000000000006B\",\"tid\":null,\"antenna_id\":0,\"last_read_on\":1572475398821,\"rssi\":-618,\"phase\":15,\"frequency\":911750},{\"epc\":\"300C0000000000000000006B\",\"tid\":null,\"antenna_id\":0,\"last_read_on\":1572475398897,\"rssi\":-591,\"phase\":-43,\"frequency\":911750}]}}"
+    }
+]
 ```
 
   
