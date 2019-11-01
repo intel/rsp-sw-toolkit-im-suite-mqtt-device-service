@@ -30,6 +30,8 @@ To accomplish this, modifications were made to:
 - [Sending Commands to RSP Controller Application](#sending-commands-to-rsp-controller-application)
     - [Listing Commands](#listing-commands)
 - [Retrieving Raw Sensor Data from EdgeX Core Data](#Retrieving-raw-sensor-data-from-EdgeX-Core-Data)
+    - [API](#using-api)
+    - [App Functions SDK](#using-app-functions)
 
 
 ## Building and Launching the MQTT Device Service with EdgeX
@@ -187,7 +189,7 @@ first `reading`.
 ![GET command](docs/Response.png)
 
 ## Retrieving raw sensor data from EdgeX Core Data
-You can get the raw sensor data from EdgeX's Core Data Service by using those APIs.
+### Using API
 For example, [this endpoint](http://localhost:48080/api/v1/reading/device/rsp-controller/1)
 returns the most recent data sent by an RSP Sensor, encoded in the `value`: 
 
@@ -208,4 +210,54 @@ The response is an array of `readings` (in this case, the array has only 1 value
 ]
 ```
 
-  
+### Using App Functions
+Please go to the EdgeX's [App Functions SDK](https://github.com/edgexfoundry/app-functions-sdk-go) to understand is usages.  There are also [examples](https://github.com/edgexfoundry/app-functions-sdk-go/tree/master/examples).
+
+Below is a snippet to illustrate how to filter the ZMQ reading specifically for RSP Raw sensor read.
+-   :stop_sign: Must filter by the value descriptor of "inventory_data" to filter for RSP Sensor readings.
+
+```go
+func main(){
+​
+        //Initialized EdgeX apps functionSDK
+		edgexSdk := &appsdk.AppFunctionsSDK{ServiceKey: "myApp"}
+		if err := edgexSdk.Initialize(); err != nil {
+			edgexSdk.LoggingClient.Error(fmt.Sprintf("SDK initialization failed: %v", err))
+			os.Exit(-1)
+		}
+​
+		edgexSdk.SetFunctionsPipeline(
+			transforms.NewFilter([]string{"inventory_data"}).FilterByValueDescriptor,
+			processData, // custom function pointer
+		)
+​
+		err := edgexSdk.MakeItRun()
+		if err != nil {
+			edgexSdk.LoggingClient.Error("MakeItRun returned error: ", err.Error())
+			os.Exit(-1)
+		}
+​
+​
+}
+	
+​
+​
+func processData(edgexcontext *appcontext.Context, params ...interface{}) (bool, interface{}) {
+​
+       if len(params) < 1 {
+		// We didn't receive a result
+		return false, nil
+	}
+​
+	event, ok := params[0].(models.Event)
+	if !ok {
+		return false, errors.New("Didn't receive expect models.Event type")
+​
+	}
+​
+	for _, reading := range event.Readings {
+		fmt.Print(reading.Value)
+	}
+​
+}
+````
