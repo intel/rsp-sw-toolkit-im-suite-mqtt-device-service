@@ -14,9 +14,22 @@ package driver
 
 import (
 	"fmt"
+	"github.com/google/uuid"
+	"math/rand"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
+	"time"
+)
+
+const (
+	defaultRandomLength = 10
+)
+
+var (
+	templateRegex = regexp.MustCompile("{{ *(random|uuid|epoch|millis|nanos)[_ ]*\\(?([0-9]+)?\\)? *}}")
+	runes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 )
 
 // configuration holds the values for the device configuration, including what
@@ -74,6 +87,11 @@ type configuration struct {
 func CreateDriverConfig(configMap map[string]string) (*configuration, error) {
 	config := new(configuration)
 	err := load(configMap, config)
+	if err == nil {
+		fmt.Printf(config.MqttClientId)
+		config.MqttClientId, err = replaceTemplateVars(config.MqttClientId)
+		fmt.Printf(config.MqttClientId)
+	}
 	return config, err
 }
 
@@ -138,4 +156,59 @@ func load(configMap map[string]string, config *configuration) error {
 		}
 	}
 	return nil
+}
+
+func replaceTemplateVars(val string) (string, error) {
+	for groups := templateRegex.FindStringSubmatch(val); len(groups) >= 2; groups = templateRegex.FindStringSubmatch(val) {
+		var replacement string
+		var err error
+
+		switch groups[1] {
+		case "uuid":
+			replacement = uuid.New().String()
+		case "epoch":
+			replacement = strconv.FormatInt(time.Now().Unix(), 10)
+		case "millis":
+			replacement = strconv.FormatInt(time.Now().UnixNano() / int64(time.Millisecond), 10)
+		case "nanos":
+			replacement = strconv.FormatInt(time.Now().UnixNano(), 10)
+		}
+
+		if len(groups) == 3 {
+			var length int
+			if groups[2] != "" {
+				length, err = strconv.Atoi(groups[2])
+				if err != nil {
+					return val, err
+				}
+			}
+
+			if groups[1] == "random" {
+				if length == 0 {
+					length = defaultRandomLength
+				}
+
+				randomStr := make([]rune, length)
+				for i := range randomStr {
+					randomStr[i] = runes[rand.Intn(len(runes))]
+				}
+				replacement = string(randomStr)
+
+			} else if length > 0 && length < len(replacement) {
+				replacement = replacement[:length]
+			}
+		}
+
+		if replacement == "" {
+			return "", fmt.Errorf("error generating values for template string")
+		}
+
+		val = strings.Replace(val, groups[0], replacement, 1)
+	}
+
+	if strings.Contains(val, "{{") || strings.Contains(val, "}}") {
+		return "", fmt.Errorf("invalid template string")
+	}
+
+	return val, nil
 }
