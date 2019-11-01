@@ -88,9 +88,7 @@ func CreateDriverConfig(configMap map[string]string) (*configuration, error) {
 	config := new(configuration)
 	err := load(configMap, config)
 	if err == nil {
-		fmt.Printf(config.MqttClientId)
 		config.MqttClientId, err = replaceTemplateVars(config.MqttClientId)
-		fmt.Printf(config.MqttClientId)
 	}
 	return config, err
 }
