@@ -1,5 +1,5 @@
 SERVICE_NAME?=mqtt-device-service
-MODULE_NAME?=github.impcloud.net/RSP-Inventory-Suite/$(SERVICE_NAME)
+MODULE_NAME?=github.com/intel/rsp-sw-toolkit-im-suite-mqtt-device-service
 VERSION?=$(shell cat ./VERSION)
 
 # See https://github.com/golang/go/wiki/GcToolchainTricks#including-build-information-in-the-executable
@@ -17,7 +17,7 @@ DEPENDS=internal/driver/*.go internal/jsonrpc/*.go cmd/*.go \
 $(SERVICE_NAME): go.mod VERSION $(DEPENDS)
 	$(GO) build $(GOFLAGS) -o $@ ./cmd
 
-image: $(SERVICE_NAME) Dockerfile
+image: Dockerfile
 	docker build \
 		$(addprefix --label ,$(LABELS)) \
 		$(addprefix -t $(SERVICE_NAME):,$(TAGS)) \

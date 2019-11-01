@@ -40,12 +40,11 @@ specific installation instructions if the `apt`-based commands are not relevant
 for your OS. 
 
 - make: `sudo apt -y install make`
-- Go: [Install Instructions](https://golang.org/doc/install)
 - Intel® RSP Controller Application: instructions [below](#Intel®-RSP-Controller-Application)
 - EdgeX, Edinburgh Release: instructions [below](#EdgeX,-Edinburgh-Release)
 
 >   :heavy_check_mark: If you installed the _Docker_ version of the Intel® RSP 
-    Controller Application, you already have the following dependencies:
+    Controller Application, you already have the following dependencies.
 
 >   :warning: If you installed the _native_ version of the Intel® RSP Controller 
     Application, you will also need these to run EdgeX and RSP MQTT Device Service
@@ -60,6 +59,10 @@ for your OS.
     -o /usr/local/bin/docker-compose && \
     sudo chmod a+x /usr/local/bin/docker-compose
 ```
+
+This `README` describes how to build the service within a Docker container;
+optionally, if you'd like to build and test the service executable on your local
+system, you'll need Go: [Install Instructions](https://golang.org/doc/install).
 
 #### Intel® RSP Controller Application
 This service connects the Intel® RSP Controller Application to EdgeX, so you
@@ -84,22 +87,24 @@ git clone https://github.com/intel/rsp-sw-toolkit-im-suite-mqtt-device-service.g
 ```
 
 ### Building and Creating the Docker Image
-Go to the directory where you cloned the repo and run `make build image`; you  
-may need `sudo` rights if you are not in the `docker` group: 
+Go to the directory where you cloned the repo and run `make image`; you  may 
+need `sudo` rights if you are not in the `docker` group: 
 ```bash
 cd mqtt-device-service
-sudo make build image 
+sudo make image 
 ```
 
 #### Make Targets
 The included [Makefile](Makefile) has some other useful targets for building and 
 testing the service. Here's a quick description of these targets:
 
+- `image`: builds the service within a Docker container, then builds and tags
+    a Docker image that makes use of the service
 - `$(SERVICE_NAME)` (default is `mqtt-device-service`): builds the service 
+    using the local Go compiler
 - `build`: alias for `$(SERVICE_NAME)` 
-- `test`: runs the test suite with coverage 
-- `clean`: deletes the service executable
-- `image`: builds and tags a Docker image
+- `test`: runs the test suite with coverage using the local Go compiler
+- `clean`: deletes the local service executable
 - `clean-img` deletes the Docker image
 
 ### Adding to EdgeX

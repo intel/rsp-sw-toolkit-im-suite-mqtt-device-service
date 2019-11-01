@@ -10,7 +10,7 @@ package main
 
 import (
 	"github.com/edgexfoundry/device-sdk-go/pkg/startup"
-	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/driver"
+	"github.com/intel/rsp-sw-toolkit-im-suite-mqtt-device-service/internal/driver"
 )
 
 const (

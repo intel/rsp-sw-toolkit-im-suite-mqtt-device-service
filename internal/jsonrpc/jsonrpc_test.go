@@ -8,7 +8,7 @@ package jsonrpc
 
 import (
 	"encoding/json"
-	"github.impcloud.net/RSP-Inventory-Suite/expect"
+	expect "github.com/intel/rsp-sw-toolkit-im-suite-expect"
 	"testing"
 )
 

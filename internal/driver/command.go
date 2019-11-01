@@ -10,7 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
-	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/jsonrpc"
+	"github.com/intel/rsp-sw-toolkit-im-suite-mqtt-device-service/internal/jsonrpc"
 	"strings"
 	"time"
 

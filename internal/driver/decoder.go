@@ -9,9 +9,9 @@ package driver
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/intel/rsp-sw-toolkit-im-suite-tagcode/bittag"
+	"github.com/intel/rsp-sw-toolkit-im-suite-tagcode/epc"
 	"github.com/pkg/errors"
-	"github.impcloud.net/RSP-Inventory-Suite/tagcode/bittag"
-	"github.impcloud.net/RSP-Inventory-Suite/tagcode/epc"
 	"strings"
 )
 

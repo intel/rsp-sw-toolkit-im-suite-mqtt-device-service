@@ -21,14 +21,12 @@
 # notice embedded in Materials by Intel or Intel's suppliers or licensors in any way.
 
 # ---------------------------------------------------------
-# can't create files in a scratch container, nor can you run chown, so this adds
-# the file structure here so it can be copied. This also adds the prebuilt image
-# so the service image itself is the same for this and the Dockerfile_dev
-FROM alpine as builder
-ARG SERVICE=mqtt-device-service
+FROM golang:1.12 as builder
 WORKDIR /app
-COPY  ${SERVICE} service
-RUN mkdir logs
+COPY go.mod .
+RUN go mod download
+COPY . .
+RUN make -e SERVICE_NAME=service build && mkdir logs
 
 # ---------------------------------------------------------
 FROM scratch as service
@@ -38,8 +36,8 @@ ARG APP_PORT=49982
 # https://github.com/moby/moby/issues/35018
 COPY --from=builder --chown=2000:2000 /app/logs /logs
 COPY --from=builder --chown=2000:2000 /app/service /
-COPY LICENSE .
 COPY cmd/res /res
+COPY LICENSE .
 
 USER 2000
 ENV APP_PORT=$APP_PORT

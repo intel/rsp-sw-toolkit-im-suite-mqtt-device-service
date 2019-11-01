@@ -3,8 +3,6 @@
 # are in sync
 go.sum
 Dockerfile
-Dockerfile_dev
-Makefile
 Jenkinsfile
 docker-compose.yml
 .gitignore

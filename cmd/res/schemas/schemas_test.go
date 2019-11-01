@@ -7,8 +7,8 @@
 package main
 
 import (
-	"github.impcloud.net/RSP-Inventory-Suite/expect"
-	"github.impcloud.net/RSP-Inventory-Suite/gojsonschema"
+	expect "github.com/intel/rsp-sw-toolkit-im-suite-expect"
+	gojsonschema "github.com/intel/rsp-sw-toolkit-im-suite-gojsonschema"
 	"io/ioutil"
 	"os"
 	"path/filepath"

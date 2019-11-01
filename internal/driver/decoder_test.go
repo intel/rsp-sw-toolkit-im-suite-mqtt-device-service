@@ -7,7 +7,7 @@
 package driver
 
 import (
-	"github.impcloud.net/RSP-Inventory-Suite/expect"
+	expect "github.com/intel/rsp-sw-toolkit-im-suite-expect"
 	"testing"
 )
 

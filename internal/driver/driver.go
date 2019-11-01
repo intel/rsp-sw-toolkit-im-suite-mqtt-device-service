@@ -15,8 +15,8 @@ package driver
 import (
 	"crypto/tls"
 	"fmt"
+	"github.com/intel/rsp-sw-toolkit-im-suite-mqtt-device-service/internal/jsonrpc"
 	"github.com/pkg/errors"
-	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/jsonrpc"
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -31,7 +31,7 @@ import (
 	sdkModel "github.com/edgexfoundry/device-sdk-go/pkg/models"
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
 	edgexModels "github.com/edgexfoundry/go-mod-core-contracts/models"
-	"github.impcloud.net/RSP-Inventory-Suite/gojsonschema"
+	"github.com/intel/rsp-sw-toolkit-im-suite-gojsonschema"
 )
 
 const (

@@ -9,9 +9,9 @@ package driver
 import (
 	"encoding/json"
 	"github.com/edgexfoundry/go-mod-core-contracts/clients/logger"
-	"github.impcloud.net/RSP-Inventory-Suite/expect"
-	"github.impcloud.net/RSP-Inventory-Suite/gojsonschema"
-	"github.impcloud.net/RSP-Inventory-Suite/mqtt-device-service/internal/jsonrpc"
+	expect "github.com/intel/rsp-sw-toolkit-im-suite-expect"
+	gojsonschema "github.com/intel/rsp-sw-toolkit-im-suite-gojsonschema"
+	"github.com/intel/rsp-sw-toolkit-im-suite-mqtt-device-service/internal/jsonrpc"
 	"testing"
 )
 
