@@ -115,57 +115,57 @@ func TestCreateDriverConfig_fail(t *testing.T) {
 
 func TestReplaceTemplateVars(t *testing.T) {
 	tests := []struct {
-		input string
+		input       string
 		outputRegex string
-		hasError bool
+		hasError    bool
 	}{
 		{
-			input: "rsp-{{random(10)}}",
+			input:       "rsp-{{random(10)}}",
 			outputRegex: "rsp-[a-zA-Z0-9]{10}",
 		},
 		{
-			input: "rsp/{{  epoch}}",
+			input:       "rsp/{{  epoch}}",
 			outputRegex: "rsp/[0-9]{10}",
 		},
 		{
-			input: "rsp;{{millis() }}",
+			input:       "rsp;{{millis() }}",
 			outputRegex: "rsp;[0-9]{13}",
 		},
 		{
-			input: "rsp___{{   nanos }}",
+			input:       "rsp___{{   nanos }}",
 			outputRegex: "rsp___[0-9]{19}",
 		},
 		{
-			input: "rsp{{random}}",
-			outputRegex: "rsp[a-zA-Z0-9]{"+strconv.Itoa(defaultRandomLength)+"}",
+			input:       "rsp{{random}}",
+			outputRegex: "rsp[a-zA-Z0-9]{" + strconv.Itoa(defaultRandomLength) + "}",
 		},
 		{
 			// Test truncate to max
-			input: "foo_{{uuid(50)}}",
+			input:       "foo_{{uuid(50)}}",
 			outputRegex: "foo_[-a-fA-F0-9]{36}",
 		},
 		{
-			input: "bar_{{ uuid }}",
+			input:       "bar_{{ uuid }}",
 			outputRegex: "bar_[-a-fA-F0-9]{36}",
 		},
 		{
-			input: "rsp{{random}",
+			input:    "rsp{{random}",
 			hasError: true,
 		},
 		{
-			input: "rsp{{random(-1)}}",
+			input:    "rsp{{random(-1)}}",
 			hasError: true,
 		},
 		{
-			input: "assadfsdf {{ .epoch }}",
+			input:    "assadfsdf {{ .epoch }}",
 			hasError: true,
 		},
 		{
-			input: "fixedString",
+			input:       "fixedString",
 			outputRegex: "fixedString",
 		},
 		{
-			input: "{{ epoch }}_multiple_{{ uuid }}_{{random(100)}}",
+			input:       "{{ epoch }}_multiple_{{ uuid }}_{{random(100)}}",
 			outputRegex: "[a-zA-Z0-9]{10}_multiple_[-a-fA-F0-9]{36}_[a-zA-Z0-9]{100}",
 		},
 	}
@@ -183,4 +183,3 @@ func TestReplaceTemplateVars(t *testing.T) {
 		})
 	}
 }
-

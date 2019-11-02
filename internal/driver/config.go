@@ -29,7 +29,7 @@ const (
 
 var (
 	templateRegex = regexp.MustCompile("{{ *(random|uuid|epoch|millis|nanos)[_ ]*\\(?([0-9]+)?\\)? *}}")
-	runes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+	runes         = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 )
 
 // configuration holds the values for the device configuration, including what
@@ -156,10 +156,32 @@ func load(configMap map[string]string, config *configuration) error {
 	return nil
 }
 
+func generateRandomString(length int) string {
+	randomStr := make([]rune, length)
+	for i := range randomStr {
+		randomStr[i] = runes[rand.Intn(len(runes))]
+	}
+	return string(randomStr)
+}
+
 func replaceTemplateVars(val string) (string, error) {
-	for groups := templateRegex.FindStringSubmatch(val); len(groups) >= 2; groups = templateRegex.FindStringSubmatch(val) {
-		var replacement string
-		var err error
+	var err error
+	var replacement string
+	var length int
+
+	for {
+		groups := templateRegex.FindStringSubmatch(val)
+		if len(groups) < 2 {
+			break
+		}
+
+		// determine optional length to truncate
+		if len(groups) == 3 && groups[2] != "" {
+			length, err = strconv.Atoi(groups[2])
+			if err != nil {
+				return "", err
+			}
+		}
 
 		switch groups[1] {
 		case "uuid":
@@ -167,45 +189,29 @@ func replaceTemplateVars(val string) (string, error) {
 		case "epoch":
 			replacement = strconv.FormatInt(time.Now().Unix(), 10)
 		case "millis":
-			replacement = strconv.FormatInt(time.Now().UnixNano() / int64(time.Millisecond), 10)
+			replacement = strconv.FormatInt(time.Now().UnixNano()/int64(time.Millisecond), 10)
 		case "nanos":
 			replacement = strconv.FormatInt(time.Now().UnixNano(), 10)
+		case "random":
+			// random does not have an inherent size like a uuid or similar,
+			// so give it one here to allow it to be called without a parameter
+			if length == 0 {
+				length = defaultRandomLength
+			}
+			replacement = generateRandomString(length)
+		default:
+			return "", fmt.Errorf("invalid template variable specified: %s", groups[1])
 		}
 
-		if len(groups) == 3 {
-			var length int
-			if groups[2] != "" {
-				length, err = strconv.Atoi(groups[2])
-				if err != nil {
-					return val, err
-				}
-			}
-
-			if groups[1] == "random" {
-				if length == 0 {
-					length = defaultRandomLength
-				}
-
-				randomStr := make([]rune, length)
-				for i := range randomStr {
-					randomStr[i] = runes[rand.Intn(len(runes))]
-				}
-				replacement = string(randomStr)
-
-			} else if length > 0 && length < len(replacement) {
-				replacement = replacement[:length]
-			}
-		}
-
-		if replacement == "" {
-			return "", fmt.Errorf("error generating values for template string")
+		if length > 0 && length < len(replacement) {
+			replacement = replacement[:length]
 		}
 
 		val = strings.Replace(val, groups[0], replacement, 1)
 	}
 
 	if strings.Contains(val, "{{") || strings.Contains(val, "}}") {
-		return "", fmt.Errorf("invalid template string")
+		return "", fmt.Errorf("invalid template string: %s", val)
 	}
 
 	return val, nil
