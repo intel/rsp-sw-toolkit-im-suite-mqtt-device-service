@@ -5,6 +5,7 @@
     "method",
     "params"
   ],
+  "additionalProperties": false,
   "properties": {
     "jsonrpc": {
       "type": "string",
@@ -28,6 +29,7 @@
         "period",
         "data"
       ],
+      "additionalProperties": false,
       "properties": {
         "sent_on": {
           "type": "integer"
@@ -65,6 +67,7 @@
               "phase",
               "frequency"
             ],
+            "additionalProperties": false,
             "properties": {
               "epc": {
                 "type": "string",
@@ -101,13 +104,10 @@
                 ],
                 "pattern": "^(urn:epc:id:sgtin:|tag:|$)"
               }
-            },
-            "additionalProperties": false
+            }
           }
         }
-      },
-      "additionalProperties": false
+      }
     }
-  },
-  "additionalProperties": false
+  }
 }

@@ -5,6 +5,7 @@
     "method",
     "params"
   ],
+  "additionalProperties": false,
   "properties": {
     "jsonrpc": {
       "type": "string"
@@ -21,6 +22,7 @@
         "motion_detected",
         "data"
       ],
+      "additionalProperties": false,
       "properties": {
         "sent_on": {
           "type": "integer"
@@ -47,6 +49,7 @@
               "antenna_id",
               "event_date"
             ],
+            "additionalProperties": false,
             "properties": {
               "epc": {
                 "type": "string",
@@ -69,13 +72,10 @@
               "event_date": {
                 "type": "integer"
               }
-            },
-            "additionalProperties": false
+            }
           }
         }
-      },
-      "additionalProperties": false
+      }
     }
-  },
-  "additionalProperties": false
+  }
 }

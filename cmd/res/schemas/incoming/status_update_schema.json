@@ -5,6 +5,7 @@
     "method",
     "params"
   ],
+  "additionalProperties": false,
   "properties": {
     "jsonrpc": {
       "type": "string"
@@ -20,6 +21,7 @@
         "facility_id",
         "status"
       ],
+      "additionalProperties": false,
       "properties": {
         "sent_on": {
           "type": "integer"
@@ -43,9 +45,7 @@
             "lost"
           ]
         }
-      },
-      "additionalProperties": false
+      }
     }
-  },
-  "additionalProperties": false
+  }
 }

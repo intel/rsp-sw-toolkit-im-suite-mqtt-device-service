@@ -5,6 +5,7 @@
     "method",
     "params"
   ],
+  "additionalProperties": false,
   "properties": {
     "jsonrpc": {
       "type": "string"
@@ -18,6 +19,7 @@
         "sent_on",
         "device_id"
       ],
+      "additionalProperties": false,
       "properties": {
         "sent_on": {
           "type": "integer"
@@ -25,9 +27,7 @@
         "device_id": {
           "type": "string"
         }
-      },
-      "additionalProperties": false
+      }
     }
-  },
-  "additionalProperties": false
+  }
 }

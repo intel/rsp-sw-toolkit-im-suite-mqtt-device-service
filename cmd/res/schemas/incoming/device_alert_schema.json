@@ -35,7 +35,10 @@
               "type": "string"
             },
             "controller_id": {
-              "type": "string"
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "facilities": {
               "type": [
