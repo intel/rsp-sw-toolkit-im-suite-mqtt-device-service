@@ -20,8 +20,7 @@ func testSchemasDir(t *testing.T, dir string) {
 	w := expect.WrapT(t)
 	schemaData := w.ShouldHaveResult(ioutil.ReadFile(dir + "_meta_schema.json")).([]byte)
 	metaSchema := w.Asf("create schema from %q", dir).ShouldHaveResult(
-		gojsonschema.NewSchema(gojsonschema.NewBytesLoader(schemaData))).
-	(*gojsonschema.Schema)
+		gojsonschema.NewSchema(gojsonschema.NewBytesLoader(schemaData))).(*gojsonschema.Schema)
 
 	w.As("walk " + dir).ShouldSucceed(filepath.Walk(dir,
 		func(path string, info os.FileInfo, err error) error {

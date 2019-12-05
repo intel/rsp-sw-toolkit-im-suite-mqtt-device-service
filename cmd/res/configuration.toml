@@ -124,7 +124,7 @@ MqttKeepAlive = "120"
 IncomingQos = "1"
 ResponseQos = "1"
 CommandQos = "1"
-MqttClientId = "MqttDeviceService"
+MqttClientId = "RspMqttDeviceService_{{ random(10) }}"
 
 # Tag data decoder settings
 # sgtin decoder converts tag data into GS1 EPC Pure Identity URIs:

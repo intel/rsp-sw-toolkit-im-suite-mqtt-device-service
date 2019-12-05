@@ -14,9 +14,22 @@ package driver
 
 import (
 	"fmt"
+	"github.com/google/uuid"
+	"math/rand"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
+	"time"
+)
+
+const (
+	defaultRandomLength = 10
+)
+
+var (
+	templateRegex = regexp.MustCompile("{{ *(random|uuid|epoch|millis|nanos)[_ ]*\\(?([0-9]+)?\\)? *}}")
+	runes         = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 )
 
 // configuration holds the values for the device configuration, including what
@@ -74,6 +87,9 @@ type configuration struct {
 func CreateDriverConfig(configMap map[string]string) (*configuration, error) {
 	config := new(configuration)
 	err := load(configMap, config)
+	if err == nil {
+		config.MqttClientId, err = replaceTemplateVars(config.MqttClientId)
+	}
 	return config, err
 }
 
@@ -138,4 +154,65 @@ func load(configMap map[string]string, config *configuration) error {
 		}
 	}
 	return nil
+}
+
+func generateRandomString(length int) string {
+	randomStr := make([]rune, length)
+	for i := range randomStr {
+		randomStr[i] = runes[rand.Intn(len(runes))]
+	}
+	return string(randomStr)
+}
+
+func replaceTemplateVars(val string) (string, error) {
+	var err error
+	var replacement string
+	var length int
+
+	for {
+		groups := templateRegex.FindStringSubmatch(val)
+		if len(groups) < 2 {
+			break
+		}
+
+		// determine optional length to truncate
+		if len(groups) == 3 && groups[2] != "" {
+			length, err = strconv.Atoi(groups[2])
+			if err != nil {
+				return "", err
+			}
+		}
+
+		switch groups[1] {
+		case "uuid":
+			replacement = uuid.New().String()
+		case "epoch":
+			replacement = strconv.FormatInt(time.Now().Unix(), 10)
+		case "millis":
+			replacement = strconv.FormatInt(time.Now().UnixNano()/int64(time.Millisecond), 10)
+		case "nanos":
+			replacement = strconv.FormatInt(time.Now().UnixNano(), 10)
+		case "random":
+			// random does not have an inherent size like a uuid or similar,
+			// so give it one here to allow it to be called without a parameter
+			if length == 0 {
+				length = defaultRandomLength
+			}
+			replacement = generateRandomString(length)
+		default:
+			return "", fmt.Errorf("invalid template variable specified: %s", groups[1])
+		}
+
+		if length > 0 && length < len(replacement) {
+			replacement = replacement[:length]
+		}
+
+		val = strings.Replace(val, groups[0], replacement, 1)
+	}
+
+	if strings.Contains(val, "{{") || strings.Contains(val, "}}") {
+		return "", fmt.Errorf("invalid template string: %s", val)
+	}
+
+	return val, nil
 }

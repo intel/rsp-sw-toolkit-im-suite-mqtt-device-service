@@ -14,6 +14,7 @@ package driver
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -109,5 +110,76 @@ func TestCreateDriverConfig_fail(t *testing.T) {
 	_, err := CreateDriverConfig(configs)
 	if err == nil {
 		t.Fatal("Unexpected test result; err should not be nil")
+	}
+}
+
+func TestReplaceTemplateVars(t *testing.T) {
+	tests := []struct {
+		input       string
+		outputRegex string
+		hasError    bool
+	}{
+		{
+			input:       "rsp-{{random(10)}}",
+			outputRegex: "rsp-[a-zA-Z0-9]{10}",
+		},
+		{
+			input:       "rsp/{{  epoch}}",
+			outputRegex: "rsp/[0-9]{10}",
+		},
+		{
+			input:       "rsp;{{millis() }}",
+			outputRegex: "rsp;[0-9]{13}",
+		},
+		{
+			input:       "rsp___{{   nanos }}",
+			outputRegex: "rsp___[0-9]{19}",
+		},
+		{
+			input:       "rsp{{random}}",
+			outputRegex: "rsp[a-zA-Z0-9]{" + strconv.Itoa(defaultRandomLength) + "}",
+		},
+		{
+			// Test truncate to max
+			input:       "foo_{{uuid(50)}}",
+			outputRegex: "foo_[-a-fA-F0-9]{36}",
+		},
+		{
+			input:       "bar_{{ uuid }}",
+			outputRegex: "bar_[-a-fA-F0-9]{36}",
+		},
+		{
+			input:    "rsp{{random}",
+			hasError: true,
+		},
+		{
+			input:    "rsp{{random(-1)}}",
+			hasError: true,
+		},
+		{
+			input:    "assadfsdf {{ .epoch }}",
+			hasError: true,
+		},
+		{
+			input:       "fixedString",
+			outputRegex: "fixedString",
+		},
+		{
+			input:       "{{ epoch }}_multiple_{{ uuid }}_{{random(100)}}",
+			outputRegex: "[a-zA-Z0-9]{10}_multiple_[-a-fA-F0-9]{36}_[a-zA-Z0-9]{100}",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.input, func(t *testing.T) {
+			regex := regexp.MustCompile(test.outputRegex)
+			out, err := replaceTemplateVars(test.input)
+			if test.hasError && err == nil {
+				t.Errorf("expected error but did not get one. output: %s", out)
+			} else if !test.hasError && err != nil {
+				t.Errorf("got unexpected error: %+v", err)
+			} else if !regex.MatchString(out) {
+				t.Errorf("result: %s did not match expected regex: %s", out, test.outputRegex)
+			}
+		})
 	}
 }
