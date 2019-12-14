@@ -54,16 +54,6 @@ LogLevel = "DEBUG"
   RemoveCmdArgs = ""
   ProfilesDir = "./res"
 
-# Pre-define Devices
-[[DeviceList]]
-  Name = "rsp-controller"
-  Profile = "RSP.Controller.Device.MQTT.Profile"
-  Description = "RSP Controller Device MQTT Broker Connection"
-  Labels = [ "MQTT", "RSP", "RSP Controller", "RFID"]
-  [DeviceList.Protocols]
-    [DeviceList.Protocols.mqtt]
-       Scheme = "tcp"
-
 # Driver configs
 [Driver]
 # device name used for sending data received on the IncomingTopics into Edgex

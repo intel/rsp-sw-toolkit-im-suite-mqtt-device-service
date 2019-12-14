@@ -1,6 +1,9 @@
+REGISTRY?=
+NAMESPACE?=rsp
 SERVICE_NAME?=mqtt-device-service
 MODULE_NAME?=github.com/intel/rsp-sw-toolkit-im-suite-mqtt-device-service
 VERSION?=$(shell cat ./VERSION)
+IMAGE_NAME?=$(if $(REGISTRY),$(REGISTRY)/,)$(if $(NAMESPACE),$(NAMESPACE)/,)$(SERVICE_NAME)
 
 # See https://github.com/golang/go/wiki/GcToolchainTricks#including-build-information-in-the-executable
 GOFLAGS:=-ldflags "-X $(MODULE_NAME)/cmd/main.Version=$(VERSION)"
@@ -20,7 +23,7 @@ $(SERVICE_NAME): go.mod VERSION $(DEPENDS)
 image: Dockerfile
 	docker build \
 		$(addprefix --label ,$(LABELS)) \
-		$(addprefix -t $(SERVICE_NAME):,$(TAGS)) \
+		$(addprefix -t $(IMAGE_NAME):,$(TAGS)) \
 		.
 
 test:
@@ -30,4 +33,4 @@ clean:
 	-rm -f $(SERVICE_NAME)
 
 clean-img:
-	-docker rmi $(addprefix $(SERVICE_NAME):,$(TAGS))
+	-docker rmi $(addprefix $(IMAGE_NAME):,$(TAGS))

@@ -35,12 +35,13 @@ import (
 )
 
 const (
-	jsonRpcVersion          = "2.0"
-	notRetained             = false
-	rspDeviceProfile        = "RSP.Device.MQTT.Profile"
-	disconnectQuiesceMillis = 5000
-	connectFailureSleep     = 5 * time.Second
-	subscribeFailureSleep   = 5 * time.Second
+	jsonRpcVersion             = "2.0"
+	notRetained                = false
+	rspControllerDeviceProfile = "RSP.Controller.Device.MQTT.Profile"
+	rspDeviceProfile           = "RSP.Device.MQTT.Profile"
+	disconnectQuiesceMillis    = 5000
+	connectFailureSleep        = 5 * time.Second
+	subscribeFailureSleep      = 5 * time.Second
 	// maximum amount of incoming data mqtt messages to handle at one time
 	incomingDataMessageBuffer = 100
 	// maximum amount of incoming mqtt responses to handle at one time
@@ -130,6 +131,9 @@ func (driver *Driver) Initialize(lc logger.LoggingClient, asyncCh chan<- *sdkMod
 }
 
 func (driver *Driver) Start() {
+	// make sure the RSP Controller device is present in the edgex database
+	driver.registerDeviceIfNeeded(driver.Config.ControllerName, rspControllerDeviceProfile)
+
 	driver.createClient()
 	go driver.connect()
 
@@ -319,9 +323,15 @@ func (driver *Driver) connect() {
 	}
 }
 
-// registerRSP registers a newly seen RSP sensor within EdgeX for the purposes of calling commands with parameters
-func (driver *Driver) registerRSP(deviceId string) {
-	// Registering sensor devices in Edgex
+// registerDeviceIfNeeded registers an MQTT device with EdgeX for the purposes of calling commands and receiving data
+func (driver *Driver) registerDeviceIfNeeded(deviceId string, profileName string) {
+	if _, err := sdk.RunningService().GetDeviceByName(deviceId); err == nil {
+		// if err is nil, device already exists
+		driver.Logger.Debug("Device already exists, not registering", "deviceId", deviceId, "profile", profileName)
+		return
+	}
+
+	driver.Logger.Debug("Device not found in EdgeX database. Now Registering.", "deviceId", deviceId, "profile", profileName)
 	_, err := sdk.RunningService().AddDevice(edgexModels.Device{
 		Name:           deviceId,
 		AdminState:     edgexModels.Unlocked,
@@ -332,14 +342,15 @@ func (driver *Driver) registerRSP(deviceId string) {
 			},
 		},
 		Profile: edgexModels.DeviceProfile{
-			Name: rspDeviceProfile,
+			Name: profileName,
 		},
 	})
 	if err != nil {
-		driver.Logger.Error("Sensor device registration failed",
-			"device", deviceId, "cause", err)
+		driver.Logger.Error("Device registration failed",
+			"device", deviceId, "profile", profileName, "cause", err)
 	}
 }
+
 func (driver *Driver) setupDecoderRing() error {
 	driver.DecoderRing = &DecoderRing{}
 	for idx, f := range driver.Config.TagFormats {
