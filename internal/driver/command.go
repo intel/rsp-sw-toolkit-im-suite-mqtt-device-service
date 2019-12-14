@@ -9,8 +9,8 @@ package driver
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
 	"github.com/intel/rsp-sw-toolkit-im-suite-mqtt-device-service/internal/jsonrpc"
+	"github.com/pkg/errors"
 	"strings"
 	"time"
 
