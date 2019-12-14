@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/eclipse/paho.mqtt.golang"
-	sdk "github.com/edgexfoundry/device-sdk-go"
 	sdkModel "github.com/edgexfoundry/device-sdk-go/pkg/models"
 )
 
@@ -93,15 +92,12 @@ func (driver *Driver) processResource(data jsonrpc.Notification) (modified []byt
 	switch data.Method {
 	case sensorHeartbeat:
 		// Register new (i.e., currently unregistered) sensors with EdgeX
-		var deviceID string
-		err = data.GetParam(deviceIdKey, &deviceID)
+		var deviceId string
+		err = data.GetParam(deviceIdKey, &deviceId)
 		if err != nil {
 			return
 		}
-
-		if _, notFound := sdk.RunningService().GetDeviceByName(deviceID); notFound != nil {
-			driver.registerRSP(deviceID)
-		}
+		driver.registerDeviceIfNeeded(deviceId, rspDeviceProfile)
 
 	case inventoryEvent:
 		var inventoryData []jsonrpc.Parameters

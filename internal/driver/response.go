@@ -16,8 +16,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/eclipse/paho.mqtt.golang"
-	"github.com/pkg/errors"
 	"github.com/intel/rsp-sw-toolkit-im-suite-mqtt-device-service/internal/jsonrpc"
+	"github.com/pkg/errors"
 	"time"
 
 	sdkModel "github.com/edgexfoundry/device-sdk-go/pkg/models"
