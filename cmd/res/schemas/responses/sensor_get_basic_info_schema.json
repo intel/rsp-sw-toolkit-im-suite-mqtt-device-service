@@ -78,7 +78,10 @@
             "type": "string"
           },
           "optional": {
-            "type": "object"
+            "type": [
+              "object",
+              "null"
+            ]
           }
         }
       }
