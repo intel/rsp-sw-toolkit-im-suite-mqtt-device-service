@@ -17,9 +17,3 @@ require (
 	golang.org/x/net v0.0.0-20190213061140-3a22650c66bd // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 )
-
-replace github.com/intel/rsp-sw-toolkit-im-suite-expect => github.impcloud.net/RSP-Inventory-Suite/expect v1.1.4
-
-replace github.com/intel/rsp-sw-toolkit-im-suite-gojsonschema => github.impcloud.net/RSP-Inventory-Suite/gojsonschema v1.2.0
-
-replace github.com/intel/rsp-sw-toolkit-im-suite-tagcode => github.impcloud.net/RSP-Inventory-Suite/tagcode v1.2.1
