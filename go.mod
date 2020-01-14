@@ -9,7 +9,7 @@ require (
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/mux v1.7.0 // indirect
-	github.com/intel/rsp-sw-toolkit-im-suite-expect v1.1.4
+	github.com/intel/rsp-sw-toolkit-im-suite-expect v1.1.5
 	github.com/intel/rsp-sw-toolkit-im-suite-gojsonschema v1.0.0
 	github.com/intel/rsp-sw-toolkit-im-suite-tagcode v1.2.1
 	github.com/kr/pretty v0.1.0 // indirect
